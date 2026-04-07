@@ -96,15 +96,29 @@ svg {
 }
 
 /* Your custom styles */
-.heroSectionBg {
+
+ .heroSectionBg {
   background: radial-gradient(
     ellipse at center,
-    rgba(251, 250, 248, 0.95) 35%,
-    rgba(251, 250, 248, 0.8) 40%,
-    rgba(255, 255, 255, 0.3) 95%,
-    transparent 100%
+    rgba(251, 250, 248, 0.98) 0%,
+    rgba(251, 250, 248, 0.95) 25%,
+    rgba(251, 250, 248, 0.85) 45%,
+    rgba(251, 250, 248, 0.6) 65%,
+    rgba(251, 250, 248, 0.3) 80%,
+    rgba(251, 250, 248, 0) 100%
   );
 }
+.heroSectionBg2 {
+  background: radial-gradient(
+    at bottom, 
+    rgba(145, 121, 75, 0.1) 0%,
+    rgba(145, 121, 71, .1) 0%,
+    rgba(145, 121, 71, .4) 0%,
+    rgba(145, 121, 71, 0) 70%);
+  height: 100vh;
+}
+
+
 
 .titleStyle {
   background: #ebf5ff;
@@ -156,7 +170,7 @@ svg {
   color: #424C61;
 }
 .scoundColor{
-  color: #917947;
+  color: #9F854E;
 }
 .descriptionColor{
   color: #737373;
@@ -165,10 +179,11 @@ svg {
   background-color: #F5F3ED;
 }
 .bgTitleColorOpacity {
-  background-color: rgba(245, 243, 237, 0.7) ;
+  /* background-color: rgba(245, 243, 237, 0.7) ; */
+  background : #E1D9C833
 }
 .scoundBgColor{
-  background-color: #917947;
+  background-color: #9F854E;
 }
 
 .bkMainColor {
