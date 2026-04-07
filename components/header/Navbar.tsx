@@ -1,58 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import LangUseParams from "@/translate/LangUseParams";
-import GlobeBtn from "./GlobeBtn";
+import Image from "next/image";
+import Link from "next/link";
 
 const Navbar = () => {
-  const lang = LangUseParams();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // wait for lang to be set
-    if (lang) {
-      setLoading(false);
-    }
-  }, [lang]);
-
-  const IconSkeleton = ({ className }: { className?: string }) => (
-    <div
-      className={`w-8 h-8 rounded-full bg-gray-300 animate-pulse me-2 ${className || ""}`}
-      aria-hidden="true"
-    />
-  );
-
-  const ButtonSkeleton = () => (
-    <div className="w-28 h-8 me-2 rounded-md bg-gray-300 animate-pulse" />
-  );
-
   return (
-    <nav className="top-0 z-20 " dir={lang === "ar" ? "rtl" : "ltr"}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 ms-10 md:ms-0">
-          {/* Desktop Navigation */}
-          <div className="hidden md:block" />
+    <header className="absolute top-0 left-0 w-full z-50">
+      <div className="max-w-7xl mx-auto px-6">
+        
+        <div className="flex items-center justify-between mt-4 rounded-xl px-6 py-3 
+         bgTitleColorOpacity   shadow-sm">
 
-          {/* Icons & Mobile Menu Button */}
-          <div className="flex items-center space-x-4 ltr:space-x-4 rtl:space-x-reverse relative">
-            {/* Loading Skeletons */}
-            {loading ? (
-              <>
-                <IconSkeleton />
-                <ButtonSkeleton />
-              </>
-            ) : (
-              <>
-                <GlobeBtn />
-                
-              </>
-            )}
+          {/* Right - Logo */}
+          <div className="flex items-center gap-2">
+            <Image
+              src="/assets/images/Vector.svg"
+              alt="logo"
+              width={40}
+              height={40}
+            /> 
+          </div>
 
+          {/* Center - Links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm text-gray-700">
+            <Link href="#">الرئيسية</Link>
+            <Link href="#">الخطة الدراسية</Link>
+            <Link href="#">هيئة التدريس</Link>
+            <Link href="#">مسارات علمية مستقلة</Link>
+            <Link href="#">المكتبة العلمية</Link>
+            <Link href="#">تواصل معنا</Link>
+          </nav>
+
+          {/* Left - Actions */}
+          <div className="flex items-center gap-3">
+            
+            {/* Language Circle */}
+            <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm">
+              ع
+            </div>
+
+            {/* Button */}
+            <button className="bg-[#8B6B3E] text-white px-4 py-2 rounded-lg text-sm">
+              تسجيل الدخول
+            </button>
 
           </div>
+
         </div>
+
       </div>
-    </nav>
+    </header>
   );
 };
 

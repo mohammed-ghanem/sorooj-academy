@@ -1,12 +1,13 @@
 /* Font imports */
 @import url("https://fonts.googleapis.com/css2?family=Amiri&family=Almarai&family=Aref+Ruqaa&family=El+Messiri&family=Reem+Kufi&display=swap");
-
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
 /* Tailwind imports */
 @import "tailwindcss";
 
 /* Base styles */
 :root {
-  font-family: var(--font-cairo), sans-serif;
+  /* font-family: var(--font-cairo), sans-serif; */
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
 
   /* Light theme variables */
   --background: 0 0% 100%;
@@ -95,8 +96,14 @@ svg {
 }
 
 /* Your custom styles */
-.mainBackGroundColor {
-  background-color: #ebf5ff;
+.heroSectionBg {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(251, 250, 248, 0.95) 35%,
+    rgba(251, 250, 248, 0.8) 40%,
+    rgba(255, 255, 255, 0.3) 95%,
+    transparent 100%
+  );
 }
 
 .titleStyle {
@@ -146,20 +153,24 @@ svg {
   background: rgb(243 244 246);
 }
 .mainColor {
-  color: #69909d;
+  color: #424C61;
 }
-.titleColor {
-  color : #4a46eb
+.scoundColor{
+  color: #917947;
+}
+.descriptionColor{
+  color: #737373;
 }
 .bgTitleColor {
-  background-color: #4a46eb
+  background-color: #F5F3ED;
 }
-.bgTitleColor:hover {
-  background-color: #4e4af2cf
+.bgTitleColorOpacity {
+  background-color: rgba(245, 243, 237, 0.7) ;
 }
-.iconBar {
-  color: #4a46eb!important;
+.scoundBgColor{
+  background-color: #917947;
 }
+
 .bkMainColor {
   /* background: #69909d4f; */
   background: #ebf5ff;
@@ -169,9 +180,7 @@ svg {
   background: #ebf5ff;
   color: #000;
 }
-.scoundColor {
-  color: #81878f;
-}
+
 .lightColor {
   color: #9368f33d;
 }

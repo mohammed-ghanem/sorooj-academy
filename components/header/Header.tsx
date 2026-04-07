@@ -1,9 +1,9 @@
-import React from 'react'
+import Navbar from './Navbar'
 
 const Header = () => {
   return (
-    <div>
-        headerrr
+    <div className='container mx-auto w-[90%]'>
+        <Navbar />
     </div>
   )
 }

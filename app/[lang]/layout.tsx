@@ -1,8 +1,6 @@
 
 import type { Metadata } from "next";
-
 import "./globals.css";
-import Navbar from "@/components/header/Navbar";
 import { Providers } from "../../providers/Providers";
 import { ReactNode } from "react";
 import { Cairo } from "next/font/google";
@@ -31,39 +29,27 @@ export default async function RootLayout({
 
   return (
     <html lang={lang} dir={dir} className={cairo.variable}>
-      <body className="min-h-screen">
+      <body className="overflow-x-hidden">
         <Providers>
-          <div className="flex flex-col md:flex-row h-screen">
+        <div className="">
 
+              <div>
 
-            {/* Main Content Area */}
-            <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-              {/* Header - Fixed on mobile */}
-              <header className=" bg-white shadow-sm md:shadow-none">
-                <Header />
-              </header>
+                <header className="absolute top-0 left-0 w-full z-50 bg-transparent">
+                    <Header />
+                </header>
 
-              {/* Main Content */}
-              <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 mainBackGroundColor">
-                <div className="max-w-7xl mx-auto">
-                  {children}
-                </div>
-              </main>
+                <main className="">
+                  <div className="mx-auto">
+                    {children}
+                  </div>
+                </main>
 
-              {/* Footer */}
-              <footer className="h-12 md:h-10 bg-white border-t flex items-center justify-center text-sm text-gray-500 px-4">
-                <div className="text-center">
-                  <span className="block md:inline">
-                    © {new Date().getFullYear()} My Dashboard
-                  </span>
-                  <span className="hidden md:inline mx-2">•</span>
-                  <span className="block md:inline text-xs mt-1 md:mt-0">
-                    جميع الحقوق محفوظة
-                  </span>
-                </div>
-              </footer>
-            </div>
-          </div>
+                {/* <footer> copy right footer</footer> */}
+
+              </div>
+
+        </div>
         </Providers>
       </body>
     </html>
