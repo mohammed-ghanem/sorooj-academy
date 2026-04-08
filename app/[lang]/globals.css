@@ -179,8 +179,11 @@ svg {
   background-color: #F5F3ED;
 }
 .bgTitleColorOpacity {
-  /* background-color: rgba(245, 243, 237, 0.7) ; */
-  background : #E1D9C833
+  background : #E1D9C833;
+}
+.bgTitleColorOpacity2 {
+  /* background: rgba(225, 217, 200, .7); */
+  background: radial-gradient(circle, rgba(225, 217, 200, 1.5) 80%, #fff 100%);
 }
 .scoundBgColor{
   background-color: #9F854E;

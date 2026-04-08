@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import StatusSection from "./StatusSection"
 
 const HeroSection = () => {
   return (
@@ -7,7 +8,7 @@ const HeroSection = () => {
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
 
             {/* Left */}
-            <div className="absolute left-0 top-0  w-[400px] h-screen!">
+            <div className="absolute left-0 top-0  w-100 h-screen!">
             <Image
                 src="/assets/images/frame2.png"
                 alt=""
@@ -18,7 +19,7 @@ const HeroSection = () => {
             </div>
 
             {/* Right */}
-            <div className="absolute right-0 top-0  w-[400px] h-screen!">
+            <div className="absolute right-0 top-0  w-100 h-screen!">
             <Image
                 src="/assets/images/frame1.png"
                 alt=""
@@ -36,7 +37,7 @@ const HeroSection = () => {
                     <h2 className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
                         دفعة جديدة - التسجيل مفتوح الآن لعام 2026
                     </h2>
-                    <h1 className="text-5xl font-bold mb-4">
+                    <h1 className="text-3xl md:text-5xl font-bold mb-4">
                         <span className="mainColor"> تعلّم بعلمٍ ... </span>
                         <span className="scoundColor"> وتقدّم بيقين </span>
                     </h1>
@@ -56,9 +57,9 @@ const HeroSection = () => {
                     </div>
                    
                 </div>
-               
+           
      </section>
-     
+     <StatusSection/>
     </div>
   )
 }
