@@ -26,7 +26,7 @@ const Navbar = () => {
           <Image src={logo} alt="logo" width={100} />
 
           {/* Desktop Links */}
-          <nav className="hidden md:flex items-center gap-8 text-base">
+          <nav className="hidden lg:flex items-center gap-4 md:gap-5 text-sm lg:text-base">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -39,7 +39,7 @@ const Navbar = () => {
           </nav>
 
           {/* Actions */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm">
               ع
             </div>
@@ -52,7 +52,7 @@ const Navbar = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden flex flex-col gap-1"
+            className="lg:hidden flex flex-col gap-1"
           >
             <span className="w-6 h-0.5 scoundBgColor"></span>
             <span className="w-6 h-0.5 scoundBgColor"></span>
@@ -61,7 +61,7 @@ const Navbar = () => {
 
           {/* Mobile Dropdown */}
           {isOpen && (
-            <div className="absolute top-full left-0 w-full bg-white shadow-md rounded-lg mt-3 p-4 flex flex-col gap-4 md:hidden">
+            <div className="absolute top-full left-0 w-full bg-white shadow-md rounded-lg mt-3 p-4 flex flex-col gap-4 lg:hidden">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}

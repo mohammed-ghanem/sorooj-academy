@@ -59,7 +59,6 @@ const HeroSection = () => {
                 </div>
            
      </section>
-     <StatusSection/>
     </div>
   )
 }
