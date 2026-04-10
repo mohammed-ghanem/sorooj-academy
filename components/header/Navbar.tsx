@@ -6,12 +6,12 @@ import Link from "next/link";
 import logo from "@/public/assets/images/logoo.png";
 
 const navLinks = [
-  { label: "الرئيسية", href: "/" },
-  { label: "الخطة الدراسية", href: "/" },
-  { label: "هيئة التدريس", href: "/" },
-  { label: "مسارات علمية مستقلة", href: "/" },
-  { label: "المكتبة العلمية", href: "/" },
-  { label: "تواصل معنا", href: "/" },
+  { label: "الرئيسية", href: "" },
+  { label: "الخطة الدراسية", href: "" },
+  { label: "هيئة التدريس", href: "" },
+  { label: "مسارات علمية مستقلة", href: "" },
+  { label: "المكتبة العلمية", href: "" },
+  { label: "تواصل معنا", href: "" },
 ];
 
 const Navbar = () => {
@@ -27,9 +27,9 @@ const Navbar = () => {
 
           {/* Desktop Links */}
           <nav className="hidden lg:flex items-center gap-4 md:gap-5 text-sm lg:text-base">
-            {navLinks.map((link) => (
+            {navLinks.map((link , index) => (
               <Link
-                key={link.href}
+                key={index}
                 href={link.href}
                 className="hover:mainColor transition font-bold mainColor"
               >
