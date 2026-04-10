@@ -1,6 +1,10 @@
 import Image from "next/image";
-import { BookOpenText, Lightbulb, Scale, FileSearchIcon, HeartHandshake, ShieldQuestionMark } from "lucide-react";
-
+import balance from "@/public/assets/images/balance.svg";
+import openbook from "@/public/assets/images/openbook.svg";
+import light from "@/public/assets/images/light.svg";
+import search from "@/public/assets/images/search.svg";
+import hand from "@/public/assets/images/hand.svg";
+import ques from "@/public/assets/images/ques.svg";
 import "./styles.css";
 
 const features = [
@@ -9,42 +13,42 @@ const features = [
     image: "/assets/images/test.png",
     title: "التأصيل الشرعي",
     desc: "ترسيخ التأصيل الشرعي الصحيح لقضايا العقيدة والإيمان، وبناؤها على أصول راسخة مستمدة من الكتاب والسنة وفهم السلف الصالح.",
-    icon: Scale,
+    icon: balance,
   },
   {
     id: 2,
     image: "/assets/images/test2.jpg",
     title: "الأسس العلمية للنصوص",
     desc: "إبراز القواعد العلمية والمنهجية المنضبطة في التعامل مع النصوص الشرعية، وفق الأصول السلفية القائمة على الفهم الصحيح والاستدلال المتزن.",
-    icon: BookOpenText,
+    icon: openbook,
   },
   {
     id: 3,
     image: "/assets/images/test.png",
     title: "ضبط نظرية المعرفة",
     desc: "ضبط نظرية المعرفة ومصادرها الصحيحة وتمييز المغالطات فيها وإبطالها.",
-    icon: Lightbulb,
+    icon: light,
   },
   {
     id: 4,
     image: "/assets/images/test2.jpg",
     title: "تحصين المجتمعات",
     desc: "تحصين المجتمعات من آفات الأفكار الهدامة بالعلم والبينة والبرهان.",
-    icon: FileSearchIcon,
+    icon: search,
   },
   {
     id: 5,
     image: "/assets/images/test.png",
     title: "المنهجية الشرعية",
     desc: "توضيح المنهج الشرعي القويم في التعامل مع الشبهات والانحرافات الفكرية، والرد عليها وفق ضوابط علمية وأصول منهجية راسخة.",
-    icon: HeartHandshake,
+    icon: hand,
   },
   {
     id: 6,
     image: "/assets/images/test2.jpg",
     title: "كشف أصول الشبهات",
     desc: "تحليل جذور الشبهات والانحرافات الكبرى قديمًا وحديثًا، وتسليط الضوء على أبرز تطبيقاتها المعاصرة وسبل معالجتها علميًا.",
-    icon: ShieldQuestionMark,
+    icon: ques,
   },
 ];
 
@@ -74,7 +78,7 @@ const OurGoals = () => {
               shadow-sm hover:shadow-md transition duration-300 text-center sm:text-right relative
                rounded-xl sm:rounded-2xl mb-6"
             >
-              <div className=" w-full h-[320px] relative rounded-xl sm:rounded-2xl overflow-hidden">
+              <div className=" w-full h-80 relative rounded-xl sm:rounded-2xl overflow-hidden">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -83,29 +87,12 @@ const OurGoals = () => {
                 />
               </div>
               {/* Icon */}
-              {/* <div className="flex justify-center sm:justify-start mb-3 sm:mb-4">
-                <div className=" p-[13px]! sm:p-3 rounded-lg home-page-bg mb-2">
-                  <Image
-                    src={item.icon}
-                    alt={item.title}
-                    width={30}
-                    height={30}
-                    className="w-[30px] h-[30px]"
-                  />
-                </div>
-              </div> */}
-
               <div
                 className="absolute bg-white rounded-xl sm:rounded-2xl w-[90%]
-               m-auto -bottom-10 left-0 right-0 p-4 sm:p-5 lg:p-6 shadow h-auto sm:h-[160px] lg:h-[180px]"
+               m-auto -bottom-10 left-0 right-0 p-4 sm:p-5 lg:p-6 shadow h-auto sm:h-40 lg:h-45"
               >
                 <div className="scoundBgColor absolute top-0 right-4 w-12 h-12 rounded-b-full flex items-center justify-center shadow-md">
-                  {/* <Image src={item.icon} alt={item.title} width={30} height={30} className="w-[30px] h-[30px]" /> */}
-                  <item.icon
-                    className="w-[30px] h-[30px] "
-                    color="white"
-                    strokeWidth={1.2}
-                  />
+                  <Image src={item.icon} alt={item.title} width={30} height={30} className="w-[30px] h-[30px]" />
                 </div>
                 <div className="mt-8">
                   <h3 className="font-bold text-xl mb-1 sm:mb-2 mainColor ">

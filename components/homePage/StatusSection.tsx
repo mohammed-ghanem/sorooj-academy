@@ -1,8 +1,8 @@
 import Image from "next/image";
-import people from "@/public/assets/images/people.png";
-import ayah from "@/public/assets/images/ayah.png";
-import readbook from "@/public/assets/images/readbook.png";
-import global from "@/public/assets/images/global.png";
+import people from "@/public/assets/images/people.svg";
+import ayah from "@/public/assets/images/ayah.svg";
+import readbook from "@/public/assets/images/readbook.svg";
+import global from "@/public/assets/images/global.svg";
 
 
 
