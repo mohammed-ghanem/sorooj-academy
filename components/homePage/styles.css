@@ -1,3 +1,20 @@
 .home-page-bg {
   background-image: url("/assets/images/frame.svg");
 }
+
+
+.decor-bg {
+  background-image: url("/assets/images/pure.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  
+}
+
+
+
+.studyMethod-frame-icon {
+  background-image: url("/assets/images/bgframe.svg");
+  background-repeat: no-repeat;
+  background-position: right;
+  background-size: contain;
+}

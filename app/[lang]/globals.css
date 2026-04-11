@@ -188,6 +188,9 @@ svg {
 .scoundBgColor{
   background-color: #9F854E;
 }
+.lightBgColor {
+  background: #F5F3ED;
+}
 
 .bkMainColor {
   /* background: #69909d4f; */
@@ -198,31 +201,7 @@ svg {
   background: #ebf5ff;
   color: #000;
 }
-
-.lightColor {
-  color: #9368f33d;
-}
-.activeLink {
-  background: #ebf5ff;
-  color: #000;
-}
-.fontCairo {
-  font-family: 'Cairo', sans-serif;
-}
 .fontBold {
   font-weight: bold;
 }
-.icon_bg {
-  background: #ebf5ff;
-  padding: 8px;
-}
-.greenBgIcon {
-  color: #fff;
-  background-color: #46a758;
-  padding: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.greenBgIcon:hover {
-  background-color: #3c8d4e;
-}
+

@@ -3,6 +3,8 @@ import StatusSection from "./StatusSection"
 import AboutSection from "./AboutSection"
 import WhySection from "./WhySection"
 import OurGoals from "./OurGoals"
+import StudyMethod from "./StudyMethod"
+import StudyTerms from "./StudyTerms"
 
 
 const HomePage = () => {
@@ -13,6 +15,8 @@ const HomePage = () => {
       <AboutSection/>
       <WhySection/>
       <OurGoals/>
+      <StudyMethod/>
+      <StudyTerms/>
     </div>
   )
 }

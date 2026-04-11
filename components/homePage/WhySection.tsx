@@ -44,7 +44,7 @@ const features = [
 
 const WhySection = () => {
   return (
-    <section className="py-14 sm:py-16 lg:py-20 px-4 bgTitleColor">
+    <section className="py-14 sm:py-16 lg:py-20 px-4 bgTitleColor m-3 md:m-0 decor-bg">
       <div className="max-w-7xl mx-auto">
         {/* Title */}
         <div className="text-center mb-10 sm:mb-12 lg:mb-16">
@@ -69,13 +69,13 @@ const WhySection = () => {
             >
               {/* Icon */}
               <div className="flex justify-center sm:justify-start mb-3 sm:mb-4">
-                <div className=" p-[13px]! sm:p-3 rounded-lg home-page-bg mb-2">
+                <div className=" p-3.25! sm:p-3 rounded-lg home-page-bg mb-2">
                   <Image
                     src={item.icon}
                     alt={item.title}
                     width={30}
                     height={30}
-                    className="w-[30px] h-[30px]"
+                    className="w-7.5 h-7.5"
                   />
                 </div>
               </div>

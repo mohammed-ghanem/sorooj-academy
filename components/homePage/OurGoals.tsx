@@ -76,7 +76,7 @@ const OurGoals = () => {
               key={item.id}
               className="bg-white
               shadow-sm hover:shadow-md transition duration-300 text-center sm:text-right relative
-               rounded-xl sm:rounded-2xl mb-6"
+               rounded-xl sm:rounded-2xl mb-10"
             >
               <div className=" w-full h-80 relative rounded-xl sm:rounded-2xl overflow-hidden">
                 <Image
@@ -92,7 +92,7 @@ const OurGoals = () => {
                m-auto -bottom-10 left-0 right-0 p-4 sm:p-5 lg:p-6 shadow h-auto sm:h-40 lg:h-45"
               >
                 <div className="scoundBgColor absolute top-0 right-4 w-12 h-12 rounded-b-full flex items-center justify-center shadow-md">
-                  <Image src={item.icon} alt={item.title} width={30} height={30} className="w-[30px] h-[30px]" />
+                  <Image src={item.icon} alt={item.title} width={30} height={30} className="w-7.5 h-7.5" />
                 </div>
                 <div className="mt-8">
                   <h3 className="font-bold text-xl mb-1 sm:mb-2 mainColor ">

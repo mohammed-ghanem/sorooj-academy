@@ -18,10 +18,10 @@ const AboutSection = () => {
         أكاديمية سُرج ليست مجرد منصة تعليمية، بل بيئة علمية تجمع بين التعلم المنهجي والتأثير الحقيقي , فنحن نفخر بمجتمع متنامٍ من طلاب العلم الذين يسيرون معنا في رحلة معرفية منظمة ومؤثرة.
         </p>
 
-        <div className="relative container mx-auto mt-10 w-auto md:w-[1000px] h-auto md:h-[430px] p-0 overflow-hidden rounded-4xl">
+        <div className="relative container mx-auto mt-10 w-auto md:w-250 h-auto md:h-107.5 p-0 overflow-hidden rounded-4xl">
         <div className="absolute inset-0 z-10 bg-[#f7f5f2]/10 rounded-4xl"></div>
         <Image src={aboutImage} alt="about" width={1000} height={430} 
-        className="relative z-0 mx-auto max-h-[430px] object-cover"/>
+        className="relative z-0 mx-auto max-h-107.5 object-cover"/>
         </div>
      </div>
     </section>

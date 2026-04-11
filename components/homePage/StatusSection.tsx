@@ -44,7 +44,7 @@ const stats = [
             className="flex items-center justify-start md:justify-center border-l-none
              md:border-l last:border-none border-[#9f854e7a] mt-2.5 md:mt-0">
               {/* Icon */}
-                <div className="  bg-[#f5f3ed] p-3 rounded-md ml-4">
+                <div className="  lightBgColor p-3 rounded-md ml-4">
                     <Image width={30} height={30} src={stat.icon} alt={stat.title} />
                 </div>
   
