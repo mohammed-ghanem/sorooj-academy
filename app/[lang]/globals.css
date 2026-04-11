@@ -191,6 +191,9 @@ svg {
 .lightBgColor {
   background: #F5F3ED;
 }
+.studyTermsOverlayBg {
+  background: linear-gradient(1deg, #e9dcc185 0%, rgb(245 243 238 / 0%) 100%);
+}
 
 .bkMainColor {
   /* background: #69909d4f; */

@@ -5,6 +5,7 @@ import { Providers } from "../../providers/Providers";
 import { ReactNode } from "react";
 import { Cairo } from "next/font/google";
 import Header from "@/components/header/Header";
+import Footer from "@/components/footer/Footer";
 
 const cairo = Cairo({
   subsets: ["latin"],
@@ -45,7 +46,7 @@ export default async function RootLayout({
                   </div>
                 </main>
 
-                {/* <footer> copy right footer</footer> */}
+               <Footer />
 
               </div>
 

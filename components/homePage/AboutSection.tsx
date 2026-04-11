@@ -19,7 +19,7 @@ const AboutSection = () => {
         </p>
 
         <div className="relative container mx-auto mt-10 w-auto md:w-250 h-auto md:h-107.5 p-0 overflow-hidden rounded-4xl">
-        <div className="absolute inset-0 z-10 bg-[#f7f5f2]/10 rounded-4xl"></div>
+        <div className="absolute inset-0 z-10 bg-[#f7f5f2]/10 rounded-4xl"></div> 
         <Image src={aboutImage} alt="about" width={1000} height={430} 
         className="relative z-0 mx-auto max-h-107.5 object-cover"/>
         </div>
