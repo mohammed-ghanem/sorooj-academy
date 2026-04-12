@@ -13,7 +13,7 @@ const studyLevels = [
     level: "02",
     title: "المستوى الثاني التأهيلى",
     desc: "التعمق في العلوم وربط المفاهيم",
-    img: "/assets/images/term2.png",
+    img: "/assets/images/term2.jpg",
   },
   {
     id: 3,
@@ -27,7 +27,7 @@ const studyLevels = [
     level: "04",
     title: "المستوى الرابع متقدم",
     desc: "مشروع التخرج والتخصص",
-    img: "/assets/images/term1.png",
+    img: "/assets/images/term4.jpg",
   },
 ];
 const StudyTerms = () => {

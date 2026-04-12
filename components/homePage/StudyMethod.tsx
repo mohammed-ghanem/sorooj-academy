@@ -45,7 +45,7 @@ const StudyMethod = () => {
         <div className="">
             {studyMethods.map((stat) => (
                 <div key={stat.id} 
-                className="lightBgColor mt-2.5 md:mt-0 rounded-md mb-2.5 flex items-start p-4">
+                className="lightBgColor mt-2.5 md:mt-0 rounded-md mb-2.5 flex items-start py-7 px-4">
                 {/* Icon */}
                 
                     <div className="lightBgColor p-4 rounded-md ml-4 studyMethod-frame-icon">

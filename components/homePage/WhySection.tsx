@@ -48,7 +48,7 @@ const WhySection = () => {
       <div className="max-w-7xl mx-auto">
         {/* Title */}
         <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mainColor leading-snug">
+          <h2 className="text-xl sm:text-2xl md:text-2xl font-bold mainColor leading-snug">
             <span className="mainColor">ما الذي يجعل هذه</span>
             <span className="scoundColor"> التجربة استثنائية؟</span>
           </h2>
