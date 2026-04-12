@@ -33,7 +33,7 @@ const studyLevels = [
 const StudyTerms = () => {
   return (
     <section className="py-10 sm:py-16 lg:py-20 px-4 relative decor-bg">
-      <div className="absolute inset-0 z-0 studyTermsOverlayBg rounded-4xl"></div>
+      <div className="absolute inset-0 z-0 studyTermsOverlayBg "></div>
       <div className="container mx-auto w-[90%] ">
         {/* Title */}
         <div className="text-center m-auto mb-10">
@@ -50,7 +50,7 @@ const StudyTerms = () => {
         {/* Cards */}
         <div className="relative">
           <div className="absolute left-1/2 top-0 h-full w-px scoundBgColor -translate-x-1/2 hidden md:block"></div>
-          <div className="absolute left-1/2 top-0 h-full -translate-x-1/2 flex flex-col justify-between items-center">
+          <div className="absolute left-1/2 top-0 h-full -translate-x-1/2 hidden md:flex  flex-col  justify-between items-center">
             <span className="w-4 h-4 scoundBgColor rounded-full"></span>
             <span className="w-4 h-4 scoundBgColor rounded-full"></span>
             <span className="w-4 h-4 scoundBgColor rounded-full"></span>
