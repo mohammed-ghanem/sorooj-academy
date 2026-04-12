@@ -34,20 +34,17 @@ const socialLinks = [
 
 const Footer = () => {
   return (
-    <footer className="relative mt-10 text-white pt-10 md:pt-20 lg:pt-32 footer-bg">
+    <footer className="relative mt-10 text-white pt-10 md:pt-20 lg:pt-26 footer-bg">
+      <div className="relative z-10 max-w-6xl mx-auto w-[95%] md:w-[80%] text-center px-4">
         <div className="hidden md:block">
           <Image
             src={footerEffect}
             alt="footerEffect"
             className="m-auto"
-           fill
+            fill
           />
-
         </div>
-      <div className="relative z-10 max-w-6xl mx-auto w-[95%] md:w-[80%] text-center px-4">
 
-      
-        
         {/* Logo */}
         <div className="mb-6">
           <Image
@@ -60,38 +57,40 @@ const Footer = () => {
         </div>
 
         <div className="flex flex-row gap-4 md:flex-col">
-        {/* Main Links */}
-        <div className="
-                grid grid-rows-6
+          {/* Main Links */}
+          <div
+            className="
+                grid grid-rows-6 md:flex md:justify-center
                 font-bold w-1/2 md:w-full
-                justify-start md:justify-center
+                justify-start 
                 text-sm text-white mb-6 text-start
-              ">
-                  {mainLinks.map((link, index) => (
-                    <a key={index} href={link.href} className="mb-2.5">
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
+              "
+          >
+            {mainLinks.map((link, index) => (
+              <a key={index} href={link.href} className="my-2.5 md:mx-4">
+                {link.label}
+              </a>
+            ))}
+          </div>
 
-                {/* Secondary Links */}
-                <div className="
+          {/* Secondary Links */}
+          <div
+            className="
                     grid grid-rows-6 md:flex
                     justify-start md:justify-center
-                    border-r border-white pr-5
+                    border-r border-white pr-5 md:pr-0 md:border-none 
                     text-sm font-bold w-1/2 md:w-full text-start
                     text-gray-200 mb-6
-                  ">
-                  {secondaryLinks.map((link, index) => (
-                    <a key={index} href={link.href}>
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-
+                  "
+          >
+            {secondaryLinks.map((link, index) => (
+              <a key={index} href={link.href} className="md:mx-4">
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
 
-       
         {/* Divider */}
         <div className="border-t border-gray-500 mb-2"></div>
 
@@ -103,22 +102,27 @@ const Footer = () => {
               href={item.href}
               className="w-10 h-10 border rounded-full flex items-center justify-center"
             >
-              <Image src={item.icon} alt="icon" 
+              <Image
+                src={item.icon}
+                alt="icon"
                 width={item.icon === facebook ? 10 : 20}
-                height={item.icon === facebook ? 10 : 20} />
+                height={item.icon === facebook ? 10 : 20}
+              />
             </a>
           ))}
         </div>
 
-         {/* Divider */}
-         {/* <div className="border-t border-gray-500 mb-2"></div> */}
+        {/* Divider */}
+        {/* <div className="border-t border-gray-500 mb-2"></div> */}
 
-        <div className='text-center text-white font-bold text-xs mt-6 pb-4' >
-        <p>
-          All rights reserved for <span className='text-[#ffd86d]'>Sorooj-Academy</span>  &copy; 2026 - {new Date().getFullYear()}
-        </p>
-        <p className='text-white text-xs mt-2'>WeCan For Development & IT</p>
-      </div>
+        <div className="text-center text-white font-bold text-xs mt-6 pb-4">
+          <p>
+            All rights reserved for{" "}
+            <span className="text-[#ffd86d]">Sorooj-Academy</span> &copy; 2026 -{" "}
+            {new Date().getFullYear()}
+          </p>
+          <p className="text-white text-xs mt-2">WeCan For Development & IT</p>
+        </div>
       </div>
     </footer>
   );

@@ -6,7 +6,7 @@ const studyLevels = [
     level: "01",
     title: "المستوى الأول التأسيسى",
     desc: "أساسيات التأصيل العلمي",
-    img: "/assets/images/term1.png",
+    img: "/assets/images/term1.jpg",
   },
   {
     id: 2,
@@ -20,7 +20,7 @@ const studyLevels = [
     level: "03",
     title: "المستوى الثالث التخصصى",
     desc: "التطبيق العملي والتحليل",
-    img: "/assets/images/term3.png",
+    img: "/assets/images/term3.jpg",
   },
   {
     id: 4,
@@ -78,7 +78,7 @@ const StudyTerms = () => {
               <div className="w-4 h-4 bg-mainColor rounded-full z-10"></div>
 
               <div className="md:w-1/2">
-                <div className="relative w-40 h-25 rounded-md overflow-hidden m-auto">
+                <div className="relative w-72 h-48 rounded-md overflow-hidden m-auto">
                   <Image
                     src={term.img}
                     alt={term.title}
