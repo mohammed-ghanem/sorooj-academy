@@ -178,6 +178,12 @@ svg {
 .bgTitleColor {
   background-color: #F5F3ED;
 }
+.bgTitleColor2 {
+  background-color: #f5f3ed2e;
+}
+.boxBgOpacity {
+  background-color: #f5f3ed30;
+}
 .bgTitleColorOpacity {
   background : #E1D9C833;
 }

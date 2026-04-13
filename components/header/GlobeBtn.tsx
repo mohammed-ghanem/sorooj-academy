@@ -1,34 +1,39 @@
 "use client"
-import { useRouter, usePathname } from "next/navigation"; // For routing
+import { useRouter, usePathname } from "next/navigation";
 import { Globe } from "lucide-react";
-import LangUseParams from "@/translate/LangUseParams"; // Your hook
+import LangUseParams from "@/translate/LangUseParams";
 
 const GlobeBtn = () => {
-
-    const lang = LangUseParams(); // e.g., "en" or "ar"
+    const lang = LangUseParams();
     const router = useRouter();
-    const pathname = usePathname(); // e.g., "/en/products" or "/ar/about"
+    const pathname = usePathname();
 
-
-    // Toggle between "en" and "ar" in the URL
     const toggleLanguage = () => {
         const newLang = lang === "en" ? "ar" : "en";
         const segments = pathname.split("/").filter(Boolean);
 
-        // Replace first segment if it's a language code
         if (segments[0] === "en" || segments[0] === "ar") {
             segments[0] = newLang;
         } else {
             segments.unshift(newLang);
         }
 
-        router.push("/" + segments.join("/"));
+        const path = "/" + segments.join("/");
+        const query =
+            typeof window !== "undefined" ? window.location.search : "";
+        router.push(path + query);
     };
+
     return (
-        <div>
-            <Globe className="w-5 h-5 me-2 cursor-pointer iconBar" onClick={toggleLanguage} />
-        </div>
-    )
-}
+        <button
+            type="button"
+            className="inline-flex items-center cursor-pointer rounded-md p-1 scoundColor hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9F854E]"
+            onClick={toggleLanguage}
+            aria-label={lang === "en" ? "Switch to Arabic" : "Switch to English"}
+        >
+            <Globe className="h-5 w-5" />
+        </button>
+    );
+};
 
 export default GlobeBtn

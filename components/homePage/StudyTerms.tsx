@@ -6,28 +6,28 @@ const studyLevels = [
     level: "01",
     title: "المستوى الأول التأسيسى",
     desc: "أساسيات التأصيل العلمي",
-    img: "/assets/images/term1.jpg",
+    img: "/assets/images/term1.webp",
   },
   {
     id: 2,
     level: "02",
     title: "المستوى الثاني التأهيلى",
     desc: "التعمق في العلوم وربط المفاهيم",
-    img: "/assets/images/term2.jpg",
+    img: "/assets/images/term2.webp",
   },
   {
     id: 3,
     level: "03",
     title: "المستوى الثالث التخصصى",
     desc: "التطبيق العملي والتحليل",
-    img: "/assets/images/term3.jpg",
+    img: "/assets/images/term3.webp",
   },
   {
     id: 4,
     level: "04",
     title: "المستوى الرابع متقدم",
     desc: "مشروع التخرج والتخصص",
-    img: "/assets/images/term4.jpg",
+    img: "/assets/images/term4.webp",
   },
 ];
 const StudyTerms = () => {

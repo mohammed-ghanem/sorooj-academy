@@ -1,6 +1,15 @@
 {
   "home": {
-    "title": "الصفحة الرئيسية"
+      "title": "الصفحة الرئيسية",
+      "navbar": {
+        "home": "الرئيسية",
+        "studyPlan": "الخطة الدراسية",
+        "teachingStaff": "هيئة التدريس",
+        "independentScientificPaths": "مسارات علمية مستقلة",
+        "library": "المكتبة العلمية",
+        "contactUs": "تواصل معنا",
+        "login": "تسجيل الدخول"
+      }
   },
   "pages": {
     "login": {
@@ -25,6 +34,17 @@
       "NetworkError": "خطأ في الشبكة، يرجى التحقق من اتصال الشبكة والمحاولة مرة أخرى، ",
       "SomethingWentWrong": "خطأ، حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقًا.',",
       "rememberMe": "تذكرني"
+    },
+    "selectAuth": {
+      "title": "تسجيل ",
+      "titleSpan" : "الدخول",
+      "description": "حدد دورك لنهيئ لك تجربة تعليمية تناسب أهدافك العلمية",
+      "sectionTitle": "اختر مسارك في الأكاديمية",
+      "trainerTitle": "عضو هيئة التدريس",
+      "trainerDescription": "أقدم الخطة والشرح وأتابع تقدم طلابي خطوة بخطوة.",
+      "studentTitle": " طالب علم",
+      "studentDescription": "أتلقى المحتوى والتوجيه لأرتقي في طلب العلم وتحقيق أهدافي.",
+      "next": "التالي"
     },
     "forgetPassword": {
       "title": "استعادة كلمة المرور",

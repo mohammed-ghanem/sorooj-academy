@@ -1,6 +1,15 @@
 {
   "home": {
-    "title": "Home"
+    "title": "Home",
+    "navbar": {
+      "home": "Home",
+      "studyPlan": "Study Plan",
+      "teachingStaff": "Teaching Staff",
+      "independentScientificPaths": "Independent Scientific Paths",
+      "library": "Library",
+      "contactUs": "Contact Us",
+      "login": "Login"
+    }
   },
   "loading": {
     "title": "Loading"
@@ -28,6 +37,16 @@
       "NetworkError": "Network Error', 'Please check your network connection and try again.', 'error'",
       "SomethingWentWrong": "'Error', 'Something went wrong. Please try again later.', 'error'" ,
         "rememberMe": "Remember Me"
+    },
+    "selectAuth": {
+      "title": "Login",
+      "description": "Choose your role so we can tailor the learning experience to your goals.",
+      "sectionTitle": "Choose your path at the academy",
+      "trainerTitle": "I'm a Doctor",
+      "trainerDescription": "I deliver the plan and explanation and follow my students’ progress step by step.",
+      "studentTitle": "I'm a student",
+      "studentDescription": "I receive content and guidance to grow in seeking knowledge and reach my goals.",
+      "next": "Next"
     },
     "forgetPassword": {
       "title": "Forget Password",
