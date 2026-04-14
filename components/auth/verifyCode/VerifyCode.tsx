@@ -7,6 +7,8 @@ import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
 import { useEffect, useRef, useState } from "react";
+import VerifyCodeSkeleton from "@/components/skeletons/VerifyCodeSkeleton";
+import Link from "next/link";
 
 const VerifyCode = () => {
   const lang = LangUseParams();
@@ -43,24 +45,28 @@ const VerifyCode = () => {
     }
   };
 
+  if (!translate) {
+    return <VerifyCodeSkeleton />;
+  }
+
   return (
     <div>
       <HeroAuth contentClassName="max-w-3xl ">
         <div className="flex w-full flex-col items-center gap-6 my-15 pb-9">
-          
           {/* logo */}
-          <Image
-            src={logo}
-            alt=""
-            width={140}
-            height={48}
-            className="h-auto w-35 object-contain"
-            priority
-          />
+          <Link href={`/${lang}`}>
+            <Image
+              src={logo}
+              alt=""
+              width={140}
+              height={48}
+              className="h-auto w-35 object-contain"
+              priority
+            />
+          </Link>
 
           {/* card */}
           <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8">
-
             {/* decorative line */}
             <div className="pointer-events-none absolute top-0 left-0">
               <Image
@@ -119,9 +125,7 @@ const VerifyCode = () => {
             </div>
 
             {/* button */}
-            <button
-              className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center"
-            >
+            <button className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center">
               {translate?.pages?.verifyCode?.verify}
             </button>
 

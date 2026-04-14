@@ -8,7 +8,7 @@ export function SelectAuthHeaderTitleSkeleton() {
     </div>
   );
 }
- 
+
 /** Description block under the title row. */
 export function SelectAuthHeaderDescriptionSkeleton() {
   return (

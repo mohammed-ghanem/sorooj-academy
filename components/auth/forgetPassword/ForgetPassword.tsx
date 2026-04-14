@@ -8,30 +8,34 @@ import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
 import Link from "next/link";
+import ForgetPasswordSkeleton from "@/components/skeletons/ForgetPasswordSkeleton";
 
 const ForgetPassword = () => {
   const lang = LangUseParams();
   const translate = TranslateHook();
 
+  if (!translate) {
+    return <ForgetPasswordSkeleton />;
+  }
+
   return (
     <div>
       <HeroAuth contentClassName="max-w-3xl ">
         <div className="flex w-full flex-col items-center gap-6 my-15 pb-3.5">
-          
           {/* logo */}
-          <Image
-            src={logo}
-            alt=""
-            width={140}
-            height={48}
-            className="h-auto w-35 object-contain"
-            priority
-          />
+          <Link href={`/${lang}`}>
+            <Image
+              src={logo}
+              alt=""
+              width={140}
+              height={48}
+              className="h-auto w-35 object-contain"
+              priority
+            />
+          </Link>
 
           {/* card */}
-          <div
-            className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8"
-          >
+          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8">
             {/* decorative line */}
             <div className="pointer-events-none absolute top-0 left-0">
               <Image
@@ -45,25 +49,25 @@ const ForgetPassword = () => {
             {/* header */}
             <div className="relative z-10 text-start">
               <div className="flex items-start justify-between gap-3">
-                  <h1 className="min-w-0 flex-1 text-xl font-bold mainColor">
-                       {translate?.pages?.forgetPassword.title} 
-                    <span className="scoundColor"> {translate?.pages?.forgetPassword.forgetPassword} </span>
-                  </h1>
+                <h1 className="min-w-0 flex-1 text-xl font-bold mainColor">
+                  {translate?.pages?.forgetPassword.title}
+                  <span className="scoundColor">
+                    {" "}
+                    {translate?.pages?.forgetPassword.forgetPassword}{" "}
+                  </span>
+                </h1>
                 <div className="relative z-20 shrink-0 me-10">
                   <GlobeBtn />
                 </div>
               </div>
- 
+
               <p className="mt-2 text-sm text-[#737373] font-semibold">
                 {translate?.pages?.forgetPassword?.forgetPasswordTitle}
               </p>
             </div>
 
             {/* form */}
-            <form
-              className="p-0 md:p-4 mt-4 mx-auto z-30 relative"
-              dir="ltr"
-            >
+            <form className="p-0 md:p-4 mt-4 mx-auto z-30 relative" dir="ltr">
               {/* email */}
               <div className="mb-4">
                 <label
