@@ -28,8 +28,15 @@ const Navbar = () => {
     <header className="absolute top-0 left-0 w-full z-50">
       <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="relative flex items-center justify-between mt-4 rounded-xl px-6 py-2 bgTitleColorOpacity shadow-sm">
-          {/* Logo */}
-          <Image src={logo} alt="logo" width={100} />
+          {/* logo */}
+          <Link href={`/${lang}`}>
+            <Image
+              src={logo}
+              alt=""
+              width={100}
+             
+            />
+          </Link>
 
           {/* Desktop Links */}
           <nav className="hidden lg:flex items-center gap-4 md:gap-5 text-sm lg:text-base">
