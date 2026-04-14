@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "../../providers/Providers";
@@ -14,8 +13,39 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة - sorooj academy for contemporary intellectual studies and research",
-  description: "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
+  metadataBase: new URL("https://academy.sorooj.org"),
+  authors: [
+    {
+      name: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
+      url: "https://academy.sorooj.org",
+    },
+  ],
+  robots: "index, follow",
+  keywords: [
+    "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
+    "sorooj academy for contemporary intellectual studies and research",
+  ],
+  description:
+    "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
+  openGraph: {
+    title:
+      "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة - sorooj academy for contemporary intellectual studies and research",
+    description:
+      "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
+    url: "https://academy.sorooj.org",
+    siteName: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
+    locale: "ar",
+    type: "website",
+    images: [{ url: "https://academy.sorooj.org/logo.png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة - sorooj academy for contemporary intellectual studies and research",
+    description:
+      "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
+    images: [{ url: "https://academy.sorooj.org/logo.png" }],
+  },
 };
 
 export default async function RootLayout({
@@ -32,25 +62,19 @@ export default async function RootLayout({
     <html lang={lang} dir={dir} className={cairo.variable}>
       <body className="overflow-x-hidden">
         <Providers>
-        <div className="">
+          <div className="">
+            <div>
+              <header className="absolute top-0 left-0 w-full z-50 bg-transparent">
+                <Header />
+              </header>
 
-              <div>
+              <main className="">
+                <div className="mx-auto">{children}</div>
+              </main>
 
-                <header className="absolute top-0 left-0 w-full z-50 bg-transparent">
-                    <Header />
-                </header>
-
-                <main className="">
-                  <div className="mx-auto">
-                    {children}
-                  </div>
-                </main>
-
-               <Footer />
-
-              </div>
-
-        </div>
+              <Footer />
+            </div>
+          </div>
         </Providers>
       </body>
     </html>
