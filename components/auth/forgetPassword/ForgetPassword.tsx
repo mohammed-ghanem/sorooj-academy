@@ -1,121 +1,110 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, ChangeEvent, FormEvent } from "react";
-import { useSendResetCodeMutation } from "@/store/auth/authApi";
-import { Loader2, Mail } from "lucide-react";
-import { toast } from "sonner";
+import Image from "next/image";
+import HeroAuth from "../heroAuth/HeroAuth";
+import { Mail } from "lucide-react";
+import logo from "@/public/assets/images/logoo.png";
+import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import forgetPass from "@/public/assets/images/forgetPass.webp";
-import ForgetPasswordSkeleton from "./ForgetPasswordSkeleton";
+import Link from "next/link";
 
 const ForgetPassword = () => {
-  const [sendResetCode, { isLoading }] = useSendResetCodeMutation();
-
   const lang = LangUseParams();
   const translate = TranslateHook();
-  const router = useRouter();
-
-  const [email, setEmail] = useState("");
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) =>
-    setEmail(e.target.value);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    try {
-      const res = await sendResetCode({ email }).unwrap();
-
-      toast.success(res?.message);
-
-      router.push(
-        `/${lang}/verify-code?email=${encodeURIComponent(email)}`
-      );
-    } catch (err: any) {
-      const errorData = err?.data ?? err;
-      if (errorData?.errors) {
-        Object.values(errorData.errors).forEach((messages: any) => {
-          if (Array.isArray(messages)) {
-            messages.forEach((msg) => toast.error(msg));
-          }
-        });
-        return;
-      }
-
-      // Generic backend message
-      if (errorData?.message) {
-        toast.error(errorData.message);
-        return;
-      }
-    }
-  };
-
-  if (!translate) {
-    return <ForgetPasswordSkeleton />;
-  }
 
   return (
-    <div className="relative grdianBK font-cairo" style={{ direction: "rtl" }}>
-      <div className="grid lg:grid-cols-2 gap-4 items-center">
-        {/* Form */}
-        <div className="my-10" style={{ direction: "ltr" }}>
-          <h1 className="text-center font-bold text-xl md:text-2xl titleColor">
-            {translate?.pages.forgetPassword?.title}
-          </h1>
+    <div>
+      <HeroAuth contentClassName="max-w-3xl ">
+        <div className="flex w-full flex-col items-center gap-6 my-15 pb-3.5">
+          
+          {/* logo */}
+          <Image
+            src={logo}
+            alt=""
+            width={140}
+            height={48}
+            className="h-auto w-35 object-contain"
+            priority
+          />
 
-          <form
-            onSubmit={handleSubmit}
-            className="p-4 w-[95%] md:w-[80%] mx-auto z-30 relative"
+          {/* card */}
+          <div
+            className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8"
           >
-            <div className="mb-4">
-              <label
-                className={`block text-[13px] font-bold titleColor ${lang === "ar" ? "text-right!" : "text-left"
+            {/* decorative line */}
+            <div className="pointer-events-none absolute top-0 left-0">
+              <Image
+                src="/assets/images/line.svg"
+                alt=""
+                width={100}
+                height={100}
+              />
+            </div>
+
+            {/* header */}
+            <div className="relative z-10 text-start">
+              <div className="flex items-start justify-between gap-3">
+                  <h1 className="min-w-0 flex-1 text-xl font-bold mainColor">
+                       {translate?.pages?.forgetPassword.title} 
+                    <span className="scoundColor"> {translate?.pages?.forgetPassword.forgetPassword} </span>
+                  </h1>
+                <div className="relative z-20 shrink-0 me-10">
+                  <GlobeBtn />
+                </div>
+              </div>
+ 
+              <p className="mt-2 text-sm text-[#737373] font-semibold">
+                {translate?.pages?.forgetPassword?.forgetPasswordTitle}
+              </p>
+            </div>
+
+            {/* form */}
+            <form
+              className="p-0 md:p-4 mt-4 mx-auto z-30 relative"
+              dir="ltr"
+            >
+              {/* email */}
+              <div className="mb-4">
+                <label
+                  className={`block text-[13px] font-semibold text-gray-400 ${
+                    lang === "ar" ? "text-right!" : "text-left"
                   }`}
-              >
-                {translate?.pages.forgetPassword?.email}
-              </label>
-              <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={handleChange}
-                  className="mt-1 block w-full p-2 border bg-white border-gray-300 rounded-md shadow-sm outline-none"
-                />
+                >
+                  {translate?.pages?.forgetPassword?.email}
+                </label>
+
+                <div className="relative">
+                  <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
+                  <input
+                    type="email"
+                    required
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                  />
+                </div>
               </div>
 
-            </div>
-
-            <div>
+              {/* submit */}
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-[50%] mx-auto  bgTitleColor cursor-pointer text-white py-3 mt-8 rounded-lg flex justify-center"
+                className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    {translate?.pages.forgetPassword?.sending} ...
-                  </>
-                ) : (
-                  translate?.pages.forgetPassword?.send)}
+                {translate?.pages?.forgetPassword?.send}
               </button>
-            </div>
-          </form>
-        </div>
+            </form>
 
-        {/* Image */}
-        <div className="relative hidden lg:flex bkMainColor h-screen items-center justify-center">
-          <div className="h-[50%]">
-            <Image src={forgetPass} alt="bg" width={500} height={700} />
+            {/* back to login */}
+            <div className="mt-4 text-center">
+              <Link
+                href={`/${lang}/login`}
+                className="border-b border-regal-blue text-[13px] font-semibold mainColor"
+              >
+                {translate?.pages?.forgetPassword?.backToLogin}
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </HeroAuth>
     </div>
   );
 };

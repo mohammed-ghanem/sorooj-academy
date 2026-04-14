@@ -10,10 +10,10 @@ type HeroAuthProps = {
 const HeroAuth = ({ children, contentClassName }: HeroAuthProps) => {
   return (
     <div className="relative">
-      <section className="relative h-auto  w-full flex items-center justify-center overflow-hidden">
+      <section className="relative h-full  w-full flex items-center justify-center overflow-hidden">
 
             {/* Left */}
-            <div className="absolute left-0 top-0   w-[40vw]  h-screen!">
+            <div className="absolute left-0 top-0   w-[40vw]  h-full">
             <Image
                 src="/assets/images/frame2.png"
                 alt=""
@@ -24,7 +24,7 @@ const HeroAuth = ({ children, contentClassName }: HeroAuthProps) => {
             </div>
 
             {/* Right */}
-            <div className="absolute right-0 top-0  w-[40vw] h-screen!">
+            <div className="absolute right-0 top-0  w-[40vw] h-full">
             <Image
                 src="/assets/images/frame1.png"
                 alt=""

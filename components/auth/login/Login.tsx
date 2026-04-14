@@ -1,127 +1,97 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
-import { useState, ChangeEvent, FormEvent } from "react";
-import { useLoginMutation } from "@/store/auth/authApi";
-import { toast } from "sonner";
-import { Loader2 , Mail, Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
-import loginIcon from "@/public/assets/images/loginIcon.webp";
-import TranslateHook from "@/translate/TranslateHook";
-import LangUseParams from "@/translate/LangUseParams";
-import LoginSkeleton from "./LoginSkeleton";
+"use client"
 import Image from "next/image";
-
-
-
-
-
+import Link from "next/link";
+import HeroAuth from "../heroAuth/HeroAuth";
+import { Eye, EyeOff, Mail } from "lucide-react";
+import logo from "@/public/assets/images/logoo.png";
+import GlobeBtn from "@/components/header/GlobeBtn";
+import LangUseParams from "@/translate/LangUseParams";
+import TranslateHook from "@/translate/TranslateHook";
+import { useState } from "react";
+import SocialLogin from "../socialLogin/SocialLogin";
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const router = useRouter();
-  const [login, { isLoading }] = useLoginMutation();
-
   const lang = LangUseParams();
   const translate = TranslateHook();
-
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
-  if (!translate) {
-    return <LoginSkeleton />;
-  }
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const res = await login(form).unwrap();
-      toast.success(res?.message);
-      router.replace(`/${lang}`);
-    } catch (err: any) {
-      const errorData = err?.data ?? err;
-
-      if (errorData?.errors) {
-        Object.values(errorData.errors).forEach((messages: any) =>
-          messages.forEach((msg: string) => toast.error(msg))
-        );
-        return;
-      }
-
-      if (errorData?.message) {
-        toast.error(errorData.message);
-      }
-    }
-  };
-
+  const [showPassword, setShowPassword] = useState(false);
+ 
   return (
-    <div className="relative font-cairo" dir="rtl">
-      <div className="grid lg:grid-cols-2 gap-4 items-center">
-        {/* Form */}
-        <div className="my-10" dir="ltr">
-          <h1 className="text-center font-bold text-xl md:text-2xl titleColor">
-            {translate.pages.login.loginTitle}
-          </h1>
-
-          <form
-            onSubmit={handleSubmit}
-            className="p-4 w-[95%] md:w-[80%] mx-auto"
+    <div>
+      <HeroAuth contentClassName="max-w-3xl ">
+        <div className="flex w-full flex-col items-center gap-6 mb-10">
+          <Image
+              src={logo}
+              alt=""
+              width={140}
+              height={48}
+              className="h-auto w-35 object-contain"
+              priority
+            />
+          <div
+            className=" relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
+           ring-black/5 md:p-8"
           >
-
-            {/* email input */}
-            <div className="mb-4">
-              <label
-                className={`block text-[13px] font-bold titleColor ${
-                  lang === "ar" ? "text-right!" : "text-left"
-                }`}
-              >
-                {translate.pages.login.email}
-              </label>
-
-              <div className="relative">
-                <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
-
-                <input
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="mt-1 block w-full p-2  border rounded-md
-                   focus-visible:ring-0! focus-visible:outline-none!"
+              <div className="pointer-events-none absolute top-0 left-0">
+                <Image
+                  src="/assets/images/line.svg"
+                  alt=""
+                  width={100}
+                  height={100}
                 />
               </div>
-            </div>
+              <div className="relative z-10 text-start">
+                <div className="flex items-start justify-between gap-3">
+                  
+                  <h1 className="min-w-0 flex-1 text-xl font-bold mainColor md:text-2xl">
+                      {translate?.pages?.selectAuth.title}
+                    <span className="scoundColor">{translate?.pages?.selectAuth.titleSpan}</span>
+                  </h1>
+                
+                    <div className="relative z-20 shrink-0 me-10 ">
+                      <GlobeBtn />
+                    </div>
+                </div>
+                <p className="mt-2 text-sm text-[#737373] md:text-sm font-bold">
+                    {translate?.pages?.login.description}
+                </p>
+              </div>
+              {/* login form */}
+              <form
+                className="p-0 md:p-4 mt-4  mx-auto z-30 relative" dir="ltr"
+              >
 
-            {/* password input */}
+              <div className="mb-4"> 
+                <label
+                  className={`block text-[13px] font-semibold text-gray-400 
+                  ${lang === "ar" ? "text-right!" : "text-left"
+                    }`}
+                >
+                  {translate?.pages.login.email}
+                </label>
+                <div className="relative">
+                  <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
+                  <input
+                    type="email"
+                    required
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none "
+                  />
+                </div>
+              </div>
+              {/* password input */}
 
             <div className="mb-4">
               <label
-                className={`block text-[13px] font-bold titleColor ${
-                  lang === "ar" ? "text-right!" : "text-left"
-                }`}
+                className={`block text-[13px] font-semibold text-gray-400
+                 ${lang === "ar" ? "text-right!" : "text-left"
+                  }`}
               >
-                {translate.pages.login.passwordName}
+                {translate?.pages.login.password}
               </label>
 
               <div className="relative">
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={handleChange}
-                  className="mt-1 block w-full p-2 pr-10 border rounded-md
-                  focus-visible:ring-0! focus-visible:outline-none!"
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                 />
 
                 <button
@@ -133,61 +103,37 @@ const Login = () => {
                 </button>
               </div>
             </div>
+                  {/* forget password */}
+                     <Link href={`/${lang}/forget-password`} 
+                              className="border-b border-regal-blue block
+                              text-[13px] font-semibold w-fit text-start mainColor"> 
+                            {translate?.pages.login.forgetPassword}
+                      </Link>
+                 {/* submit */}
+                <button
+                  type="submit"
+                  className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-8 rounded-lg flex justify-center"
+                >
+                    {translate?.pages.login.loginButton} 
+                </button>
+                 
+              </form>
+              <SocialLogin/>
 
-
-            {/* remember me  */}
-            <div className="flex items-center justify-between mt-2 mb-4">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                {translate.pages.login.rememberMe}
-              </label>
-              {/* forget password */}
-              <a
-                href={`/${lang}/forget-password`}
-                className="border-b border-regal-blue text-sm text-blue-700"
-              >
-                {translate.pages.login.forgetPassword}
-              </a>
-            </div>
-
-            {/* submit */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-[50%] mx-auto  bgTitleColor cursor-pointer text-white py-3 mt-8 rounded-lg flex justify-center"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  {translate.pages.login.processing}
-                </>
-              ) : (
-                translate.pages.login.loginButton
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Image */}
-
-        <div className="relative hidden lg:flex bkMainColor h-screen items-center justify-center">
-          <div className="h-[50%]">
-            <Image src={loginIcon} alt="bg" width={600} height={800} />
+              <div className="mt-2 text-center ">
+                    <span className="text-[13px] font-semibold">
+                      {translate?.pages.login.dontHaveUser}
+                    </span>
+                    <Link href={`/${lang}/sign-up`}
+                        className="border-b border-regal-blue ms-2 text-[13px] font-semibold w-fit mainColor">
+                        {translate?.pages.login.createAccount}
+                    </Link>
+              </div>
           </div>
         </div>
-
-
-
-
-
-      </div>
+      </HeroAuth>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

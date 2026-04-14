@@ -1,243 +1,140 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, FormEvent, useEffect, useRef } from "react";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter, useSearchParams } from "next/navigation";
-import Cookies from "js-cookie";
 import Image from "next/image";
-
-import otp from "@/public/assets/images/otp.webp";
-
-import { useResendOtpMutation, useVerifyCodeMutation } from "@/store/auth/authApi";
+import HeroAuth from "../heroAuth/HeroAuth";
+import logo from "@/public/assets/images/logoo.png";
+import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
-import VerifyCodeSkeleton from "./VerifyCodeSkeleton";
-
-const CODE_LENGTH = 4;
+import { useEffect, useRef, useState } from "react";
 
 const VerifyCode = () => {
-  const [verifyCode, { isLoading }] = useVerifyCodeMutation();
-  const [resendOtp, { isLoading: isResending }] = useResendOtpMutation();
-  const router = useRouter();
-  const search = useSearchParams();
   const lang = LangUseParams();
   const translate = TranslateHook();
 
-  const email = search.get("email") ?? "";
+  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  const [code, setCode] = useState<string[]>(
-    Array(CODE_LENGTH).fill("")
-  );
-
-  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
-
-  /*save email in cookie*/
+  // focus first input on mount
   useEffect(() => {
-    if (email) {
-      Cookies.set("reset_email", email, { expires: 1 });
-    }
-  }, [email]);
+    inputsRef.current[0]?.focus();
+  }, []);
 
-  /* cant login if no email */
-  useEffect(() => {
-    if (!email) {
-      router.replace(`/${lang}/forget-password`);
-    }
-  }, [email, router, lang]);
-
-  /* enter number in input */
+  // handle change
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
 
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
 
-    if (value && index < CODE_LENGTH - 1) {
+    if (value && index < 3) {
+      setActiveIndex(index + 1);
       inputsRef.current[index + 1]?.focus();
     }
   };
 
-  /* Backspace in last input */
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
+  // handle backspace
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      setActiveIndex(index - 1);
       inputsRef.current[index - 1]?.focus();
     }
   };
 
-  /* Paste code */
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pasted = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, CODE_LENGTH);
-
-    if (!pasted) return;
-
-    const newCode = pasted.split("");
-    while (newCode.length < CODE_LENGTH) newCode.push("");
-
-    setCode(newCode);
-
-    const nextIndex = Math.min(pasted.length, CODE_LENGTH - 1);
-    inputsRef.current[nextIndex]?.focus();
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    const finalCode = code.join("");
-
-    // if (finalCode.length !== CODE_LENGTH) {
-    //   toast.error("من فضلك أدخل كود التحقق كامل");
-    //   return;
-    // }
-
-    try {
-      const res = await verifyCode({ code: finalCode }).unwrap();
-      toast.success(res?.message);
-
-      router.push(
-        `/${lang}/reset-password?email=${encodeURIComponent(
-          email
-        )}&code=${encodeURIComponent(finalCode)}`
-      );
-    } catch (err: any) {
-      const errorData = err?.data ?? err;
-      if (errorData?.errors) {
-        Object.values(errorData.errors).forEach((messages: any) => {
-          messages.forEach((msg: string) => toast.error(msg));
-        });
-      }
-    }
-  };
-
-  const handleResend = async () => {
-    try {
-      const res = await resendOtp({ email }).unwrap();
-      toast.success(res?.message);
-    } catch (err: any) {
-      const errorData = err?.data ?? err;
-      if (errorData?.errors) {
-        Object.values(errorData.errors).forEach((messages: any) => {
-          messages.forEach((msg: string) => toast.error(msg));
-        });
-      }
-    }
-  };
-
-
-  if (!translate || !email) {
-    return <VerifyCodeSkeleton />;
-  }
-
-
   return (
-    <div className="relative grdianBK font-cairo" style={{ direction: "rtl" }}>
-      <div className="grid lg:grid-cols-2 gap-4 items-center">
-        {/* Form */}
-        <div className="my-10" style={{ direction: "ltr" }}>
-          <h1 className="text-center font-bold text-xl md:text-2xl titleColor">
-            {translate?.pages.verifyCode.title}
-          </h1>
+    <div>
+      <HeroAuth contentClassName="max-w-3xl ">
+        <div className="flex w-full flex-col items-center gap-6 my-15 pb-9">
+          
+          {/* logo */}
+          <Image
+            src={logo}
+            alt=""
+            width={140}
+            height={48}
+            className="h-auto w-35 object-contain"
+            priority
+          />
 
-          <form
-            onSubmit={handleSubmit}
-            className="p-4 w-[95%] md:w-[80%] mx-auto"
-          >
-            {/* Email */}
-            <div className="mb-6">
-              <label
-                className={`block text-[13px] mb-3 font-bold titleColor ${lang === "ar" ? "text-right!" : "text-left"
-                  }`}
-              >
-                {translate?.pages.verifyCode.email}
-              </label>
-              <input
-                type="email"
-                value={email}
-                disabled
-                className="w-full p-3 border bg-gray-50 rounded-md"
+          {/* card */}
+          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8">
+
+            {/* decorative line */}
+            <div className="pointer-events-none absolute top-0 left-0">
+              <Image
+                src="/assets/images/line.svg"
+                alt=""
+                width={100}
+                height={100}
               />
             </div>
 
-            {/* OTP */}
-            <div className="mb-6">
-              <label
-                className={`block text-[13px] mb-3 font-bold titleColor ${lang === "ar" ? "text-right!" : "text-left"
-                  }`}
-              >
-                {translate?.pages.verifyCode.code}
-              </label>
+            {/* header */}
+            <div className="relative z-10 text-start">
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="min-w-0 flex-1 text-xl font-bold mainColor">
+                  {translate?.pages?.verifyCode.title}
+                  <span className="scoundColor">
+                    {" "}
+                    {translate?.pages?.verifyCode.code}
+                  </span>
+                </h1>
 
-              <div className="flex gap-3 justify-center">
-                {code.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => { inputsRef.current[index] = el }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) =>
-                      handleChange(e.target.value, index)
-                    }
-                    onKeyDown={(e) =>
-                      handleKeyDown(e, index)
-                    }
-                    onPaste={handlePaste}
-                    className="w-14 h-14 text-center text-xl font-bold border rounded-md ring-2 ring-green-500"
-                  />
-                ))}
+                <div className="relative z-20 shrink-0 me-10">
+                  <GlobeBtn />
+                </div>
               </div>
+
+              <p className="mt-2 text-sm text-[#737373] font-semibold">
+                {translate?.pages?.verifyCode?.description}
+              </p>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-[50%] mx-auto  bgTitleColor cursor-pointer text-white py-3 mt-8 rounded-lg flex justify-center"
+            {/* OTP inputs */}
+            <div className="flex justify-center gap-3 mt-6" dir="ltr">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => {
+                    inputsRef.current[index] = el;
+                  }}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleChange(e.target.value, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  onFocus={() => setActiveIndex(index)}
+                  className={`w-14 h-14 text-center text-medium font-semibold rounded-md 
+                  border outline-none transition
+                    ${
+                      activeIndex === index
+                        ? "bg-white border-mainColor shadow-sm"
+                        : "bg-transparent border-gray-300"
+                    }
+                  `}
+                />
+              ))}
+            </div>
 
+            {/* button */}
+            <button
+              className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  {translate?.pages.verifyCode.processing} ...
-                </>
-              ) : (
-                translate?.pages.verifyCode.verify
-              )}
+              {translate?.pages?.verifyCode?.verify}
             </button>
 
-            {/* Resend */}
-            <div className="mt-4 text-center text-sm">
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={isResending}
-                className="greenBgIcon mt-5 font-semibold"
-              >
-                {isResending
-                  ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  : translate?.pages.verifyCode.resendCode}
+            {/* resend */}
+            <p className="text-center text-sm mt-3">
+              {translate?.pages?.verifyCode?.resendText}{" "}
+              <button className="mainColor font-semibold border-b border-regal-blue">
+                {translate?.pages?.verifyCode?.resendCode}
               </button>
-
-            </div>
-          </form>
-        </div>
-
-        {/* Image */}
-        <div className="relative hidden lg:flex bkMainColor h-screen items-center justify-center">
-          <div className="h-[50%]">
-            <Image src={otp} alt="bg" width={500} height={700} />
+            </p>
           </div>
         </div>
-      </div>
+      </HeroAuth>
     </div>
   );
 };

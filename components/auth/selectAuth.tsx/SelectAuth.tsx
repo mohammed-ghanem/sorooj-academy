@@ -56,7 +56,7 @@ const SelectAuth = () => {
             alt=""
             width={140}
             height={48}
-            className="h-auto w-[140px] object-contain"
+            className="h-auto w-35 object-contain"
             priority
           />
 
@@ -114,7 +114,7 @@ const SelectAuth = () => {
                 role="radio"
                 aria-checked={role === "student"}
                 onClick={() => setRole("student")}
-                className={`relative flex w-full flex-col rounded-xl border-2 bg-white p-4 text-start transition-all md:min-h-[220px] md:p-5 ${
+                className={`relative flex w-full flex-col rounded-xl border-2 bg-white p-4 text-start transition-all md:min-h-55 md:p-5 ${
                   role === "student"
                     ? "border-[#9F854E] shadow-sm"
                     : "border-gray-200 hover:border-gray-300"
@@ -124,7 +124,7 @@ const SelectAuth = () => {
                   <RoleRadio checked={role === "student"} />
                 </div>
                 <div className="mt-8 flex flex-1 flex-col items-center gap-3 md:mt-6">
-                  <div className="relative h-[88px] w-[88px] md:h-30 md:w-30">
+                  <div className="relative h-22 w-22 md:h-30 md:w-30">
                     <Image
                       src="/assets/images/student.png"
                       alt="student"
@@ -152,7 +152,7 @@ const SelectAuth = () => {
                 role="radio"
                 aria-checked={role === "trainer"}
                 onClick={() => setRole("trainer")}
-                className={`relative flex w-full flex-col rounded-xl border-2 bg-white p-4 text-start transition-all md:min-h-[220px] md:p-5 ${
+                className={`relative flex w-full flex-col rounded-xl border-2 bg-white p-4 text-start transition-all md:min-h-55 md:p-5 ${
                   role === "trainer"
                     ? "border-[#9F854E] shadow-sm"
                     : "border-gray-200 hover:border-gray-300"
@@ -162,7 +162,7 @@ const SelectAuth = () => {
                   <RoleRadio checked={role === "trainer"} />
                 </div>
                 <div className="mt-8 flex flex-1 flex-col items-center gap-3 md:mt-6">
-                  <div className="relative h-[88px] w-[88px] md:h-30 md:w-30">
+                  <div className="relative h-22 w-22 md:h-30 md:w-30">
                     <Image
                       src="/assets/images/doctor.svg"
                       alt="trainer"

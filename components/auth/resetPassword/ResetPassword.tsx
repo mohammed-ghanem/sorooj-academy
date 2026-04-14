@@ -1,122 +1,84 @@
-/* app/[lang]/reset-password/page.tsx */
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, FormEvent, useEffect } from "react";
-import { useResetPasswordMutation } from "@/store/auth/authApi";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import Image from "next/image";
+import HeroAuth from "../heroAuth/HeroAuth";
+import logo from "@/public/assets/images/logoo.png";
+import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
-import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import restpass from "@/public/assets/images/restpass.webp";
-import ResetPasswordSkeleton from "./ResetPasswordSkeleton";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 const ResetPassword = () => {
-  const [resetPassword, { isLoading }] = useResetPasswordMutation();
-
   const lang = LangUseParams();
   const translate = TranslateHook();
-  const router = useRouter();
-  const search = useSearchParams();
 
-  const email = search.get("email") ?? "";
-  const code = search.get("code") ?? "";
-
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
-  /**
-   * Protect direct access
-   */
-  useEffect(() => {
-    if (!email || !code) {
-      router.replace(`/${lang}/forget-password`);
-    }
-  }, [email, code, lang, router]);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (password !== confirm) {
-      toast.error(
-        translate?.pages.resetPassword?.passwordMismatch);
-      return;
-    }
-
-    try {
-      const res = await resetPassword({
-        email,
-        code,
-        password,
-        password_confirmation: confirm,
-      }).unwrap();
-
-      toast.success(
-        res?.message ||
-        translate?.pages.resetPassword?.success);
-
-      router.replace(`/${lang}/login`);
-    } catch (err: any) {
-      const errorData = err?.data ?? err;
-
-      if (errorData?.errors) {
-        Object.values(errorData.errors).forEach((msgs: any) =>
-          Array.isArray(msgs) && msgs.forEach((m) => toast.error(m))
-        );
-        return;
-      }
-    }
-  };
-
-  if (!translate) {
-    return <ResetPasswordSkeleton />;
-  }
+  const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div className="relative grdianBK font-cairo" style={{ direction: "rtl" }}>
-      <div className="grid lg:grid-cols-2 gap-4 items-center">
-        <div className="my-10" style={{ direction: "ltr" }}>
-          <h1 className="text-center font-bold text-xl md:text-2xl titleColor">
-            {translate?.pages.resetPassword.title}
-          </h1>
+    <div>
+      <HeroAuth contentClassName="max-w-3xl ">
+        <div className="flex w-full flex-col items-center gap-6 my-15 pb-0">
+          
+          {/* logo */}
+          <Image
+            src={logo}
+            alt=""
+            width={140}
+            height={48}
+            className="h-auto w-35 object-contain"
+            priority
+          />
 
-          <form
-            onSubmit={handleSubmit}
-            className="p-4 w-[95%] md:w-[80%] mx-auto"
-          >
-            {[
-              {
-                label: `${translate?.pages.resetPassword.password}`,
-                value: password, set: setPassword
-              },
+          {/* card */}
+          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8">
 
-              {
-                label: `${translate?.pages.resetPassword.confirmPassword}`,
-                value: confirm, set: setConfirm
-              },
+            {/* decorative line */}
+            <div className="pointer-events-none absolute top-0 left-0">
+              <Image
+                src="/assets/images/line.svg"
+                alt=""
+                width={100}
+                height={100}
+              />
+            </div>
 
-            ].map((f, i) => (
-              <div key={i} className="mb-4" >
+            {/* header */}
+            <div className="relative z-10 text-start">
+              <div className="flex items-start justify-between gap-3">
+                  <h1 className="min-w-0 flex-1 text-xl font-bold mainColor">
+                       {translate?.pages?.resetPassword.title} 
+                    <span className="scoundColor"> {translate?.pages?.resetPassword.password} </span>
+                  </h1>
+
+                <div className="relative z-20 shrink-0 me-10">
+                  <GlobeBtn />
+                </div>
+              </div>
+
+              <p className="mt-2 text-sm text-[#737373] font-bold">
+                {translate?.pages?.resetPassword?.description}
+              </p>
+            </div>
+
+            {/* form */}
+            <form className="p-0 md:p-4 mt-4 mx-auto z-30 relative" dir="ltr">
+              
+              {/* new password */}
+              <div className="mb-4">
                 <label
-                  className={`block text-[13px] font-bold titleColor ${lang === "ar" ? "text-right!" : "text-left"
-                    }`}
+                  className={`block text-[13px] font-semibold text-gray-400 ${
+                    lang === "ar" ? "text-right!" : "text-left"
+                  }`}
                 >
-                  {translate?.pages.resetPassword?.[f.label] || f.label}
+                  {translate?.pages?.resetPassword?.password}
                 </label>
-                <div className="relative">
 
+                <div className="relative">
                   <input
-                    dir="ltr"
                     type={showPassword ? "text" : "password"}
-                    required
-                    value={f.value}
-                    onChange={(e) => f.set(e.target.value)}
-                    className={`mt-1 block w-full p-2 border bg-white rounded-md
-                      focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-gray-400
-                      `}
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                   />
 
                   <button
@@ -126,35 +88,46 @@ const ResetPassword = () => {
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
-
                 </div>
-
               </div>
-            ))}
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-[50%] mx-auto  bgTitleColor cursor-pointer text-white py-3 mt-8 rounded-lg flex justify-center"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  {translate?.pages.resetPassword?.processing}
-                </>
-              ) : (
-                translate?.pages.resetPassword?.confirmBtn)}
-            </button>
-          </form>
-        </div>
+              {/* confirm password */}
+              <div className="mb-4">
+                <label
+                  className={`block text-[13px] font-semibold text-gray-400 ${
+                    lang === "ar" ? "text-right!" : "text-left"
+                  }`}
+                >
+                  {translate?.pages?.resetPassword?.confirmPassword}
+                </label>
 
-        {/* Image */}
-        <div className="relative hidden lg:flex bkMainColor h-screen items-center justify-center">
-          <div className="h-[50%]">
-            <Image src={restpass} alt="bg" width={500} height={700} />
+                <div className="relative">
+                  <input
+                    type={showConfirm ? "text" : "password"}
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* submit */}
+              <button
+                type="submit"
+                className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center"
+              >
+                {translate?.pages?.resetPassword?.confirmBtn}
+              </button>
+            </form>
           </div>
         </div>
-      </div>
+      </HeroAuth>
     </div>
   );
 };

@@ -18,10 +18,13 @@
     "login": {
       "login": "Login",
       "loginTitle": "Student Login",
+      "description" : "Your Academic Roadmap starts here with clear and concise steps.",
       "email": "Email Address",
-      "passwordName": "Password",
+      "password": "Password",
       "forgetPassword": "Forget Password ?",
       "loginButton": "Log In",
+      "or" : "or",
+      "withGoogle": "Continue with Google",
       "dontHaveUser": "Dont Have Account ?",
       "createAccount": "create account",
       "LoginSuccessful": "Login Successful!",
@@ -49,14 +52,18 @@
       "next": "Next"
     },
     "forgetPassword": {
-      "title": "Forget Password",
+      "title": "Did You Forget ",
+      "forgetPassword": "Your Password ?",
+      "forgetPasswordTitle": "Enter your email address to send a verification code and reset your password",
       "email": "Email Address",
       "sending": "Sending Verification Code",
-      "send": "send verification code",
-      "forgetPasswordButton": "Password recovery"
+      "send": "send",
+      "forgetPasswordButton": "Password recovery",
+      "backToLogin": "Back to Login"
     },
     "verifyCode": {
-      "title": "Verification Code",
+      "title": "Enter",
+      "description" : "We have sent a verification code to your email address. Please check your inbox, if you did not receive the code, you can resend it within (60 : 0) seconds. Press the button to resend",
       "email": "Email Address",
       "code": "Verification Code",
       "placeholder": "Enter verification code consisting of 4 digits",
@@ -66,7 +73,8 @@
 
     },
     "resetPassword": {
-      "title": "Enter your new password",
+      "title": "Reset Your",
+      "description" : "Please enter your new password and confirm it to reset your password",
       "email": "Email Address",
       "code": " Verification Code",
       "password": " new password",
