@@ -179,7 +179,7 @@ const SignUp = () => {
                     </label>
                     <div className="relative">
                       <User className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
-                      <input className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none" />
+                      <input className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none" />
                     </div>
                   </div>
 
@@ -192,7 +192,7 @@ const SignUp = () => {
                     </label>
                     <div className="relative">
                       <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
-                      <input className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none" />
+                      <input className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none" />
                     </div>
                   </div>
 
@@ -209,7 +209,7 @@ const SignUp = () => {
                       country={"kw"}
                       value={phone}
                       onChange={(phone) => setPhone(phone)}
-                      inputClass="mt-1 block w-full pl-[52px] pr-[0] py-[20px] border
+                      inputClass="mt-1 block w-full pl-[52px] pr-[0] py-[20px] border scoundColor
                        border-gray-300 rounded-md shadow-sm bg-[#faf9f6]!"
                       containerClass="mt-1"
                       buttonClass="!border-gray-300"
@@ -226,7 +226,7 @@ const SignUp = () => {
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
-                        className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none"
+                        className="mt-1 w-full scoundColor  p-2 border border-gray-300 rounded-md outline-none"
                       />
                       <button
                         type="button"
@@ -252,7 +252,7 @@ const SignUp = () => {
                     <div className="relative">
                       <input
                         type={showConfirm ? "text" : "password"}
-                        className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none"
+                        className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none"
                       />
                       <button
                         type="button"
@@ -312,7 +312,7 @@ const SignUp = () => {
                         dir={isArabic ? "rtl" : "ltr"}
                       >
                         <option value="">{t?.selectLevel ?? t?.select}</option>
-                        <option value="beginner">مبتدا</option>
+                        <option value="beginner"> مبتدئ</option>
                         <option value="intermediate">متوسط</option>
                         <option value="advanced">متقدم</option>
                       </select>

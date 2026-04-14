@@ -86,7 +86,7 @@ const ResetPassword = () => {
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm scoundColor outline-none"
                   />
 
                   <button
@@ -112,7 +112,7 @@ const ResetPassword = () => {
                 <div className="relative">
                   <input
                     type={showConfirm ? "text" : "password"}
-                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md scoundColor  shadow-sm outline-none"
                   />
 
                   <button

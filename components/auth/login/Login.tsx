@@ -78,7 +78,7 @@ const Login = () => {
                   <input
                     type="email"
                     required
-                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none "
+                    className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none "
                   />
                 </div>
               </div>
@@ -96,7 +96,7 @@ const Login = () => {
                   <input
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                    className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                   />
 
                   <button
@@ -127,12 +127,12 @@ const Login = () => {
             <SocialLogin />
 
             <div className="mt-2 text-center ">
-              <span className="text-[13px] font-semibold">
+              <span className="text-[13px] font-semibold mainColor">
                 {translate?.pages.login.dontHaveUser}
               </span>
               <Link
                 href={`/${lang}/sign-up`}
-                className="border-b border-regal-blue ms-2 text-[13px] font-semibold w-fit mainColor"
+                className="border-b border-regal-blue ms-2 text-[13px] font-semibold w-fit scoundColor"
               >
                 {translate?.pages.login.createAccount}
               </Link>

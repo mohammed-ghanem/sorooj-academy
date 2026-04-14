@@ -83,7 +83,7 @@ const ForgetPassword = () => {
                   <input
                     type="email"
                     required
-                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                    className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                   />
                 </div>
               </div>
