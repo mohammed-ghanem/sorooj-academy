@@ -61,7 +61,7 @@ const SelectAuth = () => {
           />
 
           <div
-            className=" relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
+            className=" relative w-full max-w-xl  md:max-w-3xl  rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
            ring-black/5 md:p-8"
           >
             <div className="pointer-events-none absolute top-0 left-0">
@@ -76,9 +76,8 @@ const SelectAuth = () => {
             <div className="relative z-10 text-start">
               <div className="flex items-start justify-between gap-3">
                 {isCopyReady ? (
-                  <h1 className="min-w-0 flex-1 text-xl font-bold mainColor md:text-2xl">
-                    {t.title}{" "}
-                    <span className="scoundColor">{t.titleSpan}</span>
+                  <h1 className="min-w-0 flex-1 text-xl font-semibold mainColor md:text-2xl">
+                    {t.title} <span className="scoundColor">{t.titleSpan}</span>
                   </h1>
                 ) : (
                   <SelectAuthHeaderTitleSkeleton />
@@ -89,7 +88,7 @@ const SelectAuth = () => {
               </div>
               {isCopyReady ? (
                 <>
-                  <p className="mt-2 text-sm text-[#737373] md:text-sm font-bold">
+                  <p className="mt-2 text-sm text-[#737373] md:text-sm font-semibold">
                     {t.description}
                   </p>
                   <p className="mt-6 font-semibold mainColor md:text-base">

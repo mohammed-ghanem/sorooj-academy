@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import sms from "@/public/assets/images/sms.svg";
+import user from "@/public/assets/images/user.svg";
 import HeroAuth from "../heroAuth/HeroAuth";
 import logo from "@/public/assets/images/logoo.png";
 import GlobeBtn from "@/components/header/GlobeBtn";
@@ -13,8 +15,6 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Mail,
-  User,
 } from "lucide-react";
 
 import PhoneInput from "react-phone-input-2";
@@ -56,19 +56,19 @@ const SignUp = () => {
   const selectValueClass = (value: string) =>
     cn(
       "appearance-none mt-1 w-full p-2 border border-gray-300 rounded-md focus-visible:ring-0! focus-visible:ring-offset-0! focus-visible:outline-none!",
-      value ? "scoundColor font-semibold text-sm" : "text-gray-400"
+      value ? "scoundColor font-semibold text-sm" : "text-gray-400",
     );
 
   const dateInputClass = (value: string) =>
     cn(
       "mt-1 w-full p-2 border border-gray-300 rounded-md focus-visible:ring-0! focus-visible:ring-offset-0! focus-visible:outline-none!",
-      value ? "scoundColor font-semibold text-sm" : "text-gray-400"
+      value ? "scoundColor font-semibold text-sm" : "text-gray-400",
     );
 
   const radioLabelClass = (selected: boolean) =>
     cn(
       "flex cursor-pointer items-center gap-2 text-sm transition-colors",
-      selected ? "scoundColor font-semibold" : "text-gray-400"
+      selected ? "scoundColor font-semibold" : "text-gray-400",
     );
 
   const radioInputClass =
@@ -76,7 +76,7 @@ const SignUp = () => {
 
   const selectChevronClass = cn(
     "pointer-events-none absolute mt-[3px] top-1/2 -translate-y-1/2 text-gray-400!",
-    isArabic ? "left-3" : "right-3"
+    isArabic ? "left-3" : "right-3",
   );
 
   return (
@@ -173,12 +173,18 @@ const SignUp = () => {
                   {/* name */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.name}
                     </label>
                     <div className="relative">
-                      <User className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
+                      <Image
+                        src={user}
+                        alt="user"
+                        width={20}
+                        height={20}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5"
+                      />
                       <input className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none" />
                     </div>
                   </div>
@@ -186,12 +192,18 @@ const SignUp = () => {
                   {/* email */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.email}
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
+                    <div className="relative"> 
+                      <Image
+                        src={sms}
+                        alt="sms"
+                        width={20}
+                        height={20}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5"
+                      />
                       <input className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none" />
                     </div>
                   </div>
@@ -200,7 +212,7 @@ const SignUp = () => {
                   <div className="mb-4">
                     <label
                       className={`block text-[13px] font-semibold ${lang === "ar" ? "text-right!" : "text-left"}
-                     text-gray-400`}
+                     text-gray-500`}
                     >
                       {translate?.pages?.signUp?.phone}
                     </label>
@@ -219,7 +231,7 @@ const SignUp = () => {
                   {/* password */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.password}
                     </label>
@@ -245,7 +257,7 @@ const SignUp = () => {
                   {/* confirm */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.confirmPassword}
                     </label>
@@ -279,7 +291,7 @@ const SignUp = () => {
                 <>
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.country}
                     </label>
@@ -290,7 +302,9 @@ const SignUp = () => {
                         className={selectValueClass(country)}
                         dir={isArabic ? "rtl" : "ltr"}
                       >
-                        <option value="">{t?.selectCountry ?? t?.select}</option>
+                        <option value="">
+                          {t?.selectCountry ?? t?.select}
+                        </option>
                         <option value="eg">مصر</option>
                         <option value="sa">السعودية</option>
                       </select>
@@ -300,7 +314,7 @@ const SignUp = () => {
 
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.level}
                     </label>
@@ -322,7 +336,7 @@ const SignUp = () => {
 
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.degree}
                     </label>
@@ -346,7 +360,7 @@ const SignUp = () => {
 
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.goal}
                     </label>
@@ -378,7 +392,7 @@ const SignUp = () => {
                   <div className="mb-4">
                     <label
                       className={`block text-[13px] font-semibold
-                       text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                       text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.gender}
                     </label>

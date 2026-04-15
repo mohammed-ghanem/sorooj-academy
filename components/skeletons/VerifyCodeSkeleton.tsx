@@ -12,7 +12,7 @@ const VerifyCodeSkeleton = () => {
   return (
     <div>
       <HeroAuth contentClassName="max-w-3xl ">
-        <div className="flex w-full flex-col items-center gap-6 my-15 pb-9">
+        <div className="flex w-full flex-col items-center gap-6 my-15 pb-20">
           <Image
             src={logo}
             alt=""
@@ -21,7 +21,8 @@ const VerifyCodeSkeleton = () => {
             className="h-auto w-35 object-contain"
             priority
           />
-          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8">
+          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
+           ring-black/5 md:mt-4 md:p-16">
             <div className="pointer-events-none absolute top-0 left-0">
               <Image
                 src="/assets/images/line.svg"

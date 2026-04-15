@@ -2,7 +2,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import HeroAuth from "../heroAuth/HeroAuth";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import sms from "@/public/assets/images/sms.svg";
 import logo from "@/public/assets/images/logoo.png";
 import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
@@ -49,7 +50,7 @@ const Login = () => {
             </div>
             <div className="relative z-10 text-start">
               <div className="flex items-start justify-between gap-3">
-                <h1 className="min-w-0 flex-1 text-xl font-bold mainColor md:text-2xl">
+                <h1 className="min-w-0 flex-1 text-xl font-semibold mainColor md:text-2xl">
                   {translate?.pages?.selectAuth.title}
                   <span className="scoundColor">
                     {translate?.pages?.selectAuth.titleSpan}
@@ -60,7 +61,7 @@ const Login = () => {
                   <GlobeBtn />
                 </div>
               </div>
-              <p className="mt-2 text-sm text-[#737373] md:text-sm font-bold">
+              <p className="mt-2 text-sm text-[#737373] md:text-sm font-semibold">
                 {translate?.pages?.login.description}
               </p>
             </div>
@@ -68,13 +69,13 @@ const Login = () => {
             <form className="p-0 md:p-4 mt-4  mx-auto z-30 relative" dir="ltr">
               <div className="mb-4">
                 <label
-                  className={`block text-[13px] font-semibold text-gray-400 
+                  className={`block text-[13px] font-semibold text-gray-500
                   ${lang === "ar" ? "text-right!" : "text-left"}`}
                 >
                   {translate?.pages.login.email}
                 </label>
                 <div className="relative">
-                  <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
+                  <Image src={sms} alt="sms" width={20} height={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
                   <input
                     type="email"
                     required
@@ -86,7 +87,7 @@ const Login = () => {
 
               <div className="mb-4">
                 <label
-                  className={`block text-[13px] font-semibold text-gray-400
+                  className={`block text-[13px] font-semibold text-gray-500
                  ${lang === "ar" ? "text-right!" : "text-left"}`}
                 >
                   {translate?.pages.login.password}

@@ -240,12 +240,19 @@
       }
     },
     "contactUs": {
-      "title": "Contact Us",
+      "contactUs": "Contact Us",
+      "title": "Contact ",
+      "titleSpan": "With Us",
       "help": "How can we help you ?",
       "description": "Our team is always here to help you on your academic journey, whether you have a question about courses, need technical support, or want to learn more about available educational programs. Contact us anytime, and we'll be happy to answer all your questions and provide the support you need.",
       "yourMessage" : " We are here for you",
+      "smallTitle" : "We are here to answer your questions and help you on your academic journey with pleasure.",
+      "name" : "Name",
       "email": "Email Address",
-      "send" : "send"
+      "send" : "send",
+      "request": "Request Type",
+      "selectRequest": "Select Request Type",
+      "message": "Message"
      
     }
   },

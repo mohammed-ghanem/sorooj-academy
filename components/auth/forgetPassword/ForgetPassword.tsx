@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import HeroAuth from "../heroAuth/HeroAuth";
-import { Mail } from "lucide-react";
+import sms from "@/public/assets/images/sms.svg";
 import logo from "@/public/assets/images/logoo.png";
 import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
@@ -21,7 +21,7 @@ const ForgetPassword = () => {
   return (
     <div>
       <HeroAuth contentClassName="max-w-3xl ">
-        <div className="flex w-full flex-col items-center gap-6 my-15 pb-3.5">
+        <div className="flex w-full flex-col items-center gap-6 my-15 pb-20">
           {/* logo */}
           <Link href={`/${lang}`}>
             <Image
@@ -35,7 +35,8 @@ const ForgetPassword = () => {
           </Link>
 
           {/* card */}
-          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1 ring-black/5 md:p-8">
+          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
+           ring-black/5 md:mt-4 md:p-12">
             {/* decorative line */}
             <div className="pointer-events-none absolute top-0 left-0">
               <Image
@@ -79,7 +80,13 @@ const ForgetPassword = () => {
                 </label>
 
                 <div className="relative">
-                  <Mail className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
+                  <Image
+                    src={sms}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5"
+                  />
                   <input
                     type="email"
                     required
