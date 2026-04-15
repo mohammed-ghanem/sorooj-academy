@@ -29,7 +29,12 @@ export const metadata: Metadata = {
     siteName: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
     locale: "ar",
     type: "website",
-    images: [{ url: "https://academy.sorooj.org/logo.png" }],
+    images: [
+      { url: "https://academy.sorooj.org/assets/images/meta.png",
+        alt: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
+        width: 1200,
+        height: 630,
+    }],
   },
 };
 

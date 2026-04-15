@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-
+ 
 const HeroSection = () => {
   return (
     <div className="relative">

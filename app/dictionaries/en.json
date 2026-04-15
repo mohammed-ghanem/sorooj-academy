@@ -238,6 +238,15 @@
         "noPermissions": "No permissions available",
         "backBtn": "Back"
       }
+    },
+    "contactUs": {
+      "title": "Contact Us",
+      "help": "How can we help you ?",
+      "description": "Our team is always here to help you on your academic journey, whether you have a question about courses, need technical support, or want to learn more about available educational programs. Contact us anytime, and we'll be happy to answer all your questions and provide the support you need.",
+      "yourMessage" : " We are here for you",
+      "email": "Email Address",
+      "send" : "send"
+     
     }
   },
   "sidebar": {

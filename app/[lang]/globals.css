@@ -169,11 +169,18 @@ svg {
 .mainColor {
   color: #424C61;
 }
+.bkMainColor {
+  background: #424C61;
+}
+
 .scoundColor{
   color: #9F854E;
 }
 .descriptionColor{
   color: #737373;
+}
+.smallDescriptionColor{
+  color: #cfcfcf;
 }
 .bgTitleColor {
   background-color: #F5F3ED;
@@ -201,15 +208,7 @@ svg {
   background: linear-gradient(1deg, #e9dcc185 0%, rgb(245 243 238 / 0%) 100%);
 }
 
-.bkMainColor {
-  /* background: #69909d4f; */
-  background: #ebf5ff;
-  color: #000;
-}
-.hover-mainColor:hover {
-  background: #ebf5ff;
-  color: #000;
-}
+
 .fontBold {
   font-weight: bold;
 }

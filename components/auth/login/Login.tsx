@@ -27,7 +27,7 @@ const Login = () => {
           {/* logo */}
           <Link href={`/${lang}`}>
             <Image
-              src={logo}
+              src={logo} 
               alt=""
               width={140}
               height={48}

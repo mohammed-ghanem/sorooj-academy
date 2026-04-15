@@ -1,13 +1,10 @@
 import Image from "next/image";
 import footerlogo from "@/public/assets/images/logofooter.png";
 import footerEffect from "@/public/assets/images/footer-effect.png";
-import facebook from "@/public/assets/images/facebook.svg";
-import twitter from "@/public/assets/images/twitter.svg";
-import instagram from "@/public/assets/images/instagram.svg";
-import youtube from "@/public/assets/images/youtube.svg";
-import telegram from "@/public/assets/images/telegram.svg";
+
 
 import "./style.css";
+import SocialLinks from "../socialLinks/SocialLinks";
 
 const mainLinks = [
   { label: "الرئيسية", href: "#" },
@@ -24,13 +21,6 @@ const secondaryLinks = [
   { label: "حذف حسابك", href: "#" },
 ];
 
-const socialLinks = [
-  { icon: telegram, href: "#" },
-  { icon: instagram, href: "#" },
-  { icon: twitter, href: "#" },
-  { icon: facebook, href: "#" },
-  { icon: youtube, href: "#" },
-];
 
 const Footer = () => {
   return (
@@ -96,20 +86,7 @@ const Footer = () => {
 
         {/* Social Icons */}
         <div className="flex justify-center gap-4 mt-4">
-          {socialLinks.map((item, index) => (
-            <a
-              key={index}
-              href={item.href}
-              className="w-10 h-10 border rounded-full flex items-center justify-center"
-            >
-              <Image
-                src={item.icon}
-                alt="icon"
-                width={item.icon === facebook ? 10 : 20}
-                height={item.icon === facebook ? 10 : 20}
-              />
-            </a>
-          ))}
+          <SocialLinks className="rounded-full"/>
         </div>
 
         {/* Divider */}
