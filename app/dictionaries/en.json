@@ -64,8 +64,38 @@
       "selectCountry": "Select Country",
       "selectLevel": "Select Level",
       "selectGoal": "Select Goal",
+      "selectDegree": "Select education level",
       "signup": "Sign Up",
-      "next": "Next"
+      "next": "Next",
+      "termsAccept": "I agree to the terms and conditions",
+      "loadingCountries": "Loading countries…",
+      "educationLevels": {
+        "none": "None",
+        "primary": "Primary",
+        "middle_or_preparatory": "Middle or preparatory",
+        "secondary_general": "Secondary (general)",
+        "associate": "Associate",
+        "bachelor": "Bachelor",
+        "master_or_professional": "Master’s or professional",
+        "doctorate": "Doctorate",
+        "other": "Other"
+      },
+      "joinPurposes": {
+        "sharia_knowledge": "Develop Sharia knowledge in a structured way",
+        "islamic_basics": "Study the foundations of Islamic sciences",
+        "dawah_teaching_skills": "Develop da‘wah and teaching skills",
+        "accredited_certifications": "Academic qualification and accredited certificates"
+      },
+      "islamicLevels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "fillAllFields": "Please fill all fields",
+      "passwordMismatch": "Passwords do not match",
+      "termsRequired": "You must accept the terms and conditions",
+      "invalidEmail": "Please enter a valid email address",
+      "requestFailed": "Something went wrong. Please try again."
     },
     "selectAuth": {
       "title": "Login",

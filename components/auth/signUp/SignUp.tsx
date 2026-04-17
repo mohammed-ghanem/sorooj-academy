@@ -8,7 +8,7 @@ import logo from "@/public/assets/images/logoo.png";
 import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -23,12 +23,52 @@ import "./style.css";
 import SignUpSkeleton from "@/components/skeletons/SignUpSkeleton";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import {
+  useGetCountriesQuery,
+  useRegisterMutation,
+} from "@/store/auth/authApi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
+
+/** API values for `education_level` (form field) */
+const EDUCATION_LEVEL_KEYS = [
+  "none",
+  "primary",
+  "middle_or_preparatory",
+  "secondary_general",
+  "associate",
+  "bachelor",
+  "master_or_professional",
+  "doctorate",
+  "other",
+] as const;
+
+/** API values for `join_purpose` */
+const JOIN_PURPOSE_KEYS = [
+  "sharia_knowledge",
+  "islamic_basics",
+  "dawah_teaching_skills",
+  "accredited_certifications",
+] as const;
+
+/** API values for `islamic_studies_level` */
+const ISLAMIC_LEVEL_KEYS = ["beginner", "intermediate", "advanced"] as const;
+
+const emailValid = (v: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 const SignUp = () => {
   const lang = LangUseParams();
   const translate = TranslateHook();
+  const router = useRouter();
 
   const [step, setStep] = useState(1);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
 
   const [country, setCountry] = useState("");
   const [level, setLevel] = useState("");
@@ -36,11 +76,24 @@ const SignUp = () => {
   const [goal, setGoal] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "">("");
   const [birthDate, setBirthDate] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [phone, setPhone] = useState("");
+
+  const { data: countries = [], isLoading: countriesLoading } =
+    useGetCountriesQuery({ page: 0, limit: 0 });
+
+  const [register, { isLoading: isRegistering }] = useRegisterMutation();
+
+  const sortedCountries = useMemo(() => {
+    return [...countries].sort((a, b) =>
+      a.name.localeCompare(b.name, lang === "ar" ? "ar" : "en"),
+    );
+  }, [countries, lang]);
+
   const isArabic = lang === "ar";
   const nextIcon = isArabic ? ChevronLeft : ChevronRight;
   const prevIcon = isArabic ? ChevronRight : ChevronLeft;
@@ -78,6 +131,85 @@ const SignUp = () => {
     "pointer-events-none absolute mt-[3px] top-1/2 -translate-y-1/2 text-gray-400!",
     isArabic ? "left-3" : "right-3",
   );
+
+  const goStep2 = () => {
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      toast.error(t?.fillAllFields ?? "Please fill all fields");
+      return;
+    }
+    if (!emailValid(email)) {
+      toast.error(t?.invalidEmail ?? "Invalid email");
+      return;
+    }
+    if (!password || !passwordConfirm) {
+      toast.error(t?.fillAllFields ?? "Please fill all fields");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      toast.error(t?.passwordMismatch ?? "Passwords do not match");
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleRegister = async () => {
+    if (!country || !level || !degree || !goal || !gender || !birthDate) {
+      toast.error(t?.fillAllFields ?? "Please fill all fields");
+      return;
+    }
+    if (!termsAccepted) {
+      toast.error(t?.termsRequired ?? "Accept terms");
+      return;
+    }
+
+    const deviceToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("device_token") ?? ""
+        : "";
+
+    const formData = new FormData();
+    formData.append("name", name.trim());
+    formData.append("email", email.trim());
+    formData.append("mobile", phone.replace(/\D/g, ""));
+    formData.append("password", password);
+    formData.append("password_confirmation", passwordConfirm);
+    formData.append("country_id", country);
+    formData.append("date_of_birth", birthDate);
+    formData.append("gender", gender);
+    formData.append("education_level", degree);
+    formData.append("islamic_studies_level", level);
+    formData.append("join_purpose", goal);
+    formData.append("device_token", deviceToken);
+    formData.append("terms", "1");
+
+    try {
+      const res = await register(formData).unwrap();
+      toast.success(res?.message ?? "");
+
+      Cookies.set("reset_email", email.trim(), {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      });
+
+      router.push(`/${lang}/verify-code`);
+    } catch (err: unknown) {
+      const errorData = err as {
+        data?: { errors?: Record<string, string[]>; message?: string };
+      };
+      const d = errorData?.data;
+      if (d?.errors) {
+        Object.values(d.errors).forEach((messages) =>
+          messages.forEach((msg) => toast.error(msg)),
+        );
+        return;
+      }
+      if (d?.message) {
+        toast.error(d.message);
+        return;
+      }
+      toast.error(t?.requestFailed ?? "Something went wrong.");
+    }
+  };
 
   return (
     <div>
@@ -185,7 +317,11 @@ const SignUp = () => {
                         height={20}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5"
                       />
-                      <input className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none" />
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none"
+                      />
                     </div>
                   </div>
 
@@ -196,7 +332,7 @@ const SignUp = () => {
                     >
                       {translate?.pages?.signUp?.email}
                     </label>
-                    <div className="relative"> 
+                    <div className="relative">
                       <Image
                         src={sms}
                         alt="sms"
@@ -204,11 +340,16 @@ const SignUp = () => {
                         height={20}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5"
                       />
-                      <input className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none"
+                      />
                     </div>
                   </div>
 
-                  {/* phone (NEW) */}
+                  {/* phone */}
                   <div className="mb-4">
                     <label
                       className={`block text-[13px] font-semibold ${lang === "ar" ? "text-right!" : "text-left"}
@@ -238,6 +379,8 @@ const SignUp = () => {
                     <div className="relative">
                       <input
                         type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         className="mt-1 w-full scoundColor  p-2 border border-gray-300 rounded-md outline-none"
                       />
                       <button
@@ -264,6 +407,8 @@ const SignUp = () => {
                     <div className="relative">
                       <input
                         type={showConfirm ? "text" : "password"}
+                        value={passwordConfirm}
+                        onChange={(e) => setPasswordConfirm(e.target.value)}
                         className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none"
                       />
                       <button
@@ -278,7 +423,7 @@ const SignUp = () => {
 
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
+                    onClick={goStep2}
                     className="w-full scoundBgColor text-white py-3 mt-6 rounded-lg"
                   >
                     {translate?.pages?.signUp?.next}
@@ -299,14 +444,20 @@ const SignUp = () => {
                       <select
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
+                        disabled={countriesLoading}
                         className={selectValueClass(country)}
                         dir={isArabic ? "rtl" : "ltr"}
                       >
                         <option value="">
-                          {t?.selectCountry ?? t?.select}
+                          {countriesLoading
+                            ? (t?.loadingCountries ?? t?.select)
+                            : (t?.selectCountry ?? t?.select)}
                         </option>
-                        <option value="eg">مصر</option>
-                        <option value="sa">السعودية</option>
+                        {sortedCountries.map((c) => (
+                          <option key={c.id} value={String(c.id)}>
+                            {c.name}
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className={selectChevronClass} size={18} />
                     </div>
@@ -326,9 +477,13 @@ const SignUp = () => {
                         dir={isArabic ? "rtl" : "ltr"}
                       >
                         <option value="">{t?.selectLevel ?? t?.select}</option>
-                        <option value="beginner"> مبتدئ</option>
-                        <option value="intermediate">متوسط</option>
-                        <option value="advanced">متقدم</option>
+                        {ISLAMIC_LEVEL_KEYS.map((key) => (
+                          <option key={key} value={key}>
+                            {(t?.islamicLevels as Record<string, string> | undefined)?.[
+                              key
+                            ] ?? key}
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className={selectChevronClass} size={18} />
                     </div>
@@ -347,12 +502,16 @@ const SignUp = () => {
                         className={selectValueClass(degree)}
                         dir={isArabic ? "rtl" : "ltr"}
                       >
-                        <option value="">{t?.select}</option>
-                        <option value="student">طالب</option>
-                        <option value="bachelor">بكالوريوس</option>
-                        <option value="master">ماجستير</option>
-                        <option value="phd">دكتوراه</option>
-                        <option value="other">غير ذلك</option>
+                        <option value="">
+                          {t?.selectDegree ?? t?.select}
+                        </option>
+                        {EDUCATION_LEVEL_KEYS.map((key) => (
+                          <option key={key} value={key}>
+                            {(t?.educationLevels as Record<string, string> | undefined)?.[
+                              key
+                            ] ?? key}
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className={selectChevronClass} size={18} />
                     </div>
@@ -372,18 +531,13 @@ const SignUp = () => {
                         dir={isArabic ? "rtl" : "ltr"}
                       >
                         <option value="">{t?.selectGoal ?? t?.select}</option>
-                        <option value="knowledge">
-                          تنمية المعرفة الشرعية بشكل منهجي
-                        </option>
-                        <option value="basics">
-                          دراسة أساسيات العلوم الإسلامية
-                        </option>
-                        <option value="skills">
-                          تطوير مهارات الدعوة والتعليم
-                        </option>
-                        <option value="qualification">
-                          التأهيل العلمي والحصول على شهادات معتمدة
-                        </option>
+                        {JOIN_PURPOSE_KEYS.map((key) => (
+                          <option key={key} value={key}>
+                            {(t?.joinPurposes as Record<string, string> | undefined)?.[
+                              key
+                            ] ?? key}
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className={selectChevronClass} size={18} />
                     </div>
@@ -437,7 +591,24 @@ const SignUp = () => {
                     />
                   </div>
 
-                  <button className="w-full scoundBgColor text-white py-3 mt-6 rounded-lg">
+                  <label
+                    className={`mb-4 flex cursor-pointer items-start gap-2 text-sm text-gray-600 ${lang === "ar" ? "flex-row-reverse text-right" : "text-left"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-[#9F854E]"
+                    />
+                    <span>{t?.termsAccept}</span>
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={handleRegister}
+                    disabled={isRegistering}
+                    className="w-full scoundBgColor text-white py-3 mt-6 rounded-lg disabled:cursor-not-allowed disabled:opacity-60"
+                  >
                     {translate?.pages?.signUp?.signup}
                   </button>
                 </>

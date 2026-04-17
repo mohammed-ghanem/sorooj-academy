@@ -9,21 +9,41 @@ import TranslateHook from "@/translate/TranslateHook";
 import { useEffect, useRef, useState } from "react";
 import VerifyCodeSkeleton from "@/components/skeletons/VerifyCodeSkeleton";
 import Link from "next/link";
+import {
+  useResendOtpMutation,
+  useVerifyCodeMutation,
+} from "@/store/auth/authApi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+const RESEND_COOLDOWN_SEC = 60;
 
 const VerifyCode = () => {
   const lang = LangUseParams();
   const translate = TranslateHook();
+  const router = useRouter();
 
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [activeIndex, setActiveIndex] = useState(0);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  // focus first input on mount
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
+  const [verifyOtp, { isLoading: isVerifying }] = useVerifyCodeMutation();
+  const [resendOtp, { isLoading: isResending }] = useResendOtpMutation();
+
   useEffect(() => {
     inputsRef.current[0]?.focus();
   }, []);
 
-  // handle change
+  useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const t = setInterval(() => {
+      setSecondsLeft((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [secondsLeft]);
+
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
 
@@ -37,7 +57,6 @@ const VerifyCode = () => {
     }
   };
 
-  // handle backspace
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       setActiveIndex(index - 1);
@@ -45,9 +64,78 @@ const VerifyCode = () => {
     }
   };
 
+  const codeString = otp.join("");
+
+  const handleVerify = async () => {
+    if (codeString.length !== 4) {
+      toast.error(
+        translate?.pages?.verifyCode?.placeholder ??
+          "Enter the 4-digit code",
+      );
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("code", codeString);
+
+    try {
+      const res = await verifyOtp(formData).unwrap();
+      toast.success(res?.message ?? "");
+      router.push(`/${lang}/login`);
+    } catch (err: unknown) {
+      const errorData = err as {
+        data?: { errors?: Record<string, string[]>; message?: string };
+      };
+      const d = errorData?.data;
+      if (d?.errors) {
+        Object.values(d.errors).forEach((messages) =>
+          messages.forEach((msg) => toast.error(msg)),
+        );
+        return;
+      }
+      if (d?.message) {
+        toast.error(d.message);
+        return;
+      }
+      toast.error(
+        translate?.pages?.signUp?.requestFailed ?? "Something went wrong.",
+      );
+    }
+  };
+
+  const handleResend = async () => {
+    if (secondsLeft > 0 || isResending) return;
+    try {
+      const res = await resendOtp().unwrap();
+      toast.success(res?.message ?? "");
+      setSecondsLeft(RESEND_COOLDOWN_SEC);
+    } catch (err: unknown) {
+      const errorData = err as {
+        data?: { errors?: Record<string, string[]>; message?: string };
+      };
+      const d = errorData?.data;
+      if (d?.errors) {
+        Object.values(d.errors).forEach((messages) =>
+          messages.forEach((msg) => toast.error(msg)),
+        );
+        return;
+      }
+      if (d?.message) {
+        toast.error(d.message);
+        return;
+      }
+      toast.error(
+        translate?.pages?.signUp?.requestFailed ?? "Something went wrong.",
+      );
+    }
+  };
+
   if (!translate) {
     return <VerifyCodeSkeleton />;
   }
+
+  const v = translate.pages?.verifyCode;
+  const canResend = secondsLeft === 0 && !isResending;
 
   return (
     <div>
@@ -66,8 +154,10 @@ const VerifyCode = () => {
           </Link>
 
           {/* card */}
-          <div className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
-           ring-black/5 md:mt-4 md:p-16">
+          <div
+            className="relative w-full max-w-xl rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
+           ring-black/5 md:mt-4 md:p-16"
+          >
             {/* decorative line */}
             <div className="pointer-events-none absolute top-0 left-0">
               <Image
@@ -82,11 +172,8 @@ const VerifyCode = () => {
             <div className="relative z-10 text-start">
               <div className="flex items-start justify-between gap-3">
                 <h1 className="min-w-0 flex-1 text-xl font-bold mainColor">
-                  {translate?.pages?.verifyCode.title}
-                  <span className="scoundColor">
-                    {" "}
-                    {translate?.pages?.verifyCode.code}
-                  </span>
+                  {v?.title}
+                  <span className="scoundColor"> {v?.code}</span>
                 </h1>
 
                 <div className="relative z-20 shrink-0 me-10">
@@ -95,7 +182,7 @@ const VerifyCode = () => {
               </div>
 
               <p className="mt-2 text-sm text-[#737373] font-semibold">
-                {translate?.pages?.verifyCode?.description}
+                {v?.description}
               </p>
             </div>
 
@@ -108,6 +195,7 @@ const VerifyCode = () => {
                     inputsRef.current[index] = el;
                   }}
                   type="text"
+                  inputMode="numeric"
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleChange(e.target.value, index)}
@@ -126,15 +214,29 @@ const VerifyCode = () => {
             </div>
 
             {/* button */}
-            <button className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center">
-              {translate?.pages?.verifyCode?.verify}
+            <button
+              type="button"
+              onClick={handleVerify}
+              disabled={isVerifying}
+              className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isVerifying ? v?.processing : v?.verify}
             </button>
 
             {/* resend */}
             <p className="text-center text-sm mt-3">
-              {translate?.pages?.verifyCode?.resendText}{" "}
-              <button className="mainColor font-semibold border-b border-regal-blue">
-                {translate?.pages?.verifyCode?.resendCode}
+              {v?.resendText}{" "}
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={!canResend}
+                className="mainColor font-semibold border-b border-regal-blue disabled:cursor-not-allowed disabled:opacity-50 disabled:border-transparent"
+              >
+                {isResending
+                  ? v?.processing
+                  : secondsLeft > 0
+                    ? `(${secondsLeft}s)`
+                    : v?.resendCode}
               </button>
             </p>
           </div>

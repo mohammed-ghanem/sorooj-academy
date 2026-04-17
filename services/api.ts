@@ -2,12 +2,12 @@
 import axios from "axios";
 // import Cookies from "js-cookie";
 
-const BASE = process.env.NEXT_PUBLIC_BASE_URL || "https://backend.wecandevmode.online";
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
+const BASE = process.env.NEXT_PUBLIC_BASE_URL ;
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY ;
 
 // Main API instance
 const api = axios.create({
-  baseURL: `${BASE}/dashboard-api/v1`,
+  baseURL: `${BASE}/student-api/v1`,
   withCredentials: true,
   xsrfCookieName: "XSRF-TOKEN",
   xsrfHeaderName: "X-XSRF-TOKEN",
@@ -21,7 +21,7 @@ const api = axios.create({
 
 // Sanctum API instance for CSRF (مثل الكود القديم)
 export const sanctumApi = axios.create({
-  baseURL: BASE, // بدون /dashboard-api/v1
+  baseURL: BASE, 
   withCredentials: true,
   xsrfCookieName: "XSRF-TOKEN",
   xsrfHeaderName: "X-XSRF-TOKEN",

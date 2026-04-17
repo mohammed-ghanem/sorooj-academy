@@ -11,15 +11,67 @@ import TranslateHook from "@/translate/TranslateHook";
 import { useState } from "react";
 import SocialLogin from "../socialLogin/SocialLogin";
 import LoginSkeleton from "@/components/skeletons/LoginSkeleton";
+import { useLoginMutation } from "@/store/auth/authApi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const Login = () => {
   const lang = LangUseParams();
   const translate = TranslateHook();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [login, { isLoading }] = useLoginMutation();
 
   if (!translate) {
     return <LoginSkeleton />;
   }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password) {
+      toast.error(
+        translate?.pages?.signUp?.fillAllFields ?? "Please fill all fields",
+      );
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("email", email.trim());
+    formData.append("password", password);
+    const deviceToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("device_token") ?? ""
+        : "";
+    formData.append("device_token", deviceToken);
+    formData.append("lang", lang);
+
+    try {
+      const res = await login(formData).unwrap();
+      toast.success(res?.message ?? "");
+      router.push(`/${lang}`);
+    } catch (err: unknown) {
+      const errorData = err as {
+        data?: { errors?: Record<string, string[]>; message?: string };
+      };
+      const d = errorData?.data;
+      if (d?.errors) {
+        Object.values(d.errors).forEach((messages) =>
+          messages.forEach((msg) => toast.error(msg)),
+        );
+        return;
+      }
+      if (d?.message) {
+        toast.error(d.message);
+        return;
+      }
+      toast.error(
+        translate?.pages?.signUp?.requestFailed ?? "Something went wrong.",
+      );
+    }
+  };
 
   return (
     <div>
@@ -28,7 +80,7 @@ const Login = () => {
           {/* logo */}
           <Link href={`/${lang}`}>
             <Image
-              src={logo} 
+              src={logo}
               alt=""
               width={140}
               height={48}
@@ -66,7 +118,11 @@ const Login = () => {
               </p>
             </div>
             {/* login form */}
-            <form className="p-0 md:p-4 mt-4  mx-auto z-30 relative" dir="ltr">
+            <form
+              className="p-0 md:p-4 mt-4  mx-auto z-30 relative"
+              dir="ltr"
+              onSubmit={handleSubmit}
+            >
               <div className="mb-4">
                 <label
                   className={`block text-[13px] font-semibold text-gray-500
@@ -75,10 +131,19 @@ const Login = () => {
                   {translate?.pages.login.email}
                 </label>
                 <div className="relative">
-                  <Image src={sms} alt="sms" width={20} height={20} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5" />
+                  <Image
+                    src={sms}
+                    alt="sms"
+                    width={20}
+                    height={20}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400! w-5 h-5"
+                  />
                   <input
                     type="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none "
                   />
                 </div>
@@ -97,6 +162,9 @@ const Login = () => {
                   <input
                     name="password"
                     type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                     className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                   />
 
@@ -120,7 +188,8 @@ const Login = () => {
               {/* submit */}
               <button
                 type="submit"
-                className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-8 rounded-lg flex justify-center"
+                disabled={isLoading}
+                className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-8 rounded-lg flex justify-center disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {translate?.pages.login.loginButton}
               </button>

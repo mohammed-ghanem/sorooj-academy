@@ -9,14 +9,75 @@ import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
 import Link from "next/link";
 import ForgetPasswordSkeleton from "@/components/skeletons/ForgetPasswordSkeleton";
+import { useState } from "react";
+import { useSendResetCodeMutation } from "@/store/auth/authApi";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
+
+const emailValid = (v: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 const ForgetPassword = () => {
   const lang = LangUseParams();
   const translate = TranslateHook();
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [sendResetCode, { isLoading }] = useSendResetCodeMutation();
 
   if (!translate) {
     return <ForgetPasswordSkeleton />;
   }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error(
+        translate?.pages?.signUp?.fillAllFields ?? "Please fill all fields",
+      );
+      return;
+    }
+    if (!emailValid(email)) {
+      toast.error(
+        translate?.pages?.signUp?.invalidEmail ?? "Invalid email address",
+      );
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("email", email.trim());
+
+    try {
+      const res = await sendResetCode(formData).unwrap();
+      toast.success(res?.message ?? "");
+
+      Cookies.set("reset_email", email.trim(), {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      });
+
+      router.push(`/${lang}/verify-code`);
+    } catch (err: unknown) {
+      const errorData = err as {
+        data?: { errors?: Record<string, string[]>; message?: string };
+      };
+      const d = errorData?.data;
+      if (d?.errors) {
+        Object.values(d.errors).forEach((messages) =>
+          messages.forEach((msg) => toast.error(msg)),
+        );
+        return;
+      }
+      if (d?.message) {
+        toast.error(d.message);
+        return;
+      }
+      toast.error(
+        translate?.pages?.signUp?.requestFailed ?? "Something went wrong.",
+      );
+    }
+  };
 
   return (
     <div>
@@ -68,7 +129,11 @@ const ForgetPassword = () => {
             </div>
 
             {/* form */}
-            <form className="p-0 md:p-4 mt-4 mx-auto z-30 relative" dir="ltr">
+            <form
+              className="p-0 md:p-4 mt-4 mx-auto z-30 relative"
+              dir="ltr"
+              onSubmit={handleSubmit}
+            >
               {/* email */}
               <div className="mb-4">
                 <label
@@ -90,6 +155,9 @@ const ForgetPassword = () => {
                   <input
                     type="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
                     className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                   />
                 </div>
@@ -98,7 +166,8 @@ const ForgetPassword = () => {
               {/* submit */}
               <button
                 type="submit"
-                className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center"
+                disabled={isLoading}
+                className="w-full mx-auto scoundBgColor cursor-pointer text-white py-3 mt-6 rounded-lg flex justify-center disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {translate?.pages?.forgetPassword?.send}
               </button>

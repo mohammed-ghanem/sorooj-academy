@@ -62,7 +62,37 @@
       "female": "أنثى",
       "birthDate": "تاريخ الميلاد",
       "signup": "انشاء حساب",
-      "next": "التالي"
+      "next": "التالي",
+      "selectDegree": "اختر المستوى التعليمي",
+      "termsAccept": "أوافق على الشروط والأحكام",
+      "loadingCountries": "جاري تحميل الدول…",
+      "educationLevels": {
+        "none": "لا يوجد",
+        "primary": "ابتدائي",
+        "middle_or_preparatory": "إعدادي/متوسط",
+        "secondary_general": "ثانوي عام",
+        "associate": "دبلوم / متوسط تقني",
+        "bachelor": "بكالوريوس",
+        "master_or_professional": "ماجستير أو مهني",
+        "doctorate": "دكتوراه",
+        "other": "أخرى"
+      },
+      "joinPurposes": {
+        "sharia_knowledge": "تنمية المعرفة الشرعية بشكل منهجي",
+        "islamic_basics": "دراسة أساسيات العلوم الإسلامية",
+        "dawah_teaching_skills": "تطوير مهارات الدعوة والتعليم",
+        "accredited_certifications": "التأهيل العلمي والحصول على شهادات معتمدة"
+      },
+      "islamicLevels": {
+        "beginner": "مبتدئ",
+        "intermediate": "متوسط",
+        "advanced": "متقدم"
+      },
+      "fillAllFields": "يرجى تعبئة جميع الحقول",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين",
+      "termsRequired": "يجب الموافقة على الشروط والأحكام",
+      "invalidEmail": "يرجى إدخال بريد إلكتروني صالح",
+      "requestFailed": "حدث خطأ. يرجى المحاولة مرة أخرى."
 
     },
     "selectAuth": {
