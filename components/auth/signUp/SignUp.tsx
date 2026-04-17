@@ -162,11 +162,6 @@ const SignUp = () => {
       return;
     }
 
-    const deviceToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("device_token") ?? ""
-        : "";
-
     const formData = new FormData();
     formData.append("name", name.trim());
     formData.append("email", email.trim());
@@ -179,7 +174,6 @@ const SignUp = () => {
     formData.append("education_level", degree);
     formData.append("islamic_studies_level", level);
     formData.append("join_purpose", goal);
-    formData.append("device_token", deviceToken);
     formData.append("terms", "1");
 
     try {

@@ -66,7 +66,7 @@ export const authApi = createApi({
             },
         }),
 
-        // ---------------- LOGIN (form-data: email, password, device_token, lang) ----------------
+        // ---------------- LOGIN (form-data: email, password, lang) ----------------
         login: builder.mutation<any, FormData>({
             query: (body) => ({
                 url: "/auth/login",

@@ -41,12 +41,7 @@ const Login = () => {
     const formData = new FormData();
     formData.append("email", email.trim());
     formData.append("password", password);
-    const deviceToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("device_token") ?? ""
-        : "";
-    formData.append("device_token", deviceToken);
-    formData.append("lang", lang);
+    formData.append("lang", lang ?? "ar");
 
     try {
       const res = await login(formData).unwrap();
