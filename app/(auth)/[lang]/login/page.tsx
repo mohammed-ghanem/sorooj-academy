@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "درسات",
     "ابحاث",
     "فكرية",
-    "معاصرة",
+    "معاصرة", 
   ],
   authors: [
     {

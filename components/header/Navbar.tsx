@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Cookies from "js-cookie";
 import logo from "@/public/assets/images/logoo.png";
 import GlobeBtn from "./GlobeBtn";
 import TranslateHook from "@/translate/TranslateHook";
@@ -11,9 +13,44 @@ import { LoginButtonSkeleton } from "@/components/skeletons/LoginButtonSkeleton"
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const [auth, setAuth] = useState<{
+    in: boolean;
+    displayName: string | null;
+  }>({ in: false, displayName: null });
+
   const lang = LangUseParams();
   const translate = TranslateHook();
   const loginLabel = translate?.home?.navbar?.login;
+  const studentFallback = translate?.home?.navbar?.student;
+
+  useEffect(() => {
+    const syncAuthFromCookies = () => {
+      const token = Cookies.get("access_token");
+      if (!token) {
+        setAuth({ in: false, displayName: null });
+        return;
+      }
+      const raw = Cookies.get("user");
+      if (!raw) {
+        setAuth({ in: true, displayName: null });
+        return;
+      }
+      try {
+        const u = JSON.parse(raw) as { name?: string; email?: string };
+        const displayName =
+          u.name?.trim() || u.email?.split("@")[0]?.trim() || null;
+        setAuth({ in: true, displayName });
+      } catch {
+        setAuth({ in: true, displayName: null });
+      }
+    };
+
+    syncAuthFromCookies();
+    window.addEventListener("sorooj-auth-session", syncAuthFromCookies);
+    return () =>
+      window.removeEventListener("sorooj-auth-session", syncAuthFromCookies);
+  }, [pathname]);
 
   const navLinks = [
     { label: translate?.home?.navbar?.home, href: `/${lang}` },
@@ -58,17 +95,23 @@ const Navbar = () => {
             </div>
 
             {loginLabel ? (
-              <Link
-                href={`/${lang}/select-auth`}
-                className="scoundBgColor text-white px-4 py-2 rounded-lg text-sm"
-              >
-                {loginLabel}
-              </Link>
+              auth.in ? (
+                <span className="font-bold mainColor text-sm max-w-[200px] truncate">
+                  {auth.displayName ?? studentFallback ?? "Student"}
+                </span>
+              ) : (
+                <Link
+                  href={`/${lang}/select-auth`}
+                  className="scoundBgColor text-white px-4 py-2 rounded-lg text-sm"
+                >
+                  {loginLabel}
+                </Link>
+              )
             ) : (
               <LoginButtonSkeleton />
             )}
           </div>
-
+ 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -100,12 +143,18 @@ const Navbar = () => {
                 </div>
 
                 {loginLabel ? (
-                  <Link
-                    href={`/${lang}/select-auth`}
-                    className="scoundBgColor text-white px-4 py-2 rounded-lg text-sm w-full"
-                  >
-                    {loginLabel}
-                  </Link>
+                  auth.in ? (
+                    <span className="font-bold mainColor text-sm flex-1 text-start">
+                      {auth.displayName ?? studentFallback ?? "Student"}
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/${lang}/select-auth`}
+                      className="scoundBgColor text-white px-4 py-2 rounded-lg text-sm w-full text-center"
+                    >
+                      {loginLabel}
+                    </Link>
+                  )
                 ) : (
                   <LoginButtonSkeleton fullWidth />
                 )}

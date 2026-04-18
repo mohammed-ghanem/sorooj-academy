@@ -1,9 +1,11 @@
 import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import SocialLinks from "@/components/socialLinks/SocialLinks";
 import { Skeleton } from "@/components/ui/skeleton";
+import LangUseParams from "@/translate/LangUseParams";
 import Image from "next/image";
 
 const ContactUsSkeleton = () => {
+  const lang = LangUseParams();
   return (
     <div>
       <SmallHeroSection
@@ -11,11 +13,13 @@ const ContactUsSkeleton = () => {
           <div className="text-2xl font-semibold mt-28 mb-4" aria-hidden="true">
             <Skeleton className="h-8 w-56 rounded-md scoundBgColor opacity-15" />
           </div>
-        }
+        } 
       />
 
       <div
-        className="relative container mx-auto w-[95%] lg:w-[70%] mt-10 md:px-8 px-0 py-1 md:py-6 rounded-xl shadow bkMainColor"
+        className={`relative container mx-auto w-[95%] lg:w-[70%] 
+        mt-10 md:px-8 py-1 md:py-9 rounded-xl shadow bkMainColor 
+        ${lang === "ar" ? "md:pl-0!" : "md:pl-6!"}  ${lang === "en" ? "md:pr-0!" : "md:pr-6!"} `}
         aria-hidden="true"
       >
         <div className="pointer-events-none absolute bottom-2 -right-28 opacity-5">

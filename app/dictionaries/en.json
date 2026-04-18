@@ -8,7 +8,8 @@
       "independentScientificPaths": "Independent Scientific Paths",
       "library": "Library",
       "contactUs": "Contact Us",
-      "login": "Login"
+      "login": "Login",
+      "student": "Student"
     }
   },
   "loading": {
@@ -62,6 +63,8 @@
       "birthDate": "Birth Date",
       "select": "Select",
       "selectCountry": "Select Country",
+      "searchCountry": "Search by country name…",
+      "noCountryMatches": "No countries match your search",
       "selectLevel": "Select Level",
       "selectGoal": "Select Goal",
       "selectDegree": "Select education level",
@@ -115,6 +118,8 @@
       "sending": "Sending Verification Code",
       "send": "send",
       "forgetPasswordButton": "Password recovery",
+      "successMessage": "Verification code sent to your email address. Please check your inbox, if you did not receive the code, you can resend it within (60 : 0) seconds. Press the button to resend",
+      "errorMessage": "Failed to send verification code. Please try again later.",
       "backToLogin": "Back to Login"
     },
     "verifyCode": {
@@ -136,7 +141,10 @@
       "password": " new password",
       "confirmPassword": "confirm password",
       "processing": "Processing Password Recovery",
-      "confirmBtn": "confirm"
+      "confirmBtn": "confirm",
+      "sessionExpired": "This reset link is no longer valid. Request a new code from forgot password.",
+      "signInWithNewPassword": "Password updated. Please sign in with your new password.",
+      "backToLogin": "Back to login"
     },
     "changePassword": {
       "title": "Change Password",
@@ -282,8 +290,35 @@
       "send" : "send",
       "request": "Request Type",
       "selectRequest": "Select Request Type",
-      "message": "Message"
-     
+      "message": "Message",
+      "sending": "Sending…",
+      "requestTypes": {
+        "request": "Request",
+        "inquiry": "Inquiry",
+        "suggestion": "Suggestion",
+        "complaint": "Complaint"
+      }
+    },
+    "privacyPolicyPage": {
+      "title": "Privacy ",
+      "titleSpan": "Policy",
+      "loading": "Loading…",
+      "empty": "No content is available at the moment.",
+      "error": "We could not load this page. Please try again later."
+    },
+    "termsAndConditionsPage": {
+      "title": "Terms and ",
+      "titleSpan": "Conditions",
+      "loading": "Loading…",
+      "empty": "No content is available at the moment.",
+      "error": "We could not load this page. Please try again later."
+    },
+    "deleteAccountPage": {
+      "title": "Delete ",
+      "titleSpan": "Account",
+      "loading": "Loading…",
+      "empty": "No content is available at the moment.",
+      "error": "We could not load this page. Please try again later."
     }
   },
   "sidebar": {

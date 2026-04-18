@@ -10,6 +10,40 @@ export type Country = {
     created_at?: string;
 };
 
+/** Laravel-style auth payloads: token may live on `data.user.access_token` or flat `data.access_token`. */
+const getAccessTokenFromResponse = (payload: unknown): string | undefined => {
+    const d = payload as {
+        data?: {
+            user?: { access_token?: string; user?: unknown };
+            access_token?: string;
+        };
+        access_token?: string;
+    };
+    return (
+        d?.data?.user?.access_token ??
+        d?.data?.access_token ??
+        d?.access_token
+    );
+};
+
+const authCookieOptions = {
+    expires: 7,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+} as const;
+
+const persistUserProfileCookie = (payload: unknown) => {
+    const d = payload as { data?: { user?: { user?: unknown } } };
+    const profile = d?.data?.user?.user;
+    if (profile && typeof profile === "object") {
+        try {
+            Cookies.set("user", JSON.stringify(profile), authCookieOptions);
+        } catch {
+            /* ignore JSON / storage errors */
+        }
+    }
+};
+
 export const authApi = createApi({
     reducerPath: "authApi",
     baseQuery: axiosBaseQuery(),
@@ -18,14 +52,17 @@ export const authApi = createApi({
         // ---------------- COUNTRIES (registration) ----------------
         getCountries: builder.query<
             Country[],
-            { page?: number; limit?: number } | void
+            { page?: number; limit?: number; lang: string }
         >({
             query: (arg) => ({
                 url: "/countries",
                 method: "GET",
                 params: {
-                    page: arg?.page ?? 0,
-                    limit: arg?.limit ?? 0,
+                    page: arg.page ?? 0,
+                    limit: arg.limit ?? 0,
+                },
+                headers: {
+                    "Accept-Language": arg.lang,
                 },
             }),
             transformResponse: (response: { data?: Country[] }) => {
@@ -46,20 +83,16 @@ export const authApi = createApi({
             async onQueryStarted(_, { queryFulfilled }) {
                 try {
                     const { data }: any = await queryFulfilled;
-                    const token =
-                        data?.data?.access_token ?? data?.access_token;
+                    const token = getAccessTokenFromResponse(data);
                     if (token) {
-                        Cookies.set("access_token", token, {
-                            expires: 7,
-                            secure: process.env.NODE_ENV === "production",
-                            path: "/",
-                        });
+                        Cookies.set("access_token", token, authCookieOptions);
                         Cookies.set("reset_token", token, {
                             expires: 1,
                             secure: process.env.NODE_ENV === "production",
                             path: "/",
                         });
                     }
+                    persistUserProfileCookie(data);
                 } catch {
                     /* handled in component */
                 }
@@ -78,15 +111,11 @@ export const authApi = createApi({
             async onQueryStarted(_, { queryFulfilled }) {
                 try {
                     const { data }: any = await queryFulfilled;
-                    const token =
-                        data?.data?.access_token ?? data?.access_token;
+                    const token = getAccessTokenFromResponse(data);
                     if (token) {
-                        Cookies.set("access_token", token, {
-                            expires: 7,
-                            secure: process.env.NODE_ENV === "production",
-                            path: "/",
-                        });
+                        Cookies.set("access_token", token, authCookieOptions);
                     }
+                    persistUserProfileCookie(data);
                 } catch {
                     /* handled in component */
                 }
@@ -115,8 +144,7 @@ export const authApi = createApi({
             async onQueryStarted(_, { queryFulfilled }) {
                 try {
                     const { data }: any = await queryFulfilled;
-                    const token =
-                        data?.data?.access_token ?? data?.access_token;
+                    const token = getAccessTokenFromResponse(data);
                     if (token) {
                         Cookies.set("reset_token", token, {
                             expires: 1,
@@ -142,16 +170,30 @@ export const authApi = createApi({
             async onQueryStarted(_, { queryFulfilled }) {
                 try {
                     const { data }: any = await queryFulfilled;
-                    const token =
-                        data?.data?.access_token ?? data?.access_token;
-                    if (token) {
-                        Cookies.set("access_token", token, {
-                            expires: 7,
-                            secure: process.env.NODE_ENV === "production",
-                            path: "/",
-                        });
+                    const isPasswordResetFlow =
+                        Cookies.get("auth_otp_flow") === "password_reset";
+
+                    if (isPasswordResetFlow) {
+                        // Forgot password: keep token for POST /reset-password, do not open a session.
+                        Cookies.remove("access_token", { path: "/" });
+                        Cookies.remove("user", { path: "/" });
+                        const token = getAccessTokenFromResponse(data);
+                        if (token) {
+                            Cookies.set("reset_token", token, {
+                                expires: 1,
+                                secure: process.env.NODE_ENV === "production",
+                                path: "/",
+                            });
+                        }
+                    } else {
+                        // Registration email verification: establish session.
+                        const token = getAccessTokenFromResponse(data);
+                        if (token) {
+                            Cookies.set("access_token", token, authCookieOptions);
+                        }
+                        persistUserProfileCookie(data);
+                        Cookies.remove("reset_token", { path: "/" });
                     }
-                    Cookies.remove("reset_token", { path: "/" });
                 } catch {
                     /* handled in component */
                 }
@@ -167,32 +209,35 @@ export const authApi = createApi({
             }),
         }),
 
-        // ---------------- RESET PASSWORD ----------------
+        // ---------------- RESET PASSWORD (form-data: password, password_confirmation + Bearer reset_token) ----------------
         resetPassword: builder.mutation<
             any,
-            {
-                email: string;
-                code: string;
-                password: string;
-                password_confirmation: string;
-            }
+            { password: string; password_confirmation: string }
         >({
-            query: (body) => {
+            query: ({ password, password_confirmation }) => {
                 const token = Cookies.get("reset_token");
+                const formData = new FormData();
+                formData.append("password", password);
+                formData.append("password_confirmation", password_confirmation);
                 return {
                     url: "/auth/reset-password",
                     method: "POST",
-                    data: body,
+                    data: formData,
                     headers: token
                         ? { Authorization: `Bearer ${token}` }
                         : undefined,
                     withCsrf: true,
                 };
             },
+            invalidatesTags: ["Profile"],
             async onQueryStarted(_, { queryFulfilled }) {
                 try {
                     await queryFulfilled;
-                    Cookies.remove("reset_token");
+                    Cookies.remove("reset_token", { path: "/" });
+                    Cookies.remove("reset_email", { path: "/" });
+                    Cookies.remove("auth_otp_flow", { path: "/" });
+                    Cookies.remove("access_token", { path: "/" });
+                    Cookies.remove("user", { path: "/" });
                 } catch (error) {
                     console.error("Reset password failed:", error);
                 }
@@ -219,13 +264,9 @@ export const authApi = createApi({
             async onQueryStarted(_, { queryFulfilled }) {
                 try {
                     const { data }: any = await queryFulfilled;
-                    const newToken = data?.data?.access_token || data?.access_token;
+                    const newToken = getAccessTokenFromResponse(data);
                     if (newToken) {
-                        Cookies.set("access_token", newToken, {
-                            expires: 7,
-                            secure: process.env.NODE_ENV === "production",
-                            path: "/",
-                        });
+                        Cookies.set("access_token", newToken, authCookieOptions);
                     }
                 } catch (error) {
                     console.error("Password change failed:", error);

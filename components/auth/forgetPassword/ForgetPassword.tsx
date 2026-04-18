@@ -15,8 +15,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 
-const emailValid = (v: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+// const emailValid = (v: string) =>
+//   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 const ForgetPassword = () => {
   const lang = LangUseParams();
@@ -38,21 +38,25 @@ const ForgetPassword = () => {
       );
       return;
     }
-    if (!emailValid(email)) {
-      toast.error(
-        translate?.pages?.signUp?.invalidEmail ?? "Invalid email address",
-      );
-      return;
-    }
+    // if (!emailValid(email)) {
+    //   toast.error(
+    //     translate?.pages?.signUp?.invalidEmail ?? "Invalid email address",
+    //   );
+    //   return;
+    // }
 
     const formData = new FormData();
     formData.append("email", email.trim());
 
     try {
       const res = await sendResetCode(formData).unwrap();
-      toast.success(res?.message ?? "");
+      toast.success(translate?.pages?.forgetPassword?.successMessage);
 
       Cookies.set("reset_email", email.trim(), {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      });
+      Cookies.set("auth_otp_flow", "password_reset", {
         path: "/",
         secure: process.env.NODE_ENV === "production",
       });
@@ -70,11 +74,11 @@ const ForgetPassword = () => {
         return;
       }
       if (d?.message) {
-        toast.error(d.message);
+        toast.error(translate?.pages?.forgetPassword?.errorMessage);
         return;
       }
       toast.error(
-        translate?.pages?.signUp?.requestFailed ?? "Something went wrong.",
+        translate?.pages?.signUp?.requestFailed,
       );
     }
   };
@@ -137,7 +141,7 @@ const ForgetPassword = () => {
               {/* email */}
               <div className="mb-4">
                 <label
-                  className={`block text-[13px] font-semibold text-gray-400 ${
+                  className={`block text-[13px] font-semibold ${
                     lang === "ar" ? "text-right!" : "text-left"
                   }`}
                 >
@@ -158,7 +162,7 @@ const ForgetPassword = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
-                    className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                   />
                 </div>
               </div>

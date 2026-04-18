@@ -8,7 +8,8 @@
         "independentScientificPaths": "مسارات علمية مستقلة",
         "library": "المكتبة العلمية",
         "contactUs": "تواصل معنا",
-        "login": "تسجيل الدخول"
+        "login": "تسجيل الدخول",
+        "student": "طالب"
       }
   },
   "pages": {
@@ -55,6 +56,8 @@
       "goal": "الهدف من انضمامك ؟",
       "select": "اختر",
       "selectCountry": "اختر الدولة",
+      "searchCountry": "ابحث باسم الدولة…",
+      "noCountryMatches": "لا توجد دول مطابقة لبحثك",
       "selectLevel": "اختر المستوى العلمي",
       "selectGoal": "اختر الهدف",
       "gender": "النوع",
@@ -114,6 +117,8 @@
       "sending": "جارى ارسال رمز التحقق",
       "send": "ارسال",
       "forgetPasswordButton": "استعادة كلمة المرور",
+      "successMessage": "تم إرسال رمز التحقق إلى بريدك الإلكتروني. يرجى التحقق من حسابك.",
+      "errorMessage": "فشل إرسال رمز التحقق. يرجى المحاولة مرة أخرى.",
       "backToLogin": "العودة لتسجيل الدخول"
     },
     "verifyCode": {
@@ -134,7 +139,10 @@
       "password": "كلمة المرور",
       "confirmPassword": "تاكيد كلمة المرور",
       "processing": "جارى تغيير كلمة المرور",
-      "confirmBtn": "تاكيد"
+      "confirmBtn": "تاكيد",
+      "sessionExpired": "انتهت صلاحية رابط إعادة التعيين. اطلب رمزًا جديدًا من استعادة كلمة المرور.",
+      "signInWithNewPassword": "تم تحديث كلمة المرور. سجّل الدخول بكلمة المرور الجديدة.",
+      "backToLogin": "العودة لتسجيل الدخول"
     },
     "changePassword": {
       "title": "تغيير كلمة المرور",
@@ -282,7 +290,35 @@
       "send": "ارسال",
       "request": "نوع الطلب",
       "selectRequest": "اختر نوع الطلب",
-      "message": "الرسالة"
+      "message": "الرسالة",
+      "sending": "جاري الإرسال…",
+      "requestTypes": {
+        "request": "طلب",
+        "inquiry": "استفسار",
+        "suggestion": "اقتراح",
+        "complaint": "شكوى"
+      }
+    },
+    "privacyPolicyPage": {
+      "title": "سياسة ",
+      "titleSpan": "الخصوصية",
+      "loading": "جاري التحميل…",
+      "empty": "لا يوجد محتوى متاح حاليًا.",
+      "error": "تعذر تحميل هذه الصفحة. يرجى المحاولة لاحقًا."
+    },
+    "termsAndConditionsPage": {
+      "title": "الشروط ",
+      "titleSpan": "والأحكام",
+      "loading": "جاري التحميل…",
+      "empty": "لا يوجد محتوى متاح حاليًا.",
+      "error": "تعذر تحميل هذه الصفحة. يرجى المحاولة لاحقًا."
+    },
+    "deleteAccountPage": {
+      "title": "حذف ",
+      "titleSpan": "الحساب",
+      "loading": "جاري التحميل…",
+      "empty": "لا يوجد محتوى متاح حاليًا.",
+      "error": "تعذر تحميل هذه الصفحة. يرجى المحاولة لاحقًا."
     }
   },
   "sidebar": {

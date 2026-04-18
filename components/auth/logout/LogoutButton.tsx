@@ -31,6 +31,9 @@ export default function LogoutButton({
 
       Cookies.remove("access_token", { path: "/" });
       Cookies.remove("reset_token", { path: "/" });
+      Cookies.remove("user", { path: "/" });
+
+      window.dispatchEvent(new Event("sorooj-auth-session"));
 
       toast.success(result?.message);
       onSuccess?.();
@@ -44,6 +47,8 @@ export default function LogoutButton({
       );
 
       Cookies.remove("access_token", { path: "/" });
+      Cookies.remove("user", { path: "/" });
+      window.dispatchEvent(new Event("sorooj-auth-session"));
       router.push(`/${lang}/`);
     }
   };

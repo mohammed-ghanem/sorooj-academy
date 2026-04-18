@@ -15,6 +15,7 @@ import {
 } from "@/store/auth/authApi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Cookies from "js-cookie";
 
 const RESEND_COOLDOWN_SEC = 60;
 
@@ -35,6 +36,12 @@ const VerifyCode = () => {
   useEffect(() => {
     inputsRef.current[0]?.focus();
   }, []);
+
+  useEffect(() => {
+    if (!Cookies.get("reset_token")) {
+      router.replace(`/${lang}/login`);
+    }
+  }, [lang, router]);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -81,7 +88,16 @@ const VerifyCode = () => {
     try {
       const res = await verifyOtp(formData).unwrap();
       toast.success(res?.message ?? "");
-      router.push(`/${lang}/login`);
+
+      const flow = Cookies.get("auth_otp_flow");
+      Cookies.remove("auth_otp_flow", { path: "/" });
+      Cookies.remove("reset_email", { path: "/" });
+
+      if (flow === "password_reset") {
+        router.push(`/${lang}/reset-password`);
+      } else {
+        router.push(`/${lang}`);
+      }
     } catch (err: unknown) {
       const errorData = err as {
         data?: { errors?: Record<string, string[]>; message?: string };

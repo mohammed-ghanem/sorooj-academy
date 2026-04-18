@@ -162,7 +162,7 @@ const CkEditor: FC<CkEditorProps> = ({
         "sourceEditing",
       ],
       fontSize: {
-        options: [10, 12, 14, "default", 18, 20, 24],
+        options: [10, 12, 14, "default", 18, 20, 24 , 28 , 32 , 36 , 40 , 44 , 48],
       },
       fontFamily: {
         options: [

@@ -120,7 +120,7 @@ const Login = () => {
             >
               <div className="mb-4">
                 <label
-                  className={`block text-[13px] font-semibold text-gray-500
+                  className={`block text-[13px] font-semibold 
                   ${lang === "ar" ? "text-right!" : "text-left"}`}
                 >
                   {translate?.pages.login.email}
@@ -139,7 +139,7 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
-                    className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none "
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none "
                   />
                 </div>
               </div>
@@ -147,7 +147,7 @@ const Login = () => {
 
               <div className="mb-4">
                 <label
-                  className={`block text-[13px] font-semibold text-gray-500
+                  className={`block text-[13px] font-semibold
                  ${lang === "ar" ? "text-right!" : "text-left"}`}
                 >
                   {translate?.pages.login.password}
@@ -160,7 +160,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
-                    className="mt-1 block scoundColor w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none"
                   />
 
                   <button
@@ -176,7 +176,7 @@ const Login = () => {
               <Link
                 href={`/${lang}/forget-password`}
                 className="border-b border-regal-blue block
-                              text-[13px] font-semibold w-fit text-start mainColor"
+                              text-[13px] font-semibold w-fit text-start "
               >
                 {translate?.pages.login.forgetPassword}
               </Link>

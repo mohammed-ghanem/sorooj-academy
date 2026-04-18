@@ -47,8 +47,9 @@ export const axiosBaseQuery =
       auth = false
     }) => {
       try {
-        const lang = Cookies.get("lang") || "ar";
-        headers["Accept-Language"] = lang;
+        if (!headers["Accept-Language"]) {
+          headers["Accept-Language"] = Cookies.get("lang") || "ar";
+        }
 
 
         // if the request need CSRF token
