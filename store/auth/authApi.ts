@@ -50,27 +50,26 @@ export const authApi = createApi({
     tagTypes: ["Profile"],
     endpoints: (builder) => ({
         // ---------------- COUNTRIES (registration) ----------------
+       
+
         getCountries: builder.query<
-            Country[],
-            { page?: number; limit?: number; lang: string }
-        >({
-            query: (arg) => ({
-                url: "/countries",
-                method: "GET",
-                params: {
-                    page: arg.page ?? 0,
-                    limit: arg.limit ?? 0,
-                },
-                headers: {
-                    "Accept-Language": arg.lang,
-                },
-            }),
-            transformResponse: (response: { data?: Country[] }) => {
-                const list = response?.data;
-                if (!Array.isArray(list)) return [];
-                return list.filter((c) => c.is_active !== false);
-            },
-        }),
+                    Country[],
+                    { page?: number; limit?: number } | void
+                >({
+                    query: (arg) => ({
+                        url: "/countries",
+                        method: "GET",
+                        params: {
+                            page: arg?.page ?? 0,
+                            limit: arg?.limit ?? 0,
+                        },
+                    }),
+                    transformResponse: (response: { data?: Country[] }) => {
+                        const list = response?.data;
+                        if (!Array.isArray(list)) return [];
+                        return list.filter((c) => c.is_active !== false);
+                    },
+                }),
 
         // ---------------- REGISTER ----------------
         register: builder.mutation<any, FormData>({
@@ -85,7 +84,7 @@ export const authApi = createApi({
                     const { data }: any = await queryFulfilled;
                     const token = getAccessTokenFromResponse(data);
                     if (token) {
-                        Cookies.set("access_token", token, authCookieOptions);
+                       
                         Cookies.set("reset_token", token, {
                             expires: 1,
                             secure: process.env.NODE_ENV === "production",
@@ -317,3 +316,10 @@ export const {
     useGetCountriesQuery,
     useRegisterMutation,
 } = authApi;
+
+
+
+
+
+
+
