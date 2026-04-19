@@ -319,6 +319,11 @@
       "loading": "Loading…",
       "empty": "No content is available at the moment.",
       "error": "We could not load this page. Please try again later."
+    },
+    "facultyMembers": {
+      "title": "Faculty ",
+      "titleSpan": "Members",
+      "bioModalTitle": "Biography"
     }
   },
   "sidebar": {

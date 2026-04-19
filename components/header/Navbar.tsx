@@ -56,7 +56,10 @@ const Navbar = () => {
   const navLinks = [
     { label: translate?.home?.navbar?.home, href: `/${lang}` },
     { label: translate?.home?.navbar?.studyPlan, href: "" },
-    { label: translate?.home?.navbar?.teachingStaff, href: "" },
+    {
+      label: translate?.home?.navbar?.teachingStaff,
+      href: `/${lang}/faculty-members`,
+    },
     { label: translate?.home?.navbar?.independentScientificPaths, href: "" },
     { label: translate?.home?.navbar?.library, href: "" },
     { label: translate?.home?.navbar?.contactUs, href: `/${lang}/contact-us` },
@@ -80,7 +83,7 @@ const Navbar = () => {
           <nav className="hidden lg:flex items-center gap-4 md:gap-5 text-sm lg:text-base">
             {navLinks.map((link, index) => (
               <Link
-                key={index}
+                key={`${link.label}-${index}`}
                 href={link.href}
                 className="hover:mainColor transition font-bold mainColor"
               >
@@ -128,9 +131,9 @@ const Navbar = () => {
           {/* Mobile Dropdown */}
           {isOpen && (
             <div className="absolute top-full left-0 w-full bg-white shadow-md rounded-lg mt-3 p-4 flex flex-col gap-4 lg:hidden">
-              {navLinks.map((link) => (
+              {navLinks.map((link, index) => (
                 <Link
-                  key={link.href}
+                  key={`${link.label}-m-${index}`}
                   href={link.href}
                   className="font-bold mainColor"
                   onClick={() => setIsOpen(false)}
