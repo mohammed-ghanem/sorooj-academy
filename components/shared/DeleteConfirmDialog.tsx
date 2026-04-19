@@ -51,7 +51,7 @@ export default function DeleteConfirmDialog({
 
                 <AlertDialogFooter className="justify-center! items-center! space-x-3 my-2">
                     <AlertDialogCancel 
-                        className=" px-8 py-5 text-white hover:text-white bg-green-600 hover:bg-green-700 cursor-pointer"
+                        className=" px-8 py-5 scoundBgColor text-white! cursor-pointer"
                         disabled={isLoading}>
                         {cancelText}
                     </AlertDialogCancel>

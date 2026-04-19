@@ -71,7 +71,7 @@ export default function ConfirmLogoutDialog({
 
          <AlertDialogFooter className="justify-center! items-center! space-x-3 my-2">
           <AlertDialogCancel
-           className=" px-8 py-5 text-white hover:text-white bg-green-600 hover:bg-green-700 
+           className=" px-8 py-5  scoundBgColor text-white!
            cursor-pointer outline-none border-none focus-visible:ring-0 focus-visible:ring-offset-0"
             disabled={isLoading}>
             {translate?.pages.userDropDown.cancelBtn}
@@ -80,7 +80,7 @@ export default function ConfirmLogoutDialog({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
-            className="bg-red-600 cursor-pointer hover:bg-red-700 px-8 py-5"
+            className="bkMainColor text-white! cursor-pointer px-8 py-5"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
