@@ -10,6 +10,7 @@ import GlobeBtn from "./GlobeBtn";
 import TranslateHook from "@/translate/TranslateHook";
 import LangUseParams from "@/translate/LangUseParams";
 import { LoginButtonSkeleton } from "@/components/skeletons/LoginButtonSkeleton";
+import NavbarUserMenu from "./NavbarUserMenu";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -96,9 +97,11 @@ const Navbar = () => {
 
             {loginLabel ? (
               auth.in ? (
-                <span className="font-bold mainColor text-sm max-w-[200px] truncate">
-                  {auth.displayName ?? studentFallback ?? "Student"}
-                </span>
+                <NavbarUserMenu
+                  displayName={auth.displayName}
+                  studentFallback={studentFallback}
+                  lang={lang ?? "ar"}
+                />
               ) : (
                 <Link
                   href={`/${lang}/select-auth`}
@@ -144,9 +147,13 @@ const Navbar = () => {
 
                 {loginLabel ? (
                   auth.in ? (
-                    <span className="font-bold mainColor text-sm flex-1 text-start">
-                      {auth.displayName ?? studentFallback ?? "Student"}
-                    </span>
+                    <NavbarUserMenu
+                      displayName={auth.displayName}
+                      studentFallback={studentFallback}
+                      lang={lang ?? "ar"}
+                      onAfterLogout={() => setIsOpen(false)}
+                      className="w-full flex-1 justify-between"
+                    />
                   ) : (
                     <Link
                       href={`/${lang}/select-auth`}

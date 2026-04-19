@@ -11,7 +11,11 @@ import TranslateHook from "@/translate/TranslateHook";
 import { useState } from "react";
 import SocialLogin from "../socialLogin/SocialLogin";
 import LoginSkeleton from "@/components/skeletons/LoginSkeleton";
-import { useLoginMutation } from "@/store/auth/authApi";
+import {
+  needsOtpVerificationBeforeSession,
+  useLoginMutation,
+} from "@/store/auth/authApi";
+import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -45,6 +49,15 @@ const Login = () => {
 
     try {
       const res = await login(formData).unwrap();
+      if (needsOtpVerificationBeforeSession(res)) {
+        toast.success(res?.message ?? "");
+        Cookies.set("reset_email", email.trim(), {
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+        });
+        router.push(`/${lang}/verify-code`);
+        return;
+      }
       toast.success(res?.message ?? "");
       router.push(`/${lang}`);
     } catch (err: unknown) {

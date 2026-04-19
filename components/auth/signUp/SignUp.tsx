@@ -8,7 +8,7 @@ import logo from "@/public/assets/images/logoo.png";
 import GlobeBtn from "@/components/header/GlobeBtn";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -83,16 +83,70 @@ const SignUp = () => {
 
   const [phone, setPhone] = useState("");  
 
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const countryPickerRef = useRef<HTMLDivElement>(null);
+  const countrySearchInputRef = useRef<HTMLInputElement>(null);
+
   const { data: countries = [], isLoading: countriesLoading } =
     useGetCountriesQuery({ page: 0, limit: 0 }); 
 
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
+
+
 
   const sortedCountries = useMemo(() => {
     return [...countries].sort((a, b) =>
       a.name.localeCompare(b.name, lang === "ar" ? "ar" : "en"),
     );
   }, [countries, lang]);
+
+
+  const filteredCountries = useMemo(() => {
+    const q = countrySearch.trim();
+    if (!q) return sortedCountries;
+    const locale = lang === "ar" ? "ar" : "en";
+    const needle = q.toLocaleLowerCase(locale);
+    return sortedCountries.filter((c) =>
+      c.name.toLocaleLowerCase(locale).includes(needle),
+    );
+  }, [sortedCountries, countrySearch, lang]);
+
+  const selectedCountry = useMemo(
+    () => sortedCountries.find((c) => String(c.id) === country),
+    [sortedCountries, country],
+  );
+
+  useEffect(() => {
+    if (step !== 2) {
+      setCountryOpen(false);
+      setCountrySearch("");
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (!countryOpen) return;
+    countrySearchInputRef.current?.focus();
+    const onPointerDown = (e: PointerEvent) => {
+      const root = countryPickerRef.current;
+      if (root && !root.contains(e.target as Node)) {
+        setCountryOpen(false);
+        setCountrySearch("");
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setCountryOpen(false);
+        setCountrySearch("");
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [countryOpen]);
 
   const isArabic = lang === "ar";
   const nextIcon = isArabic ? ChevronLeft : ChevronRight;
@@ -299,7 +353,7 @@ const SignUp = () => {
                   {/* name */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.name}
                     </label>
@@ -314,7 +368,7 @@ const SignUp = () => {
                       <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none"
+                        className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none"
                       />
                     </div>
                   </div>
@@ -322,7 +376,7 @@ const SignUp = () => {
                   {/* email */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.email}
                     </label>
@@ -338,7 +392,7 @@ const SignUp = () => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none"
+                        className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none"
                       />
                     </div>
                   </div>
@@ -347,7 +401,7 @@ const SignUp = () => {
                   <div className="mb-4">
                     <label
                       className={`block text-[13px] font-semibold ${lang === "ar" ? "text-right!" : "text-left"}
-                     text-gray-500`}
+                     `}
                     >
                       {translate?.pages?.signUp?.phone}
                     </label>
@@ -356,7 +410,7 @@ const SignUp = () => {
                       country={"kw"}
                       value={phone}
                       onChange={(phone) => setPhone(phone)}
-                      inputClass="mt-1 block w-full pl-[52px] pr-[0] py-[20px] border scoundColor
+                      inputClass="mt-1 block w-full pl-[52px] pr-[0] py-[20px] border 
                        border-gray-300 rounded-md shadow-sm bg-[#faf9f6]!"
                       containerClass="mt-1"
                       buttonClass="!border-gray-300"
@@ -366,7 +420,7 @@ const SignUp = () => {
                   {/* password */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.password}
                     </label>
@@ -375,7 +429,7 @@ const SignUp = () => {
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="mt-1 w-full scoundColor  p-2 border border-gray-300 rounded-md outline-none"
+                        className="mt-1 w-full  p-2 border border-gray-300 rounded-md outline-none"
                       />
                       <button
                         type="button"
@@ -394,7 +448,7 @@ const SignUp = () => {
                   {/* confirm */}
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.confirmPassword}
                     </label>
@@ -403,7 +457,7 @@ const SignUp = () => {
                         type={showConfirm ? "text" : "password"}
                         value={passwordConfirm}
                         onChange={(e) => setPasswordConfirm(e.target.value)}
-                        className="mt-1 scoundColor w-full p-2 border border-gray-300 rounded-md outline-none"
+                        className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none"
                       />
                       <button
                         type="button"
@@ -430,36 +484,103 @@ const SignUp = () => {
                 <>
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.country}
                     </label>
-                    <div className="relative">
-                      <select
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}
+                    <div ref={countryPickerRef} className="relative z-20">
+                      <button
+                        type="button"
                         disabled={countriesLoading}
-                        className={selectValueClass(country)}
+                        onClick={() => {
+                          if (countriesLoading) return;
+                          setCountryOpen((o) => !o);
+                        }}
+                        className={cn(
+                          selectValueClass(country),
+                          "relative z-10 flex w-full cursor-pointer items-center justify-between text-start",
+                          countriesLoading && "cursor-not-allowed opacity-60",
+                        )}
                         dir={isArabic ? "rtl" : "ltr"}
+                        aria-expanded={countryOpen}
+                        aria-haspopup="listbox"
                       >
-                        <option value="">
+                        <span className="min-w-0 flex-1 truncate pe-2">
                           {countriesLoading
                             ? (t?.loadingCountries ?? t?.select)
-                            : (t?.selectCountry ?? t?.select)}
-                        </option>
-                        {sortedCountries.map((c) => (
-                          <option key={c.id} value={String(c.id)}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className={selectChevronClass} size={18} />
+                            : (selectedCountry?.name ??
+                              (t?.selectCountry ?? t?.select))}
+                        </span>
+                        <ChevronDown
+                          className={cn(
+                            "pointer-events-none shrink-0 text-gray-400 transition-transform",
+                            countryOpen && "rotate-180",
+                          )}
+                          size={18}
+                        />
+                      </button>
+
+                      {countryOpen && !countriesLoading && (
+                        <div
+                          className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-md border border-gray-300 bg-white shadow-lg"
+                          role="listbox"
+                          dir={isArabic ? "rtl" : "ltr"}
+                        >
+                          <input
+                            ref={countrySearchInputRef}
+                            type="search"
+                            value={countrySearch}
+                            onChange={(e) => setCountrySearch(e.target.value)}
+                            placeholder={
+                              t?.searchCountry ?? "Search by country name…"
+                            }
+                            className="w-full border-b border-gray-200 p-2 text-sm outline-none focus:bg-gray-50"
+                            autoComplete="off"
+                            aria-label={t?.searchCountry ?? "Search countries"}
+                          />
+                          <ul className="max-h-52 overflow-y-auto py-1">
+                            {filteredCountries.length === 0 ? (
+                              <li className="px-3 py-2 text-sm ">
+                                {t?.noCountryMatches ??
+                                  "No countries match your search"}
+                              </li>
+                            ) : (
+                              filteredCountries.map((c) => {
+                                const idStr = String(c.id);
+                                const isSelected = country === idStr;
+                                return (
+                                  <li key={c.id}>
+                                    <button
+                                      type="button"
+                                      role="option"
+                                      aria-selected={isSelected}
+                                      className={cn(
+                                        "w-full px-3 py-2 text-start text-sm transition-colors",
+                                        isSelected
+                                          ? "bg-gray-100 font-semibold "
+                                          : "hover:bg-gray-50",
+                                      )}
+                                      onClick={() => {
+                                        setCountry(idStr);
+                                        setCountryOpen(false);
+                                        setCountrySearch("");
+                                      }}
+                                    >
+                                      {c.name}
+                                    </button>
+                                  </li>
+                                );
+                              })
+                            )}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.level}
                     </label>
@@ -485,7 +606,7 @@ const SignUp = () => {
 
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.degree}
                     </label>
@@ -513,7 +634,7 @@ const SignUp = () => {
 
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.goal}
                     </label>
@@ -540,7 +661,7 @@ const SignUp = () => {
                   <div className="mb-4">
                     <label
                       className={`block text-[13px] font-semibold
-                       text-gray-500 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                        ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.gender}
                     </label>

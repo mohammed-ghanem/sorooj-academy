@@ -19,36 +19,44 @@ type ConfirmLogoutDialogProps = {
   onConfirm: () => void | Promise<void>;
   isLoading?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** When set, dialog is controlled from the parent (no trigger button). */
+  open?: boolean;
 };
-
-
 
 export default function ConfirmLogoutDialog({
   onConfirm,
   isLoading,
   onOpenChange,
+  open,
 }: ConfirmLogoutDialogProps) {
 
     const translate = TranslateHook();
 
+  const isControlled = open !== undefined;
+
   return (
-    <AlertDialog onOpenChange={onOpenChange}>
+    <AlertDialog
+      onOpenChange={onOpenChange}
+      {...(isControlled ? { open } : {})}
+    >
+      {!isControlled ? (
       <AlertDialogTrigger asChild>
         <Button
           variant="ghost"
           className="w-full justify-start
-           text-red-600
-           hover:text-red-400
+           
+          
            hover:bg-gray-50 cursor-pointer"
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="w-4 h-4 mr-2 scoundBgColor text-white" />
           {translate?.pages.userDropDown.logout}
         </Button>
       </AlertDialogTrigger>
+      ) : null}
 
       <AlertDialogContent>
                 <div className="flex items-center justify-center">
-                    <CircleAlert className="h-20 w-20 text-red-600!" />
+                    <CircleAlert className="h-20 w-20 text-[#9F854E]!" />
                 </div>
             <AlertDialogHeader className="text-center! my-4">
                 <AlertDialogTitle className="text-2xl font-bold">
@@ -63,7 +71,8 @@ export default function ConfirmLogoutDialog({
 
          <AlertDialogFooter className="justify-center! items-center! space-x-3 my-2">
           <AlertDialogCancel
-           className=" px-8 py-5 text-white hover:text-white bg-green-600 hover:bg-green-700 cursor-pointer"
+           className=" px-8 py-5 text-white hover:text-white bg-green-600 hover:bg-green-700 
+           cursor-pointer outline-none border-none focus-visible:ring-0 focus-visible:ring-offset-0"
             disabled={isLoading}>
             {translate?.pages.userDropDown.cancelBtn}
           </AlertDialogCancel>

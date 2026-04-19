@@ -35,14 +35,14 @@ export default function DeleteConfirmDialog({
     return (
         <AlertDialog> 
             <AlertDialogTrigger asChild>
-                <Button size="sm" variant="destructive" className="cursor-pointer">
+                <Button size="sm" variant="destructive" className="cursor-pointer scoundBgColor text-white!">
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </AlertDialogTrigger>
 
             <AlertDialogContent>
                 <div className="flex items-center justify-center">
-                    <CircleAlert className="h-20 w-20 text-red-600!" />
+                    <CircleAlert className="h-20 w-20 scoundBgColor text-white!" />
                 </div>
                 <AlertDialogHeader className="text-center! my-4">
                     <AlertDialogTitle className="text-2xl font-bold">{title}</AlertDialogTitle>
@@ -56,7 +56,7 @@ export default function DeleteConfirmDialog({
                         {cancelText}
                     </AlertDialogCancel>
                     <AlertDialogAction
-                        className="bg-red-600 cursor-pointer hover:bg-red-700 px-8 py-5"
+                        className="scoundBgColor text-white! cursor-pointer px-8 py-5"
                         onClick={onConfirm}
                         disabled={isLoading}
                     >

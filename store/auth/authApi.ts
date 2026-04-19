@@ -44,6 +44,59 @@ const persistUserProfileCookie = (payload: unknown) => {
     }
 };
 
+/**
+ * When true, the API returned a token but the account must complete email/OTP
+ * verification before opening a normal session (`access_token`).
+ * Unknown / missing fields default to verified so older API shapes keep working.
+ */
+export const needsOtpVerificationBeforeSession = (
+    payload: unknown,
+): boolean => {
+    const p = payload as {
+        requires_verification?: boolean;
+        must_verify_email?: boolean;
+        data?: {
+            requires_verification?: boolean;
+            must_verify_email?: boolean;
+            is_verified?: boolean | number | string;
+        };
+    };
+    if (p?.requires_verification === true || p?.must_verify_email === true) {
+        return true;
+    }
+    if (
+        p?.data?.requires_verification === true ||
+        p?.data?.must_verify_email === true
+    ) {
+        return true;
+    }
+
+    // Login API shape: data: { is_verified: false, access_token, ... }
+    if (
+        p?.data &&
+        typeof p.data === "object" &&
+        "is_verified" in p.data
+    ) {
+        const v = p.data.is_verified;
+        return v !== true && v !== 1 && v !== "1";
+    }
+
+    const d = payload as { data?: { user?: { user?: Record<string, unknown> } } };
+    const u = d?.data?.user?.user;
+    if (!u || typeof u !== "object") return false;
+
+    if ("email_verified_at" in u) {
+        const v = u.email_verified_at;
+        return v == null || String(v).trim() === "";
+    }
+    if ("is_verified" in u) return !Boolean(u.is_verified);
+    if ("isVerified" in u) return !Boolean(u.isVerified);
+    if ("verified" in u) return !Boolean(u.verified);
+    if ("email_verified" in u) return !Boolean(u.email_verified);
+
+    return false;
+};
+
 export const authApi = createApi({
     reducerPath: "authApi",
     baseQuery: axiosBaseQuery(),
@@ -56,12 +109,15 @@ export const authApi = createApi({
                     Country[],
                     { page?: number; limit?: number } | void
                 >({
-                    query: (arg) => ({
+                    query: (arg: { page?: number; limit?: number }) => ({
                         url: "/countries",
                         method: "GET",
                         params: {
-                            page: arg?.page ?? 0,
-                            limit: arg?.limit ?? 0,
+                            page: arg.page ?? 0,
+                            limit: arg.limit ?? 0,
+                        },
+                        headers: {
+                            "Accept-Language": Cookies.get("lang") || "ar",
                         },
                     }),
                     transformResponse: (response: { data?: Country[] }) => {
@@ -111,6 +167,18 @@ export const authApi = createApi({
                 try {
                     const { data }: any = await queryFulfilled;
                     const token = getAccessTokenFromResponse(data);
+                    if (token && needsOtpVerificationBeforeSession(data)) {
+                        Cookies.remove("access_token", { path: "/" });
+                        Cookies.remove("user", { path: "/" });
+                        Cookies.remove("auth_otp_flow", { path: "/" });
+                        Cookies.set("reset_token", token, {
+                            expires: 1,
+                            secure: process.env.NODE_ENV === "production",
+                            path: "/",
+                        });
+                        persistUserProfileCookie(data);
+                        return;
+                    }
                     if (token) {
                         Cookies.set("access_token", token, authCookieOptions);
                     }
