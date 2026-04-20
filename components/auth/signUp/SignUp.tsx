@@ -71,7 +71,7 @@ const SignUp = () => {
   const [passwordConfirm, setPasswordConfirm] = useState("");
 
   const [country, setCountry] = useState("");
-  const [level, setLevel] = useState("");
+
   const [degree, setDegree] = useState("");
   const [goal, setGoal] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "">("");
@@ -207,7 +207,7 @@ const SignUp = () => {
   };
 
   const handleRegister = async () => {
-    if (!country || !level || !degree || !goal || !gender || !birthDate) {
+    if (!country || !degree || !goal || !gender || !birthDate) {
       toast.error(t?.fillAllFields ?? "Please fill all fields");
       return;
     }
@@ -226,7 +226,6 @@ const SignUp = () => {
     formData.append("date_of_birth", birthDate);
     formData.append("gender", gender);
     formData.append("education_level", degree);
-    formData.append("islamic_studies_level", level);
     formData.append("join_purpose", goal);
     formData.append("terms", "1");
 
