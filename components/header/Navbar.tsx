@@ -56,11 +56,9 @@ const Navbar = () => {
   const navLinks = [
     { label: translate?.home?.navbar?.home, href: `/${lang}` },
     { label: translate?.home?.navbar?.studyPlan, href: "" },
-    {
-      label: translate?.home?.navbar?.teachingStaff,
-      href: `/${lang}/faculty-members`,
-    },
-    { label: translate?.home?.navbar?.independentScientificPaths, href: "" },
+    { label: translate?.home?.navbar?.teachingStaff, href: `/${lang}/faculty-members`},
+    { label: translate?.home?.navbar?.StudyTopics, href: `/${lang}/study-topics` },
+    { label: translate?.home?.navbar?.independentScientificPaths, href: "" }, 
     { label: translate?.home?.navbar?.library, href: "" },
     { label: translate?.home?.navbar?.contactUs, href: `/${lang}/contact-us` },
   ];

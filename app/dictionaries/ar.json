@@ -1,10 +1,11 @@
 {
   "home": {
-      "title": "الصفحة الرئيسية",
+      "title": "الصفحة الرئيسية", 
       "navbar": {
         "home": "الرئيسية",
         "studyPlan": "الخطة الدراسية",
         "teachingStaff": "هيئة التدريس",
+        "StudyTopics": "المحاور الدراسية",
         "independentScientificPaths": "مسارات علمية مستقلة",
         "library": "المكتبة العلمية",
         "contactUs": "تواصل معنا",
@@ -86,17 +87,16 @@
         "dawah_teaching_skills": "تطوير مهارات الدعوة والتعليم",
         "accredited_certifications": "التأهيل العلمي والحصول على شهادات معتمدة"
       },
-      "islamicLevels": {
-        "beginner": "مبتدئ",
-        "intermediate": "متوسط",
-        "advanced": "متقدم"
-      },
       "fillAllFields": "يرجى تعبئة جميع الحقول",
       "passwordMismatch": "كلمتا المرور غير متطابقتين",
       "termsRequired": "يجب الموافقة على الشروط والأحكام",
       "invalidEmail": "يرجى إدخال بريد إلكتروني صالح",
       "requestFailed": "حدث خطأ. يرجى المحاولة مرة أخرى."
 
+    },
+    "studyTopics": {
+      "title": "المحاور ",
+      "titleSpan": " الدراسية"
     },
     "selectAuth": {
       "title": "تسجيل ",

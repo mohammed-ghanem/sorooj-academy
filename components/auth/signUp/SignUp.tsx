@@ -578,31 +578,7 @@ const SignUp = () => {
                     </div>
                   </div>
 
-                  <div className="mb-4">
-                    <label
-                      className={`block text-[13px] font-semibold  ${lang === "ar" ? "text-right!" : "text-left"}`}
-                    >
-                      {translate?.pages?.signUp?.level}
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={level}
-                        onChange={(e) => setLevel(e.target.value)}
-                        className={selectValueClass(level)}
-                        dir={isArabic ? "rtl" : "ltr"}
-                      >
-                        <option value="">{t?.selectLevel ?? t?.select}</option>
-                        {ISLAMIC_LEVEL_KEYS.map((key) => (
-                          <option key={key} value={key}>
-                            {(t?.islamicLevels as Record<string, string> | undefined)?.[
-                              key
-                            ] ?? key}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className={selectChevronClass} size={18} />
-                    </div>
-                  </div>
+
 
                   <div className="mb-4">
                     <label

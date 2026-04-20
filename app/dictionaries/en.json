@@ -5,6 +5,7 @@
       "home": "Home",
       "studyPlan": "Study Plan",
       "teachingStaff": "Teaching Staff",
+      "StudyTopics": "Study Topics",
       "independentScientificPaths": "Independent Scientific Paths",
       "library": "Library",
       "contactUs": "Contact Us",
@@ -89,16 +90,16 @@
         "dawah_teaching_skills": "Develop da‘wah and teaching skills",
         "accredited_certifications": "Academic qualification and accredited certificates"
       },
-      "islamicLevels": {
-        "beginner": "Beginner",
-        "intermediate": "Intermediate",
-        "advanced": "Advanced"
-      },
+      
       "fillAllFields": "Please fill all fields",
       "passwordMismatch": "Passwords do not match",
       "termsRequired": "You must accept the terms and conditions",
       "invalidEmail": "Please enter a valid email address",
       "requestFailed": "Something went wrong. Please try again."
+    },
+    "studyTopics": {
+      "title": "Study ",
+      "titleSpan": " Topics"
     },
     "selectAuth": {
       "title": "Login",

@@ -7,7 +7,7 @@ import { useGetStaticPrivacyPolicyQuery } from "@/store/staticPages/staticPagesA
 import { cn } from "@/lib/utils";
 
 const PublicPrivacyPolicy = () => {
-  const lang = LangUseParams();
+  const lang = LangUseParams(); 
   const translate = TranslateHook();
   const p = translate?.pages?.privacyPolicyPage;
 
