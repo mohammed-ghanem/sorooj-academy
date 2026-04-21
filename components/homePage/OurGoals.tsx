@@ -8,7 +8,7 @@ import ques from "@/public/assets/images/ques.svg";
 import "./styles.css";
 
 const features = [
-  {
+  { 
     id: 1,
     image: "/assets/images/goal1.webp",
     title: "التأصيل الشرعي",

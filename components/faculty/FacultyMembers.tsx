@@ -69,7 +69,7 @@ const FacultyMembers = () => {
               className="relative mx-auto h-full w-full max-w-sm cursor-pointer overflow-visible text-center"
             >
               <div
-                className=" relative h-full rounded-[24px] border border-[#E8E0D4]/60 bg-[#FAF7F2] px-5 
+                className=" relative h-full rounded-3xl border border-[#E8E0D4]/60 bg-[#FAF7F2] px-5 
                 pt-16 pb-8 shadow-sm md:rounded-[18px] md:pt-17 md:pb-10 md:px-6"
               >
                 <div
@@ -88,8 +88,8 @@ const FacultyMembers = () => {
 
                 <div className="absolute top-0 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
                   <div
-                    className="relative size-[104px] overflow-hidden rounded-full border-[3px] border-[#d1c1a7]
-                     bg-white shadow-md md:size-[118px] md:border-4"
+                    className="relative size-26 overflow-hidden rounded-full border-[3px] border-[#d1c1a7]
+                     bg-white shadow-md md:size-29.5 md:border-4"
                   >
                     <Image
                       src={m.imageSrc}
@@ -111,7 +111,7 @@ const FacultyMembers = () => {
                   <h3 className="text-lg font-semibold leading-snug text-black md:text-xl">
                     {locale === "ar" ? m.name.ar : m.name.en}
                   </h3>
-                  <p className="max-w-[260px] text-sm leading-relaxed text-[#707070] md:max-w-none md:text-[15px]">
+                  <p className="max-w-65 text-sm leading-relaxed text-[#707070] md:max-w-none md:text-[15px]">
                     {locale === "ar" ? m.title.ar : m.title.en}
                   </p>
                 </div>
@@ -131,7 +131,7 @@ const FacultyMembers = () => {
         <DialogContent
           showCloseButton={false}
           dir={locale === "ar" ? "rtl" : "ltr"}
-          className="max-h-[min(85vh,calc(100%-2rem))] max-w-[calc(100%-2rem)] gap-5 overflow-y-auto rounded-[24px]
+          className="max-h-[min(85vh,calc(100%-2rem))] max-w-[calc(100%-2rem)] gap-5 overflow-y-auto rounded-3xl
            border border-[#E8E0D4]/60 bg-[#ffffff] p-6 shadow-lg sm:max-w-xl sm:p-8 "
         >
           {selected && (
@@ -142,8 +142,8 @@ const FacultyMembers = () => {
 
               <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <div
-                  className="relative size-[88px] shrink-0 overflow-hidden rounded-full border-[3px] 
-                border-[#d1c1a7] bg-white shadow-sm sm:size-[100px]"
+                  className="relative size-22 shrink-0 overflow-hidden rounded-full border-[3px] 
+                border-[#d1c1a7] bg-white shadow-sm sm:size-25"
                 >
                   <Image
                     src={selected.imageSrc}
