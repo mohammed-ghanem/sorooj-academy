@@ -98,6 +98,13 @@
       "title": "المحاور ",
       "titleSpan": " الدراسية"
     },
+    "studyTopicDetail": {
+      "back": "رجوع للمحاور الدراسية",
+      "notFound": "هذا المحور غير متوفر",
+      "materials": "مواد تعليمية",
+      "lessons": "دروس",
+      "progress": "نسبة الإنجاز"
+    },
     "selectAuth": {
       "title": "تسجيل ",
       "titleSpan" : "الدخول",

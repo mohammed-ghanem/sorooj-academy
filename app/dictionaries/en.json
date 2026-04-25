@@ -101,6 +101,13 @@
       "title": "Study ",
       "titleSpan": " Topics"
     },
+    "studyTopicDetail": {
+      "back": "Back to study topics",
+      "notFound": "This topic is not available",
+      "materials": "learning materials",
+      "lessons": "lessons",
+      "progress": "Progress"
+    },
     "selectAuth": {
       "title": "Login",
       "description": "Choose your role so we can tailor the learning experience to your goals.",

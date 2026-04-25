@@ -61,7 +61,7 @@ const FacultyMembers = () => {
               tabIndex={0}
               onClick={() => setSelected(m)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
+                if (e.key === "Enter" || e.key === " ") { 
                   e.preventDefault();
                   setSelected(m);
                 }
