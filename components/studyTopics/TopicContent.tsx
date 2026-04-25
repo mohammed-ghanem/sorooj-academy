@@ -2,7 +2,8 @@
 
 import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import card from "@/public/assets/images/card.jpg";
-import book from "@/public/assets/images/book.svg";
+import exams from "@/public/assets/images/exam.svg";
+import level from "@/public/assets/images/level.svg";
 import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import Link from "next/link";
@@ -64,7 +65,7 @@ const TopicContent = () => {
                 >
                   <div className="flex items-center justify-between mb-2 ">
                     <div className="relative">
-                      <span className="text-xl p-2 scoundColor font-semibold bg-[#efece7] rounded-md">
+                      <span className="text-xl py-2 px-3 scoundColor font-semibold bg-[#efece7] rounded-md">
                         {String(lesson.id).padStart(2, "0")}
                       </span>
                       <div className="pointer-events-none absolute right-0 bottom-0">
@@ -84,7 +85,7 @@ const TopicContent = () => {
                       <h4 className="text-sm font-semibold text-gray-500">
                         الدرس الأول
                       </h4>
-                      <span className="text-sm px-3 py-1.5  scoundColor font-semibold bg-[#efece7] rounded-3xl">
+                      <span className="text-[10px] px-3 py-1.5  scoundColor  bg-[#efece7] rounded-3xl">
                         مكتمل
                       </span>
                     </div>
@@ -111,8 +112,8 @@ const TopicContent = () => {
                       <div className="flex items-center">
                         <Image
                           src="/assets/images/video-circle.svg"
-                          width={20}
-                          height={20}
+                          width={16}
+                          height={16}
                           alt=""
                         />
                         <p className="mx-1 descriptionColor">
@@ -122,8 +123,8 @@ const TopicContent = () => {
                       <div className="flex items-center">
                         <Image
                           src="/assets/images/doc.svg"
-                          width={20}
-                          height={20}
+                          width={16}
+                          height={16}
                           alt=""
                         />
                         <p className="mx-1 descriptionColor">
@@ -133,8 +134,8 @@ const TopicContent = () => {
                       <div className="flex items-center">
                         <Image
                           src="/assets/images/audio.svg"
-                          width={20}
-                          height={20}
+                          width={16}
+                          height={16}
                           alt=""
                         />
                         <p className="mx-1 descriptionColor">
@@ -148,7 +149,9 @@ const TopicContent = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow-r-sm h-fit">
+          {/* details of the topic */}
+
+          <div className="lg:col-span-4 w-[95%] mx-auto bg-white rounded-2xl p-4 shadow-r-sm h-fit">
             <div className="relative w-full h-56 mb-4">
               <Image
                 src={card.src}
@@ -158,34 +161,43 @@ const TopicContent = () => {
               />
             </div>
 
-            <h2 className="text-lg font-semibold mainColor mb-2">
-              مدخل إلى علم العقيدة
-            </h2>
-            <p className="text-sm text-gray-600 leading-7 mb-4">
-              صفحة تجريبية لعرض تفاصيل محتوى المادة داخل المحور. سيتم ربطها
-              لاحقًا ببيانات الـ API.
-            </p>
+            <div>
+              <h2 className="text-lg font-semibold mainColor mb-2">
+                تفاصيل المادة
+              </h2>
+              <hr className="my-2" />
+            </div>
+
+            <h3 className="text-lg font-semibold mainColor mb-2">
+              نقض الاعتراضات بحجية السُّنَّة النبوية
+            </h3>
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Image src={book.src} width={18} height={18} alt="" />
-                  <span>مواد تعليمية</span>
-                </div>
-                <span className="mainColor font-semibold">6</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
                   <Image src={lessons.src} width={18} height={18} alt="" />
-                  <span>عدد الدروس</span>
+                  <span className="descriptionColor">عدد الدروس</span>
                 </div>
                 <span className="mainColor font-semibold">
                   {testLessons.length}
                 </span>
               </div>
+              <div className="flex items-center justify-between my-4">
+                <div className="flex items-center gap-2">
+                  <Image src={exams.src} width={18} height={18} alt="" />
+                  <span className="descriptionColor">عدد الاختبارات</span>
+                </div>
+                <span className="mainColor font-semibold">6</span>
+              </div>
+
               <div className="flex items-center justify-between">
-                <span>التقدم</span>
-                <span className="mainColor font-semibold ">40%</span>
+                <div className="flex items-center gap-2">
+                  <Image src={level.src} width={18} height={18} alt="" />
+                  <span className="descriptionColor">التقدم</span>
+                </div>
+                <span className="mainColor font-semibold">
+                  <span className="me-0.5">40%</span>
+                </span>
               </div>
             </div>
 
