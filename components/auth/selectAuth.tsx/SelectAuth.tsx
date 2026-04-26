@@ -127,7 +127,7 @@ const SelectAuth = () => {
                 <div className="mt-8 flex flex-1 flex-col items-center gap-3 md:mt-6">
                   <div className="relative h-22 w-22 md:h-24 md:w-24">
                     <Image
-                      src="/assets/images/student.png"
+                      src="/assets/images/stu.png"
                       alt="student"
                       fill
                       className="object-contain"
