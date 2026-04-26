@@ -210,7 +210,7 @@ const Login = () => {
               </span>
               <Link
                 href={`/${lang}/sign-up`}
-                className="border-b border-regal-blue ms-2 text-[13px] font-semibold w-fit scoundColor"
+                className="border-b border-regal-blue ms-2 text-sm font-semibold w-fit scoundColor"
               >
                 {translate?.pages.login.createAccount}
               </Link>

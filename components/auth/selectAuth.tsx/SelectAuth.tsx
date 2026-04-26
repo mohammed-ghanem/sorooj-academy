@@ -51,18 +51,20 @@ const SelectAuth = () => {
     <div>
       <HeroAuth contentClassName="max-w-3xl ">
         <div className="flex w-full flex-col items-center gap-6 mb-10">
-          <Image
-            src={logo}
-            alt=""
-            width={140}
-            height={48}
-            className="h-auto w-35 object-contain"
-            priority
-          />
+          <Link href={`/${lang}`}>
+            <Image
+              src={logo}
+              alt=""
+              width={140}
+              height={48}
+              className="h-auto w-35 object-contain"
+              priority
+            />
+          </Link>
 
           <div
             className=" relative w-full max-w-xl  md:max-w-3xl  rounded-2xl boxBgOpacity p-6 shadow-lg ring-1
-           ring-black/5 md:p-8"
+           ring-black/5 md:p-12"
           >
             <div className="pointer-events-none absolute top-0 left-0">
               <Image
@@ -123,7 +125,7 @@ const SelectAuth = () => {
                   <RoleRadio checked={role === "student"} />
                 </div>
                 <div className="mt-8 flex flex-1 flex-col items-center gap-3 md:mt-6">
-                  <div className="relative h-22 w-22 md:h-30 md:w-30">
+                  <div className="relative h-22 w-22 md:h-24 md:w-24">
                     <Image
                       src="/assets/images/student.png"
                       alt="student"
@@ -161,7 +163,7 @@ const SelectAuth = () => {
                   <RoleRadio checked={role === "trainer"} />
                 </div>
                 <div className="mt-8 flex flex-1 flex-col items-center gap-3 md:mt-6">
-                  <div className="relative h-22 w-22 md:h-30 md:w-30">
+                  <div className="relative h-20 w-20 md:h-22 md:w-22">
                     <Image
                       src="/assets/images/doctor.svg"
                       alt="trainer"
