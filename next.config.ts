@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "backend.wecandevmode.online",
       },
-      
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+      },
     ],
   },
   eslint: {

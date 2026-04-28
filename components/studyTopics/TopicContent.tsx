@@ -96,9 +96,12 @@ const TopicContent = () => {
                   <hr className="my-3" />
                   <div className="flex  justify-between items-center">
                     <div className="flex items-center border-b border-[#9f854e] pb-2">
-                      <button className="text-xs font-semibold scoundColor rounded-md">
+                      <Link
+                        href={`/${lang}/study-topics/${topicId}/content/${contentId}/lesson/${lesson.id}`}
+                        className="text-xs font-semibold scoundColor rounded-md"
+                      >
                         ابدأ الدراسة
-                      </button>
+                      </Link>
                       <span>
                         <Image
                           src="/assets/images/arrow-left.svg"
