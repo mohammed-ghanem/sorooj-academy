@@ -1,8 +1,8 @@
-import TopicContent from "@/components/studyTopics/TopicContent";
+import SubjectContent from "@/components/studyTerms/SubjectContent";
 import { Metadata } from "next";
 
 type Props = {
-  params: Promise<{ lang: string; topicId: string; contentId: string }>;
+  params: Promise<{ lang: string; termId: string; contentId: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function TopicContentPage() {
-  return <TopicContent />;
+export default function SubjectContentPage() {
+  return <SubjectContent />;
 }
 

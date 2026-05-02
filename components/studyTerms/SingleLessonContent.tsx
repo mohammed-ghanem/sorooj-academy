@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { Check } from "lucide-react";
 
 type LessonVideo = {
   id: string;
@@ -17,7 +18,8 @@ type LessonData = {
   id: number;
   title: string;
   subtitle: string;
-  instructorName: string;
+  description: string;
+
   videos: LessonVideo[];
   resources: string[];
 };
@@ -27,11 +29,12 @@ const mockLessons: LessonData[] = [
     id: 1,
     title: "الدرس الأول: أحكام السنة والظنون",
     subtitle: "تعرف على المفاهيم الأساسية وطرق الاستدلال",
-    instructorName: "الأستاذ عمر الباكي",
+    description:
+      "في هذا الدرس سنتعرف على أهم مفاهيم السنة والظنون، وكيفية التعامل مع الاعتراضات المرتبطة بحجية السنة النبوية من خلال أمثلة تطبيقية وشرح مبسط يساعد على ترسيخ الفهم.",
     videos: [
       {
         id: "v1",
-        title: "الفيديو الاول - أحكام السنة والظنون",
+        title: "الفيديو الاول -أحكام السنة أحكام السنة والظنون",
         youtubeId: "hV2KTrcAuXo?si",
         duration: "15:30",
       },
@@ -50,39 +53,13 @@ const mockLessons: LessonData[] = [
     ],
     resources: ["ملف PDF - ملخص الدرس", "ورقة عمل", "اختبار قصير"],
   },
-  {
-    id: 2,
-    title: "الدرس الثاني: دلالة الألفاظ",
-    subtitle: "تفكيك المصطلحات وأثرها في الفهم الصحيح",
-    instructorName: "الأستاذ عمر الباكي",
-    videos: [
-      {
-        id: "v1",
-        title: "مدخل الدرس",
-        youtubeId: "M7lc1UVf-VE",
-        duration: "11:05",
-      },
-      {
-        id: "v2",
-        title: "التقسيمات الرئيسية",
-        youtubeId: "ysz5S6PUM-U",
-        duration: "16:20",
-      },
-      {
-        id: "v3",
-        title: "أمثلة وتمارين",
-        youtubeId: "aqz-KE-bpKQ",
-        duration: "14:55",
-      },
-    ],
-    resources: ["ملف PDF - تفريغ الدرس", "الواجب الأسبوعي"],
-  },
+  
 ];
 
 const SingleLessonContent = () => {
-  const { lang, topicId, contentId, lessonId } = useParams<{
+  const { lang, termId, contentId, lessonId } = useParams<{
     lang: string;
-    topicId: string;
+    termId: string;
     contentId: string;
     lessonId: string;
   }>();
@@ -95,6 +72,9 @@ const SingleLessonContent = () => {
 
   const [activeVideoId, setActiveVideoId] = useState(lesson.videos[0].id);
   const [completedVideoIds, setCompletedVideoIds] = useState<string[]>([]);
+  const [activeLessonTab, setActiveLessonTab] = useState<
+    "description" | "files"
+  >("description");
 
   const activeVideo =
     lesson.videos.find((video) => video.id === activeVideoId) ??
@@ -102,6 +82,8 @@ const SingleLessonContent = () => {
   const progressPercent = Math.round(
     (completedVideoIds.length / lesson.videos.length) * 100,
   );
+
+  const activeVideoCompleted = completedVideoIds.includes(activeVideo.id);
 
   const isVideoUnlocked = (index: number) => {
     if (index === 0) return true;
@@ -122,7 +104,7 @@ const SingleLessonContent = () => {
         title={
           <div className="text-center mt-20">
             <Link
-              href={`/${lang}/study-topics/${topicId}/content/${contentId}`}
+              href={`/${lang}/study-terms/${termId}/content/${contentId}`}
               className="text-sm scoundColor hover:underline inline-block mb-2"
             >
               ← رجوع إلى محتوى المادة
@@ -158,13 +140,20 @@ const SingleLessonContent = () => {
       {/* lesson content */}
 
       <div className="bg-[#F6F6F6] px-2 pt-4 pb-16 md:pt-14 md:pb-24">
-        <div className="container mx-auto w-[90%] grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* video screen */}
-          <div className="lg:col-span-8 space-y-4 ">
+        <div className="container mx-auto w-[90%] grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* video screen — on small screens stacks above playlist, then tabs below */}
+          <div className="order-1 lg:order-0 lg:col-span-8 lg:row-start-1">
             <div className="bg-white rounded-2xl p-4 md:p-5 shadow-r-sm">
               <div className="mb-3 flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold mb-4">{lesson.title}</h2>
+                <div className="flex items-center justify-between mb-4 w-full">
+                  <h2 className="text-lg font-semibold">{lesson.title}</h2>
+                  <p
+                    className={`text-xs font-semibold ${
+                      activeVideoCompleted ? "scoundColor" : "text-gray-500"
+                    }`}
+                  >
+                    {activeVideoCompleted ? "مكتمل" : "غير مكتمل"}
+                  </p>
                 </div>
               </div>
 
@@ -180,45 +169,27 @@ const SingleLessonContent = () => {
                 />
               </div>
 
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <h3 className="text-sm font-semibold mainColor">
-                  {activeVideo.title}
-                </h3>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-xs text-gray-500">
-                  علِّم الفيديو كمكتمل لفتح الفيديو التالي.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => markAsCompleted(activeVideo.id)}
-                  className="text-xs text-white bkMainColor px-4 py-2 rounded-md font-medium"
-                >
-                  تم إنهاء الفيديو
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 md:p-5 shadow-r-sm">
-              <h4 className="text-sm font-semibold mainColor mb-3">
-                مرفقات الدرس
-              </h4>
-              <div className="space-y-2">
-                {lesson.resources.map((resource) => (
-                  <div
-                    key={resource}
-                    className="flex items-center justify-between rounded-lg border border-[#efe7d8] px-3 py-2"
+              {!activeVideoCompleted && (
+                <div className="mt-4">
+                  <p className="text-xs text-gray-500">
+                    اذا اتممت مشاهدة الدرس اضغط علي زر اتممت المشاهدة للانتقال
+                    الي الدرس التالي
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => markAsCompleted(activeVideo.id)}
+                    className="text-[13px] text-white bkMainColor px-4 py-2 mt-2.5 rounded-md font-medium
+                   flex items-center gap-1"
                   >
-                    <span className="text-sm text-gray-600">{resource}</span>
-                    <span className="text-xs scoundColor">⬇</span>
-                  </div>
-                ))}
-              </div>
+                    <span>اتممت المشاهدة</span>
+                    <Check size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           {/* video list */}
-          <div className="lg:col-span-4  rounded-2xl shadow-r-sm overflow-hidden h-fit lg:order-1 order-2">
+          <div className="order-2 lg:order-0 lg:col-span-4 lg:row-span-2 lg:row-start-1 lg:col-start-9 rounded-2xl shadow-r-sm overflow-hidden h-fit">
             <div className="px-4 py-4 mb-4 bg-[#faf7f1]">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold mainColor">
@@ -283,16 +254,16 @@ const SingleLessonContent = () => {
                           />
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="block md:flex items-center gap-2">
                         <Image
-                          className="w-full lg:w-[150px] xl:w-[90px]"
+                          className="w-full  lg:w-[150px] xl:w-[90px]"
                           width={90}
                           height={50}
                           src={`https://img.youtube.com/vi/${video.youtubeId.split("?")[0]}/mqdefault.jpg`}
                           alt=""
                         />
                         <div>
-                          <p className="text-sm font-medium flex items-center gap-2 min-w-0">
+                          <p className="text-sm mt-3 md:mt-0 font-medium flex items-center gap-2 min-w-0">
                             <span
                               className={`truncate ${
                                 isActive ? "mainColor" : "text-gray-600"
@@ -307,7 +278,7 @@ const SingleLessonContent = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 min-w-0">
+                      {/* <div className="flex items-center gap-2 min-w-0">
                         <span
                           className={`h-5 w-5 rounded border flex items-center justify-center text-[11px] shrink-0 ${
                             isDone
@@ -317,11 +288,79 @@ const SingleLessonContent = () => {
                         >
                           ✓
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* lesson description and files */}
+          <div className="order-3 lg:order-0 lg:col-span-8 lg:row-start-2 rounded-2xl shadow-r-sm">
+            <div className="mb-4 border-b border-[#efe7d8]">
+              <div className="items-center grid grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveLessonTab("description")}
+                  className={`pb-2 text-md font-semibold transition-colors px-4 py-4 cursor-pointer ${
+                    activeLessonTab === "description"
+                      ? "scoundColor border-b-2 border-[#9F854E] lightBgColor"
+                      : "text-black bg-white"
+                  }`}
+                >
+                  وصف الدرس
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveLessonTab("files")}
+                  className={`pb-2 text-md font-semibold transition-colors px-4 py-4 cursor-pointer ${
+                    activeLessonTab === "files"
+                      ? "scoundColor border-b-2 border-[#9F854E] lightBgColor"
+                      : "text-black bg-white"
+                  }`}
+                >
+                  الملفات المرفقة
+                </button>
+              </div>
+            </div>
+
+            <div>
+              {activeLessonTab === "description" ? (
+                <p className="py-4 px-4 bg-white rounded-lg">
+                  {lesson.description}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {lesson.resources.map((resource) => (
+                    <div
+                      key={resource}
+                      className="flex items-center justify-between rounded-lg bg-white shadow-r-sm px-3 py-3"
+                    >
+                      <div className="flex items-center gap-1">
+                        <Image
+                          src="/assets/images/pdf.svg"
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="lightBgColor rounded-md p-1.5"
+                        />
+                        <span className="text-sm">{resource}</span>
+                      </div>
+
+                      <span className="cursor-pointer">
+                        <Image
+                          src="/assets/images/download.svg"
+                          alt=""
+                          width={35}
+                          height={35}
+                          className="rounded-md p-1.5 border border-gray-200"
+                        />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

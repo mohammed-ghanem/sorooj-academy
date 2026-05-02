@@ -2,8 +2,7 @@
 
 import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import TranslateHook from "@/translate/TranslateHook";
-import { getStudyTopicById } from "@/lib/studyTopics/studyTopicsData";
-import book from "@/public/assets/images/book.svg";
+import { getStudyTermById } from "@/lib/studyTerms/studyTermsData";
 import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,30 +10,30 @@ import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import card from "@/public/assets/images/card.jpg";
 
-const SingleTopic = () => {
+const SingleTerm = () => {
   const translate = TranslateHook();
-  const { lang, topicId } = useParams<{
+  const { lang, termId } = useParams<{
     lang: string;
-    topicId: string;
+    termId: string;
   }>();
 
   const idNum = useMemo(
-    () => (topicId && !Number.isNaN(Number(topicId)) ? Number(topicId) : NaN),
-    [topicId],
+    () => (termId && !Number.isNaN(Number(termId)) ? Number(termId) : NaN),
+    [termId],
   );
-  const topic = useMemo(
-    () => (Number.isFinite(idNum) ? getStudyTopicById(idNum) : undefined),
+  const term = useMemo(
+    () => (Number.isFinite(idNum) ? getStudyTermById(idNum) : undefined),
     [idNum],
   );
 
-  const t = translate?.pages?.studyTopicDetail;
+  const t = translate?.pages?.studyTermDetail;
 
-  if (!topic) {
+  if (!term) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center px-4 text-center">
         <p className="text-lg mainColor font-medium mb-4">{t?.notFound}</p>
         <Link
-          href={`/${lang}/study-topics`}
+          href={`/${lang}/study-terms`}
           className="text-sm scoundColor hover:underline"
         >
           {t?.back}
@@ -45,11 +44,11 @@ const SingleTopic = () => {
 
   const topicCards = Array.from({ length: 4 }, (_, index) => ({
     id: index + 1,
-    title: `${topic.title} ${index + 1}`,
-    description: topic.description,
-    materialsCount: topic.materialsCount,
-    lessonsCount: topic.lessonsCount,
-    progress: topic.progress,
+    title: `${term.title} ${index + 1}`,
+    description: term.description,
+    materialsCount: term.materialsCount,
+    lessonsCount: term.lessonsCount,
+    progress: term.progress,
   }));
 
   return (
@@ -59,16 +58,16 @@ const SingleTopic = () => {
           title={
             <div className="text-center w-full max-w-3xl">
               <Link
-                href={`/${lang}/study-topics`}
+                href={`/${lang}/study-terms`}
                 className="text-sm scoundColor hover:underline inline-block mb-2"
               >
                 ← {t?.back}
               </Link>
               <h1 className="text-2xl font-semibold mt-2 mb-4">
                 <span className="mainColor">
-                  {String(topic.id).padStart(2, "0")}.{" "}
+                  {String(term.id).padStart(2, "0")}.{" "}
                 </span>
-                <span className="scoundColor">{topic.title}</span>
+                <span className="scoundColor">{term.title}</span>
               </h1>
             </div>
           }
@@ -124,10 +123,10 @@ const SingleTopic = () => {
                     style={{ width: `${item.progress}%` }}
                   />
                 </div>
-                <hr className="my-2"/>
+                <hr className="my-2" />
                 <div className="text-end mt-4">
                   <Link
-                    href={`/${lang}/study-topics/${topicId}/content/${item.id}`}
+                    href={`/${lang}/study-terms/${termId}/content/${item.id}`}
                     className="text-sm text-white bkMainColor px-4 py-2 rounded-md font-medium "
                   >
                     ابدأ الدراسة
@@ -142,4 +141,4 @@ const SingleTopic = () => {
   );
 };
 
-export default SingleTopic;
+export default SingleTerm;

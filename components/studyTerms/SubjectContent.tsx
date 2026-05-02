@@ -12,14 +12,13 @@ import { useParams } from "next/navigation";
 const testLessons = Array.from({ length: 8 }, (_, index) => ({
   id: index + 1,
   title: `الدرس ${index + 1}`,
-  duration: "45 دقيقة",
   status: index < 2 ? "مكتمل" : "لم يبدأ",
 }));
 
-const TopicContent = () => {
-  const { lang, topicId, contentId } = useParams<{
+const SubjectContent = () => {
+  const { lang, termId, contentId } = useParams<{
     lang: string;
-    topicId: string;
+    termId: string;
     contentId: string;
   }>();
 
@@ -29,7 +28,7 @@ const TopicContent = () => {
         title={
           <div className="text-center mt-20">
             <Link
-              href={`/${lang}/study-topics/${topicId}`}
+              href={`/${lang}/study-terms/${termId}`}
               className="text-sm scoundColor hover:underline inline-block mb-2"
             >
               ← رجوع لتفاصيل المحور
@@ -97,7 +96,7 @@ const TopicContent = () => {
                   <div className="flex  justify-between items-center">
                     <div className="flex items-center border-b border-[#9f854e] pb-2">
                       <Link
-                        href={`/${lang}/study-topics/${topicId}/content/${contentId}/lesson/${lesson.id}`}
+                        href={`/${lang}/study-terms/${termId}/content/${contentId}/lesson/${lesson.id}`}
                         className="text-xs font-semibold scoundColor rounded-md"
                       >
                         ابدأ الدراسة
@@ -134,17 +133,7 @@ const TopicContent = () => {
                           <span className="me-0.5">8</span>
                         </p>
                       </div>
-                      <div className="flex items-center">
-                        <Image
-                          src="/assets/images/audio.svg"
-                          width={16}
-                          height={16}
-                          alt=""
-                        />
-                        <p className="mx-1 descriptionColor">
-                          <span className="me-0.5">8</span>
-                        </p>
-                      </div>
+                     
                     </div>
                   </div>
                 </div>
@@ -217,4 +206,4 @@ const TopicContent = () => {
   );
 };
 
-export default TopicContent;
+export default SubjectContent;

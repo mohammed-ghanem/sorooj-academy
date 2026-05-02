@@ -1,7 +1,7 @@
-import type { StudyTopic } from "@/types/studyTopic";
+import type { StudyTerm } from "@/types/studyTerm";
 
 /** Local placeholder until the API is wired. Replace with `getStudyTopicById` from services. */
-export const studyTopics: StudyTopic[] = [
+export const studyTerms: StudyTerm[] = [
   {
     id: 1,
     title: "المحور الاول",
@@ -48,11 +48,11 @@ export const studyTopics: StudyTopic[] = [
   },
 ];
 
-export function getStudyTopicById(id: number): StudyTopic | undefined {
-  return studyTopics.find((t) => t.id === id);
+export function getStudyTermById(id: number): StudyTerm | undefined {
+  return studyTerms.find((t) => t.id === id);
 }
 
-export function isTopicLockedByIndex(
+export function isTermLockedByIndex(
   items: { progress: number }[],
   index: number
 ): boolean {

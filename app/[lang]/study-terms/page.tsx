@@ -1,4 +1,4 @@
-import StudyTopics from "@/components/studyTopics/StudyTopics";
+import StudyTerms from "@/components/studyTerms/StudyTerms";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -47,6 +47,6 @@ export const metadata: Metadata = {
     ],
   },
 };
-export default function StudyTopicsPage() {
-  return <StudyTopics />;
+export default function StudyTermsPage() {
+  return <StudyTerms />;
 }

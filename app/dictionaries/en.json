@@ -97,13 +97,13 @@
       "invalidEmail": "Please enter a valid email address",
       "requestFailed": "Something went wrong. Please try again."
     },
-    "studyTopics": {
+    "studyTerms": {
       "title": "Study ",
-      "titleSpan": " Topics"
+      "titleSpan": " Terms"
     },
-    "studyTopicDetail": {
-      "back": "Back to study topics",
-      "notFound": "This topic is not available",
+    "studyTermDetail": {
+      "back": "Back to study terms",
+      "notFound": "This term is not available",
       "materials": "learning materials",
       "lessons": "lessons",
       "progress": "Progress"

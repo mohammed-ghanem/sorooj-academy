@@ -1,10 +1,10 @@
-import SingleLessonContent from "@/components/studyTopics/SingleLessonContent";
+import SingleLessonContent from "@/components/studyTerms/SingleLessonContent";
 import { Metadata } from "next";
 
 type Props = {
   params: Promise<{
     lang: string;
-    topicId: string;
+    termId: string;
     contentId: string;
     lessonId: string;
   }>;

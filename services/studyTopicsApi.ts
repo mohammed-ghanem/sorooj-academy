@@ -1,5 +1,5 @@
 import api from "@/services/api";
-import type { StudyTopic } from "@/types/studyTopic";
+import type { StudyTopic } from "@/types/studyTerm";
 
 /**
  * Study topics (axes) — REST helpers.

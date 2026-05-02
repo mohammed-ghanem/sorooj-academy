@@ -2,20 +2,20 @@
 import SmallHeroSection from "../smallHeroSection/SmallHeroSection";
 import TranslateHook from "@/translate/TranslateHook";
 import {
-  isTopicLockedByIndex,
-  studyTopics,
-} from "@/lib/studyTopics/studyTopicsData";
+  isTermLockedByIndex,
+  studyTerms,
+} from "@/lib/studyTerms/studyTermsData";
 import book from "@/public/assets/images/book.svg";
 import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-const StudyTopics = () => {
+const StudyTerms = () => {
   const translate = TranslateHook();
   const { lang } = useParams<{ lang: string }>();
 
-  const isLocked = (index: number) => isTopicLockedByIndex(studyTopics, index);
+  const isLocked = (index: number) => isTermLockedByIndex(studyTerms, index);
 
   return (
     <div>
@@ -24,10 +24,10 @@ const StudyTopics = () => {
           title={
             <h1 className="text-2xl font-semibold mt-28 mb-4">
               <span className="mainColor">
-                {translate?.pages?.studyTopics?.title}
+                {translate?.pages?.studyTerms?.title}
               </span>
               <span className="scoundColor">
-                {translate?.pages?.studyTopics?.titleSpan}
+                {translate?.pages?.studyTerms?.titleSpan}
               </span>
             </h1>
           }
@@ -41,9 +41,9 @@ const StudyTopics = () => {
           className="container mx-auto w-[90%] grid grid-cols-1 sm:grid-cols-2 gap-x-10 mt-20
             lg:grid-cols-4 gap-y-20 md:gap-y-16 lg:gap-y-8"
         >
-          {studyTopics.map((item, index) => {
+          {studyTerms.map((item, index) => {
             const locked = isLocked(index);
-            const href = `/${lang}/study-topics/${item.id}`;
+            const href = `/${lang}/study-terms/${item.id}`;
             const cardClass = `block bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 relative
       shadow-r-sm transition duration-300 text-center sm:text-right
       ${locked ? "opacity-50 pointer-events-none" : "hover:shadow-md"}`;
@@ -115,7 +115,7 @@ const StudyTopics = () => {
                   {item.progress === 100
                     ? "مكتمل"
                     : item.progress > 0
-                      ? ` انهيت ${item.progress} % من المحور`
+                      ? ` انهيت ${item.progress} % من المستوى`
                       : locked
                         ? "مغلق"
                         : "لم يبدأ"}
@@ -150,4 +150,4 @@ const StudyTopics = () => {
   );
 };
 
-export default StudyTopics;
+export default StudyTerms;

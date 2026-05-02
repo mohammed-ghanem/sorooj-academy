@@ -1,5 +1,5 @@
 /** Study topic (axis) — list + detail. Aligns with future API response. */
-export type StudyTopic = {
+export type StudyTerm = {
   id: number;
   title: string;
   /** 0–100 */
@@ -12,7 +12,7 @@ export type StudyTopic = {
   description: string;
 };
 
-export type StudyTopicListItem = Pick<
-  StudyTopic,
+export type StudyTermListItem = Pick<
+  StudyTerm,
   "id" | "title" | "progress" | "materialsCount" | "lessonsCount" | "shortDescription"
 >;

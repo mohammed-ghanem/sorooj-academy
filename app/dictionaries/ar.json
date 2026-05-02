@@ -94,11 +94,11 @@
       "requestFailed": "حدث خطأ. يرجى المحاولة مرة أخرى."
 
     },
-    "studyTopics": {
+    "studyTerms": {
       "title": "المحاور ",
       "titleSpan": " الدراسية"
     },
-    "studyTopicDetail": {
+    "studyTermDetail": {
       "back": "رجوع للمحاور الدراسية",
       "notFound": "هذا المحور غير متوفر",
       "materials": "مواد تعليمية",
