@@ -4,6 +4,7 @@ import appReducer from "./app/appSlice";
 import { privacyPolicyApi } from "./settings/privacyPolicyApi";
 import { contactApi } from "./contact/contactApi";
 import { staticPagesApi } from "./staticPages/staticPagesApi";
+import { studyTermsApi } from "./studyTerms/studyTermsApi";
 
 import { authApi } from "./auth/authApi";
 
@@ -15,6 +16,7 @@ export const store = configureStore({
     [privacyPolicyApi.reducerPath]: privacyPolicyApi.reducer,
     [contactApi.reducerPath]: contactApi.reducer,
     [staticPagesApi.reducerPath]: staticPagesApi.reducer,
+    [studyTermsApi.reducerPath]: studyTermsApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
   },
 
@@ -23,6 +25,7 @@ export const store = configureStore({
       privacyPolicyApi.middleware,
       contactApi.middleware,
       staticPagesApi.middleware,
+      studyTermsApi.middleware,
       authApi.middleware,
     ),
    
