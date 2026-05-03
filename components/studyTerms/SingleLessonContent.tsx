@@ -135,7 +135,7 @@ const SingleLessonContent = () => {
       <div className="bg-white container w-[90%] mx-auto py-10">
         <div className="flex items-center gap-2">
           <Image
-            src="/assets/images/line-arrow-left.svg"
+            src="/assets/images/arrowLeft.svg"
             alt=""
             width={20}
             height={20}
