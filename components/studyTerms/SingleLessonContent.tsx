@@ -3,7 +3,7 @@
 import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Check } from "lucide-react";
 
@@ -23,6 +23,9 @@ type LessonData = {
   videos: LessonVideo[];
   resources: string[];
 };
+
+/** YouTube IDs in data may include `?si=...`; embed/thumbnail URLs need the bare 11-char id. */
+const stripYoutubeVideoId = (youtubeId: string) => youtubeId.split("?")[0];
 
 const mockLessons: LessonData[] = [
   {
@@ -57,7 +60,7 @@ const mockLessons: LessonData[] = [
 ];
 
 const SingleLessonContent = () => {
-  const { lang, termId, contentId, lessonId } = useParams<{
+  const { lang, termId, contentId, lessonId } = useParams<{ 
     lang: string;
     termId: string;
     contentId: string;
@@ -76,6 +79,11 @@ const SingleLessonContent = () => {
     "description" | "files"
   >("description");
 
+  useEffect(() => {
+    setActiveVideoId(lesson.videos[0]?.id ?? "");
+    setCompletedVideoIds([]);
+  }, [lesson.id]);
+
   const activeVideo =
     lesson.videos.find((video) => video.id === activeVideoId) ??
     lesson.videos[0];
@@ -91,11 +99,17 @@ const SingleLessonContent = () => {
     return completedVideoIds.includes(previousVideo.id);
   };
 
-  const markAsCompleted = (videoId: string) => {
+  const handleWatchComplete = (videoId: string) => {
     setCompletedVideoIds((prev) => {
       if (prev.includes(videoId)) return prev;
       return [...prev, videoId];
     });
+
+    const currentIndex = lesson.videos.findIndex((v) => v.id === videoId);
+    const next = lesson.videos[currentIndex + 1];
+    if (next) {
+      setActiveVideoId(next.id);
+    }
   };
 
   return (
@@ -159,8 +173,9 @@ const SingleLessonContent = () => {
 
               <div className="relative w-full overflow-hidden rounded-xl bg-black">
                 <iframe
+                  key={activeVideo.id}
                   className="w-full aspect-video"
-                  src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?rel=0`}
+                  src={`https://www.youtube.com/embed/${stripYoutubeVideoId(activeVideo.youtubeId)}?rel=0`}
                   title={activeVideo.title}
                   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -177,7 +192,7 @@ const SingleLessonContent = () => {
                   </p>
                   <button
                     type="button"
-                    onClick={() => markAsCompleted(activeVideo.id)}
+                    onClick={() => handleWatchComplete(activeVideo.id)}
                     className="text-[13px] text-white bkMainColor px-4 py-2 mt-2.5 rounded-md font-medium
                    flex items-center gap-1"
                   >
@@ -220,7 +235,14 @@ const SingleLessonContent = () => {
                     onClick={() => unlocked && setActiveVideoId(video.id)}
                     disabled={!unlocked}
                     className={`w-full text-right px-4 py-3 transition-all duration-300 ease-in-out rounded-md
-                      bg-white my-1 shadow-sm
+                      bg-white my-1 shadow-sm border
+                      ${
+                        isDone
+                          ? "border-emerald-200"
+                          : isActive
+                            ? " border-[#9F854E]/30"
+                            : "border-transparent"
+                      }
                        ${!unlocked ? "opacity-60 cursor-not-allowed" : ""}`}
                   >
                     <div className="flex items-center gap-3">
@@ -259,7 +281,7 @@ const SingleLessonContent = () => {
                           className="w-full  lg:w-[150px] xl:w-[90px]"
                           width={90}
                           height={50}
-                          src={`https://img.youtube.com/vi/${video.youtubeId.split("?")[0]}/mqdefault.jpg`}
+                          src={`https://img.youtube.com/vi/${stripYoutubeVideoId(video.youtubeId)}/mqdefault.jpg`}
                           alt=""
                         />
                         <div>
