@@ -49,7 +49,7 @@ export default function InfoModal({
         <DialogHeader className={cn(rtl ? "sm:text-right" : "sm:text-left")}>
           <DialogTitle className="mainColor">{title}</DialogTitle>
           {description ? (
-            <DialogDescription className="text-base text-muted-foreground">
+            <DialogDescription className="text-base text-red-400">
               {description}
             </DialogDescription>
           ) : null}
