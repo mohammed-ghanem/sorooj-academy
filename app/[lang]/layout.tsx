@@ -2,15 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "../../providers/Providers";
 import { ReactNode } from "react";
-import { Cairo } from "next/font/google";
 import Header from "@/components/header/Header";
 import Footer from "@/components/footer/Footer";
-
-const cairo = Cairo({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-cairo",
-});
 
 export const metadata: Metadata = {
   title: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة ",
@@ -76,7 +69,7 @@ export default async function RootLayout({
   const dir = lang === "ar" ? "rtl" : "ltr";
 
   return (
-    <html lang={lang} dir={dir} className={cairo.variable}>
+    <html lang={lang} dir={dir}>
       <body className="overflow-x-hidden">
         <Providers>
           <div className="">

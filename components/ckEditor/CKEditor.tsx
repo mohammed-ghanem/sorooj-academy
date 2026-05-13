@@ -173,7 +173,7 @@ const CkEditor: FC<CkEditorProps> = ({
           "Times New Roman, Times, serif",
           "Verdana, Geneva, sans-serif",
           "Comic Sans MS, cursive",
-          "Cairo, sans-serif",
+          "IBM Plex Sans Arabic, sans-serif",
           "Amiri, serif",
           "Almarai, sans-serif",
           "El Messiri, sans-serif",

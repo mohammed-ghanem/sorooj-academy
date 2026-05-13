@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
 
   return (
     <div className="p-6 mx-4 my-10 space-y-6 bg-white rounded-2xl border border-solid border-[#ddd]">
-      <h3 className=" font-bold titleStyle cairo-font">
+      <h3 className="font-bold titleStyle">
         {translate?.settings.privacyPolicy.title}
       </h3>
 

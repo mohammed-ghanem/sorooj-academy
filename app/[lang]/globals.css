@@ -6,7 +6,6 @@
 
 /* Base styles */
 :root {
-  /* font-family: var(--font-cairo), sans-serif; */
   font-family: 'IBM Plex Sans Arabic', sans-serif;
 
   /* Light theme variables */
@@ -211,5 +210,10 @@ svg {
 
 .fontBold {
   font-weight: bold;
+}
+
+/* Sonner toasts — same family as root (IBM Plex Sans Arabic from imports above) */
+.fontCairo {
+  font-family: "IBM Plex Sans Arabic", sans-serif;
 }
 

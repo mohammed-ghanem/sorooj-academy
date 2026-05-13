@@ -2,7 +2,7 @@
 export type StudyTerm = {
   id: number;
   title: string;
-  /** 0–100 */
+  /** 0–100 (from API later; placeholder when listing from backend) */
   progress: number;
   materialsCount: number;
   lessonsCount: number;
@@ -10,6 +10,8 @@ export type StudyTerm = {
   shortDescription: string;
   /** Longer copy for the detail page (optional until API provides it) */
   description: string;
+  /** From API `is_active`; inactive terms render as locked. */
+  isActive?: boolean;
 };
 
 export type StudyTermListItem = Pick<

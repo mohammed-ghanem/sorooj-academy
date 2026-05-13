@@ -99,7 +99,15 @@
     },
     "studyTerms": {
       "title": "Study ",
-      "titleSpan": " Terms"
+      "titleSpan": " Terms",
+      "gateLoginTitle": "Login required",
+      "gateLoginDescription": "Please sign in first to start your study with the study tracks.",
+      "gateLoginAction": "Sign in",
+      "gateEnrollTitle": "Enrollment required",
+      "gateEnrollDescription": "You must complete registration and enroll in the program before accessing study tracks.",
+      "gateEnrollAction": "Contact us",
+      "gateClose": "Close",
+      "cardLink": "View track →"
     },
     "studyTermDetail": {
       "back": "Back to study terms",

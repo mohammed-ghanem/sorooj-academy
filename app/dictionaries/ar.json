@@ -96,7 +96,15 @@
     },
     "studyTerms": {
       "title": "المحاور ",
-      "titleSpan": " الدراسية"
+      "titleSpan": " الدراسية",
+      "gateLoginTitle": "تسجيل الدخول مطلوب",
+      "gateLoginDescription": "يجب تسجيل الدخول أولاً لتبدأ دراستك في المحاور الدراسية.",
+      "gateLoginAction": "تسجيل الدخول",
+      "gateEnrollTitle": "إتمام الالتحاق مطلوب",
+      "gateEnrollDescription": "يجب إتمام التسجيل والالتحاق بالبرنامج الدراسي قبل البدء في المحاور.",
+      "gateEnrollAction": "تواصل معنا",
+      "gateClose": "إغلاق",
+      "cardLink": "عرض المحور ←"
     },
     "studyTermDetail": {
       "back": "رجوع للمحاور الدراسية",
