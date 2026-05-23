@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 export type InfoModalProps = {
   open: boolean;
@@ -20,8 +21,12 @@ export type InfoModalProps = {
   primaryLabel: string;
   /** If set, primary action navigates (modal closes via link click). */
   primaryHref?: string;
-  onPrimaryClick?: () => void;
-  secondaryLabel: string;
+  /** When set without `primaryHref`, runs on primary tap; modal does not auto-close (caller closes via `onOpenChange`). */
+  onPrimaryClick?: () => void | Promise<void>;
+  /** Disables primary control and shows loading affordance. */
+  primaryLoading?: boolean;
+  /** When empty, the outline secondary button is omitted. */
+  secondaryLabel?: string;
   /** Layout for Arabic vs English */
   dir?: "rtl" | "ltr";
 };
@@ -34,10 +39,12 @@ export default function InfoModal({
   primaryLabel,
   primaryHref,
   onPrimaryClick,
-  secondaryLabel,
+  primaryLoading = false,
+  secondaryLabel = "",
   dir = "rtl",
 }: InfoModalProps) {
   const rtl = dir === "rtl";
+  const showSecondary = secondaryLabel.trim() !== "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -47,9 +54,16 @@ export default function InfoModal({
         showCloseButton
       >
         <DialogHeader className={cn(rtl ? "sm:text-right" : "sm:text-left")}>
-          <DialogTitle className="mainColor">{title}</DialogTitle>
+          {title.trim() ? (
+            <DialogTitle className="mainColor">{title}</DialogTitle>
+          ) : null}
           {description ? (
-            <DialogDescription className="text-base text-red-400">
+            <DialogDescription
+              className={cn(
+                "text-base text-gray-700 whitespace-pre-line",
+                !title.trim() && "text-lg font-semibold mainColor",
+              )}
+            >
               {description}
             </DialogDescription>
           ) : null}
@@ -61,24 +75,23 @@ export default function InfoModal({
             rtl ? "sm:justify-start sm:gap-3" : "sm:justify-end sm:gap-3",
           )}
         >
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full sm:w-auto"
-            onClick={() => onOpenChange(false)}
-          >
-            {secondaryLabel}
-          </Button>
+          {showSecondary ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => onOpenChange(false)}
+            >
+              {secondaryLabel}
+            </Button>
+          ) : null}
 
           {primaryHref ? (
             <Button
               asChild
               className="scoundBgColor w-full text-white hover:opacity-90 sm:w-auto"
             >
-              <Link
-                href={primaryHref}
-                onClick={() => onOpenChange(false)}
-              >
+              <Link href={primaryHref} onClick={() => onOpenChange(false)}>
                 {primaryLabel}
               </Link>
             </Button>
@@ -86,12 +99,27 @@ export default function InfoModal({
             <Button
               type="button"
               className="scoundBgColor w-full text-white hover:opacity-90 sm:w-auto"
+              disabled={primaryLoading}
               onClick={() => {
-                onPrimaryClick?.();
+                if (primaryLoading) return;
+                if (onPrimaryClick) {
+                  void Promise.resolve(onPrimaryClick());
+                  return;
+                }
                 onOpenChange(false);
               }}
             >
-              {primaryLabel}
+              {primaryLoading ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2
+                    className="h-4 w-4 shrink-0 animate-spin"
+                    aria-hidden
+                  />
+                  <span>{primaryLabel}</span>
+                </span>
+              ) : (
+                primaryLabel
+              )}
             </Button>
           )}
         </DialogFooter>

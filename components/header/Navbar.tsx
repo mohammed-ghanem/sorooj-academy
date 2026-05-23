@@ -55,7 +55,7 @@ const Navbar = () => {
 
   const navLinks = [
     { label: translate?.home?.navbar?.home, href: `/${lang}` },
-    { label: translate?.home?.navbar?.studyPlan, href: "" },
+    { label: translate?.home?.navbar?.studyPlan, href: `/${lang}/study-plan` },
     { label: translate?.home?.navbar?.teachingStaff, href: `/${lang}/faculty-members`},
     { label: translate?.home?.navbar?.StudyTopics, href: `/${lang}/study-terms` },
     { label: translate?.home?.navbar?.independentScientificPaths, href: "" }, 

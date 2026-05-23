@@ -15,7 +15,7 @@ const Footer = () => {
   const mainLinks = [
     { label: "الرئيسية", href: `/${lang}/` },
     { label: "اعضاء هيئة التدريس", href: "#" },
-    { label: "الخطة الدراسية", href: "#" },
+    { label: "الخطة الدراسية", href: `/${lang}/study-plan` },
     { label: "مسارات علمية مستقلة", href: "#" },
     { label: "المكتبة العلمية", href: "#" },
     { label: "تواصل معنا", href: `/${lang}/contact-us` },
@@ -60,7 +60,11 @@ const Footer = () => {
               "
           >
             {mainLinks.map((link, index) => (
-              <Link key={index} href={link.href} className="my-2.5 md:mx-4 cursor-pointer">
+              <Link
+                key={index}
+                href={link.href}
+                className="my-2.5 md:mx-4 cursor-pointer"
+              >
                 {link.label}
               </Link>
             ))}
@@ -77,7 +81,11 @@ const Footer = () => {
                   "
           >
             {secondaryLinks.map((link, index) => (
-              <Link key={index} href={link.href} className="md:mx-4 cursor-pointer">
+              <Link
+                key={index}
+                href={link.href}
+                className="md:mx-4 cursor-pointer"
+              >
                 {link.label}
               </Link>
             ))}

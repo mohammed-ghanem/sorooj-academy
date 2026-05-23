@@ -42,7 +42,7 @@ const features = [
   
 ];
 
-const WhySection = () => {
+const WhySection = () => { 
   return (
     <section className="py-14 sm:py-16 lg:py-20 px-4 bgTitleColor m-3 md:m-0 decor-bg">
       <div className="max-w-7xl mx-auto">

@@ -11,11 +11,9 @@ const PublicDeleteAccount = () => {
   const translate = TranslateHook();
   const p = translate?.pages?.deleteAccountPage;
 
-  const { data, isLoading, isError, refetch } = useGetStaticDeleteAccountQuery(
-    {
-      lang: lang ?? "ar",
-    },
-  );
+  const { data, isLoading, isError, refetch } = useGetStaticDeleteAccountQuery({
+    lang: lang ?? "ar",
+  });
 
   if (!translate) {
     return (

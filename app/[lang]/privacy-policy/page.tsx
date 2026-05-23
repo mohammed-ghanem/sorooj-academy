@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import PublicPrivacyPolicy from "@/components/privacyPolicy/PublicPrivacyPolicy";
+import PublicPrivacyPolicy from "@/components/settings/privacy-policy/PublicPrivacyPolicy";
 
 export const metadata: Metadata = {
   title: "سياسة الخصوصية - اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",

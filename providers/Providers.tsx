@@ -5,15 +5,15 @@
 import { Provider } from "react-redux";
 import { store } from "../store/store";
 import { Toaster } from "sonner";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import Cookies from "js-cookie";
 import api from "@/services/api";
 import { setSessionReady } from "@/store/app/appSlice";
 
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    // read cookie on client and seed redux synchronously
+  useLayoutEffect(() => {
+    // Seed auth before child queries run (fixes refresh → "not available" until retry)
     const token = Cookies.get("access_token") ?? null;
     const userJson = Cookies.get("user") ?? null;
     let user = null;

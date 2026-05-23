@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import PublicDeleteAccount from "@/components/deleteAccount/PublicDeleteAccount";
+import PublicDeleteAccount from "@/components/settings/delete-account/PublicDeleteAccount";
 
 export const metadata: Metadata = {
   title: "حذف حسابك - اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",

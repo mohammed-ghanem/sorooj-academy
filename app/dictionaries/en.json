@@ -16,16 +16,16 @@
   "loading": {
     "title": "Loading"
   },
-  "pages": { 
+  "pages": {
     "login": {
       "login": "Login",
       "loginTitle": "Student Login",
-      "description" : "Your Academic Roadmap starts here with clear and concise steps.",
+      "description": "Your Academic Roadmap starts here with clear and concise steps.",
       "email": "Email Address",
       "password": "Password",
       "forgetPassword": "Forget Password ?",
       "loginButton": "Log In",
-      "or" : "or",
+      "or": "or",
       "withGoogle": "Continue with Google",
       "dontHaveUser": "Dont Have Account ?",
       "createAccount": "create account",
@@ -40,8 +40,8 @@
       "InvalidEmailOrPassword": "Invalid email or password",
       "InvalidEmailOrPasswordSwal": "'Login Failed', 'Invalid email or password. Please try again.', 'error'",
       "NetworkError": "Network Error', 'Please check your network connection and try again.', 'error'",
-      "SomethingWentWrong": "'Error', 'Something went wrong. Please try again later.', 'error'" ,
-        "rememberMe": "Remember Me"
+      "SomethingWentWrong": "'Error', 'Something went wrong. Please try again later.', 'error'",
+      "rememberMe": "Remember Me"
     },
     "signUp": {
       "title": "Create",
@@ -90,7 +90,7 @@
         "dawah_teaching_skills": "Develop da‘wah and teaching skills",
         "accredited_certifications": "Academic qualification and accredited certificates"
       },
-      
+
       "fillAllFields": "Please fill all fields",
       "passwordMismatch": "Passwords do not match",
       "termsRequired": "You must accept the terms and conditions",
@@ -103,18 +103,74 @@
       "gateLoginTitle": "Login required",
       "gateLoginDescription": "Please sign in first to start your study with the study tracks.",
       "gateLoginAction": "Sign in",
-      "gateEnrollTitle": "Enrollment required",
-      "gateEnrollDescription": "You must complete registration and enroll in the program before accessing study tracks.",
-      "gateEnrollAction": "Contact us",
+      "gateEnrollTitle": "Enroll in the study batch",
+      "gateEnrollDescription": "You must enroll in the academic batch before opening study tracks.",
+      "gateEnrollAction": "Enroll now",
+      "gateEnrollSuccessTitle": "Enrollment complete",
+      "gateEnrollSuccessDescription": "You are now enrolled in the batch. You can start studying.",
+      "gateStartStudyAction": "Start studying now",
+      "gateStudyReadyTitle": "You can start now",
+      "gateStudyReadyDescription": "Study is open. You can enter this track and its learning materials.",
+      "gateStudyNotStartedTitle": "Study has not started yet",
+      "gateStudyNotStartedLead": "Study opens at:",
+      "gateStudyPlanAction": "Study plan",
+      "gateStartStudyErrorTitle": "Could not start study",
+      "enrollRequestFailed": "Enrollment could not be completed. Please try again.",
+      "startStudyFailed": "Study could not be started. Please try again.",
       "gateClose": "Close",
-      "cardLink": "View track →"
+      "cardLink": "View track →",
+      "continueStudyLink": "Continue studying →",
+      "retry": "Try again",
+      "emptyList": "No study terms are available at the moment.",
+      "locked": "Locked",
+      "previous": "Previous",
+      "loadingGateMessage": "Loading message…",
+      "completePreviousTerm": "Complete the previous term to unlock this one.",
+      "loadFailed": "Something went wrong. Please try again."
     },
     "studyTermDetail": {
       "back": "Back to study terms",
       "notFound": "This term is not available",
       "materials": "learning materials",
       "lessons": "lessons",
-      "progress": "Progress"
+      "progress": "Progress",
+      "retry": "Try again",
+      "startStudy": "Start studying",
+      "lessonUnit": "lessons",
+      "emptySubjects": "No materials are available in this term yet."
+    },
+    "subjectDetail": {
+      "back": "← Back to term",
+      "heroLabel": "Subject content",
+      "completed": "Completed",
+      "notStarted": "Not started",
+      "startStudy": "Start studying",
+      "detailsTitle": "Subject details",
+      "lessonsCount": "Lessons",
+      "examsCount": "Exams",
+      "progress": "Progress",
+      "emptyLessons": "No lessons are available in this subject yet.",
+      "notFound": "This subject is not available",
+      "retry": "Try again",
+      "lessonNumber": "Lesson {{n}}",
+      "untitled": "Untitled"
+    },
+    "lessonDetail": {
+      "back": "← Back to subject",
+      "completed": "Completed",
+      "notCompleted": "Not completed",
+      "overallProgress": "Overall progress",
+      "watchCompleteHint": "When you finish watching, click the button below to continue to the next video.",
+      "watchComplete": "Mark as watched",
+      "descriptionTab": "Lesson description",
+      "filesTab": "Attachments",
+      "notFound": "This lesson is not available",
+      "retry": "Try again",
+      "noVideos": "No videos are available for this lesson yet.",
+      "noFiles": "No attachments for this lesson.",
+      "noDescription": "No description for this lesson.",
+      "videoFallback": "Video",
+      "videoNumber": "Video {{n}}"
     },
     "selectAuth": {
       "title": "Login",
@@ -140,18 +196,17 @@
     },
     "verifyCode": {
       "title": "Enter",
-      "description" : "We have sent a verification code to your email address. Please check your inbox, if you did not receive the code, you can resend it within (60 : 0) seconds. Press the button to resend",
+      "description": "We have sent a verification code to your email address. Please check your inbox, if you did not receive the code, you can resend it within (60 : 0) seconds. Press the button to resend",
       "email": "Email Address",
       "code": "Verification Code",
       "placeholder": "Enter verification code consisting of 4 digits",
-      "processing" : "Processing Verification",
+      "processing": "Processing Verification",
       "verify": " verify",
-      "resendCode" : " Resend Verification Code"
-
+      "resendCode": " Resend Verification Code"
     },
     "resetPassword": {
       "title": "Reset Your",
-      "description" : "Please enter your new password and confirm it to reset your password",
+      "description": "Please enter your new password and confirm it to reset your password",
       "email": "Email Address",
       "code": " Verification Code",
       "password": " new password",
@@ -168,10 +223,10 @@
       "oldPassword": " old password",
       "password": " new password",
       "confirmPassword": "confirm new password",
-      "passCondition" : "For account security, your password must contain at least: letters (A-Z, a-z), numbers (0-9), and a special character such as: ! @ # $ % ^ & *",
+      "passCondition": "For account security, your password must contain at least: letters (A-Z, a-z), numbers (0-9), and a special character such as: ! @ # $ % ^ & *",
       "processing": "Processing Change Password",
       "confirmBtn": "confirm",
-      "cancelBtn" : "cancel"
+      "cancelBtn": "cancel"
     },
     "updateProfile": {
       "title": "Update Profile",
@@ -189,7 +244,7 @@
       "phone": " Phone Number",
       "processing": " Processing Update Profile",
       "confirmBtn": " Confirm",
-      "noData": " No data available", 
+      "noData": " No data available",
       "memberSince": " Member Since",
       "personalDetails": " Profile Details",
       "editProfile": " Edit Profile"
@@ -198,11 +253,11 @@
       "profile": "Profile",
       "changePassword": "Change Password",
       "logout": "Logout",
-      "confirmLogout" : "Confirm Logout",
+      "confirmLogout": "Confirm Logout",
       "confirmLogoutQuestion": " Are you sure you want to logout ?",
-      "cancelBtn" : "Cancel",
-      "logoutProcissing" : "Processing Logout",
-      "logoutBtn" : "Logout"
+      "cancelBtn": "Cancel",
+      "logoutProcissing": "Processing Logout",
+      "logoutBtn": "Logout"
     },
     "admins": {
       "adminsTitle": "Admins",
@@ -260,7 +315,7 @@
         "permissions": "Select Permissions",
         "isSelected": "Selected",
         "selectAll": "Select All",
-        "searchPlaceholder" : "Search permissions...",
+        "searchPlaceholder": "Search permissions...",
         "processing": "Processing Create Role",
         "createBtn": "Create Role"
       },
@@ -276,7 +331,7 @@
         "permissions": "Select Permissions",
         "isSelected": "Selected",
         "selectAll": "Select All",
-        "searchPlaceholder" : "Search permissions...",
+        "searchPlaceholder": "Search permissions...",
         "processing": "Processing Save Changes",
         "editBtn": "Save Changes"
       },
@@ -286,8 +341,8 @@
         "nameAr": "Role Name in Arabic",
         "nameEn": "Role Name in English",
         "status": "Role Status",
-        "active" : "Active",
-        "inactive" : "Inactive",
+        "active": "Active",
+        "inactive": "Inactive",
         "permissions": "Permissions",
         "noPermissions": "No permissions available",
         "backBtn": "Back"
@@ -299,11 +354,11 @@
       "titleSpan": "With Us",
       "help": "How can we help you ?",
       "description": "Our team is always here to help you on your academic journey, whether you have a question about courses, need technical support, or want to learn more about available educational programs. Contact us anytime, and we'll be happy to answer all your questions and provide the support you need.",
-      "yourMessage" : " We are here for you",
-      "smallTitle" : "We are here to answer your questions and help you on your academic journey with pleasure.",
-      "name" : "Name",
+      "yourMessage": " We are here for you",
+      "smallTitle": "We are here to answer your questions and help you on your academic journey with pleasure.",
+      "name": "Name",
       "email": "Email Address",
-      "send" : "send",
+      "send": "send",
       "request": "Request Type",
       "selectRequest": "Select Request Type",
       "message": "Message",
@@ -339,7 +394,10 @@
     "facultyMembers": {
       "title": "Faculty ",
       "titleSpan": "Members",
-      "bioModalTitle": "Biography"
+      "bioModalTitle": "Biography",
+      "loading": "Loading faculty…",
+      "empty": "No faculty members to display.",
+      "error": "We could not load faculty. Please try again."
     }
   },
   "sidebar": {
@@ -359,7 +417,24 @@
       "saveBtn": "Save Changes",
       "successMessage": "Changes saved successfully",
       "errorMessage": "Failed to save changes"
-
+    },
+    "termsAndConditions": {
+      "title": "Terms and Conditions",
+      "arabicContent": " Arabic Content",
+      "englishContent": " English Content",
+      "processing": "Processing Save Changes",
+      "saveBtn": "Save Changes",
+      "successMessage": "Changes saved successfully",
+      "errorMessage": "Failed to save changes"
+    },
+    "deleteAccount": {
+      "title": "Delete Account",
+      "arabicContent": " Arabic Content",
+      "englishContent": " English Content",
+      "processing": "Processing Save Changes",
+      "saveBtn": "Save Changes",
+      "successMessage": "Changes saved successfully",
+      "errorMessage": "Failed to save changes"
     }
   }
 }

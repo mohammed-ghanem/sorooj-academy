@@ -52,7 +52,7 @@ const ContactUs = () => {
   );
 
   if (!translate) {
-    return <ContactUsSkeleton />;
+    return <ContactUsSkeleton />; 
   }
 
   const c = translate.pages?.contactUs;

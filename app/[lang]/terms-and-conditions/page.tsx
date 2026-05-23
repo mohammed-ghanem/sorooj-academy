@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import PublicTermsAndConditions from "@/components/termsAndConditions/PublicTermsAndConditions";
+import PublicTermsAndConditions from "@/components/settings/terms-and-conditions/PublicTermsAndConditions";
 
 export const metadata: Metadata = {
   title: "الشروط والأحكام - اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",

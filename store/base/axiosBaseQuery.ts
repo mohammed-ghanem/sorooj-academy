@@ -63,12 +63,10 @@ export const axiosBaseQuery =
         }
       }
 
-      // add Authorization token
-      if (auth) {
-        const token = Cookies.get("access_token");
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
+      // Bearer token from cookies (student endpoints expect this on refresh)
+      const accessToken = Cookies.get("access_token");
+      if (accessToken && !headers["Authorization"]) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
       }
 
       // add reset_token if there is no access_token

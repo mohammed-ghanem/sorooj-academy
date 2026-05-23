@@ -1,29 +1,29 @@
 {
   "home": {
-      "title": "الصفحة الرئيسية", 
-      "navbar": {
-        "home": "الرئيسية",
-        "studyPlan": "الخطة الدراسية",
-        "teachingStaff": "هيئة التدريس",
-        "StudyTopics": "المحاور الدراسية",
-        "independentScientificPaths": "مسارات علمية مستقلة",
-        "library": "المكتبة العلمية",
-        "contactUs": "تواصل معنا",
-        "login": "تسجيل الدخول",
-        "student": "طالب"
-      }
+    "title": "الصفحة الرئيسية",
+    "navbar": {
+      "home": "الرئيسية",
+      "studyPlan": "الخطة الدراسية",
+      "teachingStaff": "هيئة التدريس",
+      "StudyTopics": "المحاور الدراسية",
+      "independentScientificPaths": "مسارات علمية مستقلة",
+      "library": "المكتبة العلمية",
+      "contactUs": "تواصل معنا",
+      "login": "تسجيل الدخول",
+      "student": "طالب"
+    }
   },
   "pages": {
     "login": {
       "login": "تسجيل الدخول",
       "loginTitle": "تسجيل دخول الطالب  ",
-      "description" : "رحلتك العلمية تبدأ الآن بخطوات واضحة ومنهجية راسخة",
+      "description": "رحلتك العلمية تبدأ الآن بخطوات واضحة ومنهجية راسخة",
       "email": "البريد الالكترونى",
       "password": "كلمة المرور",
       "forgetPassword": "هل نسيت كلمة المرور ؟",
       "loginButton": "تسجيل الدخول ",
-      "or" : "او",
-      "withGoogle" : "المتابعة عبر جوجل",
+      "or": "او",
+      "withGoogle": "المتابعة عبر جوجل",
       "dontHaveUser": "ليس لديك حساب ؟",
       "createAccount": "انشاء حساب ",
       "LoginSuccessful": " تم تسجيل الدخول بنجاح",
@@ -40,12 +40,12 @@
       "SomethingWentWrong": "خطأ، حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقًا.',",
       "rememberMe": "تذكرني"
     },
-    "signUp":{
+    "signUp": {
       "title": "إنشاء ",
-      "titleSpan" : "حساب جديد",
+      "titleSpan": "حساب جديد",
       "description": "أنشئ حسابك لتبدأ مسارك في طلب العلم بمنهجية واضحة",
-      "step" : "الخطوة",
-      "from" : "من",
+      "step": "الخطوة",
+      "from": "من",
       "name": "الاسم",
       "email": "البريد الالكترونى",
       "password": "كلمة المرور",
@@ -92,7 +92,6 @@
       "termsRequired": "يجب الموافقة على الشروط والأحكام",
       "invalidEmail": "يرجى إدخال بريد إلكتروني صالح",
       "requestFailed": "حدث خطأ. يرجى المحاولة مرة أخرى."
-
     },
     "studyTerms": {
       "title": "المحاور ",
@@ -100,22 +99,78 @@
       "gateLoginTitle": "تسجيل الدخول مطلوب",
       "gateLoginDescription": "يجب تسجيل الدخول أولاً لتبدأ دراستك في المحاور الدراسية.",
       "gateLoginAction": "تسجيل الدخول",
-      "gateEnrollTitle": "إتمام الالتحاق مطلوب",
-      "gateEnrollDescription": "يجب إتمام التسجيل والالتحاق بالبرنامج الدراسي قبل البدء في المحاور.",
-      "gateEnrollAction": "تواصل معنا",
+      "gateEnrollTitle": "التسجيل في الدفعة الدراسية",
+      "gateEnrollDescription": "يجب التسجيل في الدفعة الدراسية قبل الدخول إلى المحاور.",
+      "gateEnrollAction": "تسجيل الالتحاق",
+      "gateEnrollSuccessTitle": "تم الالتحاق بالدفعة",
+      "gateEnrollSuccessDescription": "لقد أصبحت مسجلاً في الدفعة الآن يمكنك بدء الدراسة.",
+      "gateStartStudyAction": "ابدأ الدراسة الآن",
+      "gateStudyReadyTitle": "يمكنك البدء الآن",
+      "gateStudyReadyDescription": "الدراسة متاحة الآن. يمكنك الدخول إلى المحور والمواد الدراسية.",
+      "gateStudyNotStartedTitle": "لم تبدأ الدراسة بعد",
+      "gateStudyNotStartedLead": "موعد بدء الدراسة:",
+      "gateStudyPlanAction": "الخطة الدراسية",
+      "gateStartStudyErrorTitle": "تعذر بدء الدراسة",
+      "enrollRequestFailed": "تعذر إتمام الالتحاق. حاول مرة أخرى.",
+      "startStudyFailed": "تعذر بدء الدراسة. حاول مرة أخرى.",
       "gateClose": "إغلاق",
-      "cardLink": "عرض المحور ←"
+      "cardLink": "عرض المحور ←",
+      "continueStudyLink": "متابعة الدراسة ←",
+      "retry": "إعادة المحاولة",
+      "emptyList": "لا توجد محاور متاحة حالياً.",
+      "locked": "مغلق",
+      "previous": "سابق",
+      "loadingGateMessage": "جاري تحميل الرسالة…",
+      "completePreviousTerm": "أكمل المحور السابق أولاً لفتح هذا المحور.",
+      "loadFailed": "حدث خطأ. يرجى المحاولة مرة أخرى."
     },
     "studyTermDetail": {
       "back": "رجوع للمحاور الدراسية",
       "notFound": "هذا المحور غير متوفر",
       "materials": "مواد تعليمية",
       "lessons": "دروس",
-      "progress": "نسبة الإنجاز"
+      "progress": "نسبة الإنجاز",
+      "retry": "إعادة المحاولة",
+      "startStudy": "ابدأ الدراسة",
+      "lessonUnit": "درس",
+      "emptySubjects": "لا توجد مواد متاحة في هذا المحور حالياً."
+    },
+    "subjectDetail": {
+      "back": "← رجوع لتفاصيل المحور",
+      "heroLabel": "محتوى المادة",
+      "completed": "مكتمل",
+      "notStarted": "لم يبدأ",
+      "startStudy": "ابدأ الدراسة",
+      "detailsTitle": "تفاصيل المادة",
+      "lessonsCount": "عدد الدروس",
+      "examsCount": "عدد الاختبارات",
+      "progress": "التقدم",
+      "emptyLessons": "لا توجد دروس متاحة في هذه المادة حالياً.",
+      "notFound": "هذه المادة غير متوفرة",
+      "retry": "إعادة المحاولة",
+      "lessonNumber": "الدرس {{n}}",
+      "untitled": "بدون عنوان"
+    },
+    "lessonDetail": {
+      "back": "← رجوع إلى محتوى المادة",
+      "completed": "مكتمل",
+      "notCompleted": "غير مكتمل",
+      "overallProgress": "التقدم الكلي",
+      "watchCompleteHint": "اذا اتممت مشاهدة الدرس اضغط علي زر اتممت المشاهدة للانتقال الي الدرس التالي",
+      "watchComplete": "اتممت المشاهدة",
+      "descriptionTab": "وصف الدرس",
+      "filesTab": "الملفات المرفقة",
+      "notFound": "هذا الدرس غير متوفر",
+      "retry": "إعادة المحاولة",
+      "noVideos": "لا توجد فيديوهات متاحة لهذا الدرس حالياً.",
+      "noFiles": "لا توجد ملفات مرفقة لهذا الدرس.",
+      "noDescription": "لا يوجد وصف لهذا الدرس.",
+      "videoFallback": "فيديو",
+      "videoNumber": "فيديو {{n}}"
     },
     "selectAuth": {
       "title": "تسجيل ",
-      "titleSpan" : "الدخول",
+      "titleSpan": "الدخول",
       "description": "حدد دورك لنهيئ لك تجربة تعليمية تناسب أهدافك العلمية",
       "sectionTitle": "اختر مسارك في الأكاديمية",
       "trainerTitle": "عضو هيئة التدريس",
@@ -138,17 +193,17 @@
     },
     "verifyCode": {
       "title": "ادخال",
-      "description" : "لقد تم إرسال كود التفعيل إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد , اذا لم تستلم كود التفعيل يمكنك إعادة إرساله خلال (60 : 0) ثانية. اضغط على زر إعادة الإرسال",
+      "description": "لقد تم إرسال كود التفعيل إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد , اذا لم تستلم كود التفعيل يمكنك إعادة إرساله خلال (60 : 0) ثانية. اضغط على زر إعادة الإرسال",
       "email": "البريد الالكترونى",
       "code": "رمز التحقق",
       "placeholder": "ادخل رمز التحقق المكون من 4 ارقال",
-      "processing" : "جارى التحقق",
+      "processing": "جارى التحقق",
       "verify": "تحقق",
-      "resendCode" : "اعادة ارسال رمز التحقق"
+      "resendCode": "اعادة ارسال رمز التحقق"
     },
     "resetPassword": {
       "title": "اعادة تعيين",
-      "description" : "أنشئ كلمة مرور جديدة لحماية حسابك ومتابعة رحلتك العلمية",
+      "description": "أنشئ كلمة مرور جديدة لحماية حسابك ومتابعة رحلتك العلمية",
       "email": "البريد الالكترونى",
       "code": "رمز التحقق",
       "password": "كلمة المرور",
@@ -165,10 +220,10 @@
       "oldPassword": "كلمة المرور القديمة",
       "password": "  كلمة المرور الجديدة",
       "confirmPassword": "تاكيد كلمة المرور الجديدة",
-      "passCondition" : "لأمان حسابك، يجب أن تتكون كلمة المرور من: حروف (A–Z, a–z)، أرقام (0–9)، ورمز خاص واحد على الأقل مثل: ! @ # $ % ^ & *",
+      "passCondition": "لأمان حسابك، يجب أن تتكون كلمة المرور من: حروف (A–Z, a–z)، أرقام (0–9)، ورمز خاص واحد على الأقل مثل: ! @ # $ % ^ & *",
       "processing": "جارى تغيير كلمة المرور",
       "confirmBtn": "تاكيد",
-      "cancelBtn" : "الغاء"
+      "cancelBtn": "الغاء"
     },
     "updateProfile": {
       "title": "تحديث الملف الشخصى",
@@ -190,21 +245,21 @@
       "noData": "لا يوجد بيانات",
       "memberSince": "عضو منذ",
       "personalDetails": "بيانات شخصية ",
-      "editProfile": "تحديث الملف الشخصى" 
+      "editProfile": "تحديث الملف الشخصى"
     },
     "userDropDown": {
       "profile": "الملف الشخصى",
       "changePassword": "تغيير كلمة المرور",
       "logout": "تسجيل الخروج",
-      "confirmLogout" : " تأكيد تسجيل الخروج  ",
-      "confirmLogoutQuestion" : "هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟",
-      "cancelBtn" : "الغاء",
-      "logoutProcissing" : " جارى تسجيل الخروج",
-      "logoutBtn" : "تسجيل الخروج"
+      "confirmLogout": " تأكيد تسجيل الخروج  ",
+      "confirmLogoutQuestion": "هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟",
+      "cancelBtn": "الغاء",
+      "logoutProcissing": " جارى تسجيل الخروج",
+      "logoutBtn": "تسجيل الخروج"
     },
     "admins": {
       "adminsTitle": "المسؤولين",
-      "searchPlaceholder": "ابحث عن مسؤول...", 
+      "searchPlaceholder": "ابحث عن مسؤول...",
       "protect": "محمى",
       "active": "نشط",
       "inactive": "غير نشط",
@@ -225,7 +280,7 @@
         "processing": "جارى انشاء المسؤول",
         "createBtn": "انشاء المسؤول"
       },
-      "editAdmin": { 
+      "editAdmin": {
         "title": "تعديل المسؤول",
         "titleUpdate": "تحديث بيانات المسؤول والصلاحيات",
         "name": "الاسم بالكامل",
@@ -259,7 +314,7 @@
         "permissions": "اختر الصلاحيات",
         "isSelected": "محدد",
         "selectAll": "اختر الكل",
-        "searchPlaceholder" : "ابحث عن صلاحية...",
+        "searchPlaceholder": "ابحث عن صلاحية...",
         "processing": "جارى انشاء الدور",
         "createBtn": "انشاء الدور"
       },
@@ -275,7 +330,7 @@
         "permissions": "اختر الصلاحيات",
         "isSelected": "محدد",
         "selectAll": "اختر الكل",
-        "searchPlaceholder" : "ابحث عن صلاحية...",
+        "searchPlaceholder": "ابحث عن صلاحية...",
         "processing": "جارى حفظ التغييرات",
         "editBtn": "حفظ التغييرات"
       },
@@ -285,23 +340,23 @@
         "nameAr": "الاسم بالعربية",
         "nameEn": "الاسم بالانجليزية",
         "status": "حالة الدور",
-        "active" : "نشط",
-        "inactive" : "غير نشط",
+        "active": "نشط",
+        "inactive": "غير نشط",
         "permissions": "الصلاحيات",
         "noPermissions": "لا صلاحيات متاحة",
         "backBtn": "العودة"
       }
     },
     "contactUs": {
-      "contactUs": "تواصل معنا",  
+      "contactUs": "تواصل معنا",
       "title": "تواصل ",
       "titleSpan": "معانا",
       "help": "كيف يمكننا مساعدتك ؟",
       "description": "فريقنا دائمًا هنا لمساعدتك في رحلتك العلمية، سواء كان لديك استفسار حول الدورات، أو تحتاج إلى دعم تقني، أو ترغب في معرفة المزيد عن البرامج التعليمية المتاحة. تواصل معنا في أي وقت، وسنسعد بالإجابة عن جميع تساؤلاتك وتقديم الدعم الذي تحتاجه.",
-      "yourMessage" : "نحن هنا من أجلك",
-      "smallTitle" : "نحن هنا للإجابة عن استفساراتك ومساعدتك في رحلتك العلمية بكل سرور.",
-      "name" : "الاسم",
-      "email" :"البريد الالكترونى",
+      "yourMessage": "نحن هنا من أجلك",
+      "smallTitle": "نحن هنا للإجابة عن استفساراتك ومساعدتك في رحلتك العلمية بكل سرور.",
+      "name": "الاسم",
+      "email": "البريد الالكترونى",
       "send": "ارسال",
       "request": "نوع الطلب",
       "selectRequest": "اختر نوع الطلب",
@@ -338,7 +393,10 @@
     "facultyMembers": {
       "title": "هيئة ",
       "titleSpan": "التدريس",
-      "bioModalTitle": "نبذة تعريفية"
+      "bioModalTitle": "نبذة تعريفية",
+      "loading": "جاري تحميل هيئة التدريس…",
+      "empty": "لا يوجد أعضاء هيئة تدريس حالياً.",
+      "error": "تعذر تحميل بيانات هيئة التدريس. يرجى المحاولة مرة أخرى."
     }
   },
   "sidebar": {
@@ -352,6 +410,24 @@
   "settings": {
     "privacyPolicy": {
       "title": "سياسة الخصوصية",
+      "arabicContent": "المحتوى بالعربية",
+      "englishContent": "المحتوى بالانجليزية",
+      "processing": "جارى حفظ التغييرات",
+      "saveBtn": "حفظ ",
+      "successMessage": "تم حفظ التغييرات بنجاح",
+      "errorMessage": "فشل حفظ التغييرات"
+    },
+    "termsAndConditions": {
+      "title": "الشروط والأحكام",
+      "arabicContent": "المحتوى بالعربية",
+      "englishContent": "المحتوى بالانجليزية",
+      "processing": "جارى حفظ التغييرات",
+      "saveBtn": "حفظ ",
+      "successMessage": "تم حفظ التغييرات بنجاح",
+      "errorMessage": "فشل حفظ التغييرات"
+    },
+    "deleteAccount": {
+      "title": "حذف الحساب",
       "arabicContent": "المحتوى بالعربية",
       "englishContent": "المحتوى بالانجليزية",
       "processing": "جارى حفظ التغييرات",

@@ -1,8 +1,8 @@
-/** Study topic (axis) — list + detail. Aligns with future API response. */
+/** Study topic (axis) — list + detail. Maps GET `/study-terms` items. */
 export type StudyTerm = {
   id: number;
   title: string;
-  /** 0–100 (from API later; placeholder when listing from backend) */
+  /** Term progress 0–100 from student-api when available. */
   progress: number;
   materialsCount: number;
   lessonsCount: number;
@@ -12,6 +12,12 @@ export type StudyTerm = {
   description: string;
   /** From API `is_active`; inactive terms render as locked. */
   isActive?: boolean;
+  /** From API `is_current` (1 = current term). */
+  isCurrent?: boolean;
+  /** True when backend marks the term complete or progress is 100%. */
+  isCompleted?: boolean;
+  /** Localized label from `academic_year` when present. */
+  academicYearLabel?: string;
 };
 
 export type StudyTermListItem = Pick<
