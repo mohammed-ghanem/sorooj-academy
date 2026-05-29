@@ -17,7 +17,7 @@ const Footer = () => {
     { label: "اعضاء هيئة التدريس", href: "#" },
     { label: "الخطة الدراسية", href: `/${lang}/study-plan` },
     { label: "مسارات علمية مستقلة", href: "#" },
-    { label: "المكتبة العلمية", href: "#" },
+    { label: "المكتبة العلمية", href: `/${lang}/book-library` },
     { label: "تواصل معنا", href: `/${lang}/contact-us` },
   ];
 

@@ -397,6 +397,19 @@
       "loading": "جاري تحميل هيئة التدريس…",
       "empty": "لا يوجد أعضاء هيئة تدريس حالياً.",
       "error": "تعذر تحميل بيانات هيئة التدريس. يرجى المحاولة مرة أخرى."
+    },
+    "bookLibrary": {
+      "title": "المكتبة ",
+      "titleSpan": "العلمية",
+      "allBooks": "كل الكتب",
+      "chaptersTitle": "فصول الكتاب",
+      "descriptionTitle": "الوصف",
+      "downloadChapter": "تحميل الفصل",
+      "viewBook": "عرض الكتاب",
+      "emptyBooks": "لا توجد كتب في هذا القسم حالياً.",
+      "notFound": "المحتوى غير متوفر",
+      "backToCategories": "العودة إلى الأقسام",
+      "backToBooks": "العودة إلى الكتب"
     }
   },
   "sidebar": {

@@ -514,6 +514,7 @@ const StudyTerms = () => {
                     resetGateExtras();
                   }
                 }}
+                variant="login"
                 title={st?.gateLoginTitle ?? ""}
                 description={st?.gateLoginDescription}
                 primaryLabel={st?.gateLoginAction ?? ""}
@@ -530,6 +531,7 @@ const StudyTerms = () => {
                     resetGateExtras();
                   }
                 }}
+                variant="enroll"
                 title={st?.gateEnrollTitle ?? ""}
                 description={enrollDescription}
                 primaryLabel={st?.gateEnrollAction ?? ""}
@@ -547,6 +549,7 @@ const StudyTerms = () => {
                     resetGateExtras();
                   }
                 }}
+                variant="success"
                 title={st?.gateEnrollSuccessTitle ?? ""}
                 description={enrollSuccessDescription}
                 primaryLabel={st?.gateClose ?? ""}
@@ -565,6 +568,7 @@ const StudyTerms = () => {
                     resetGateExtras();
                   }
                 }}
+                variant="ready"
                 title={st?.gateStudyReadyTitle ?? ""}
                 description={studyReadyDescription}
                 primaryLabel={st?.gateStartStudyAction ?? ""}
@@ -581,6 +585,7 @@ const StudyTerms = () => {
                     resetGateExtras();
                   }
                 }}
+                variant="schedule"
                 title={studyNotStartedTitle}
                 description={studyNotStartedDescription}
                 primaryLabel={st?.gateStudyPlanAction ?? ""}

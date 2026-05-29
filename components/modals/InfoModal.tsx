@@ -6,12 +6,64 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  CalendarClock,
+  CircleCheck,
+  Info,
+  Loader2,
+  LogIn,
+  UserPlus,
+} from "lucide-react";
+
+export type InfoModalVariant =
+  | "info"
+  | "login"
+  | "enroll"
+  | "success"
+  | "ready"
+  | "schedule";
+
+const VARIANT_CONFIG: Record<
+  InfoModalVariant,
+  { icon: LucideIcon; iconClassName: string; ringClassName: string }
+> = {
+  info: {
+    icon: Info,
+    iconClassName: "mainColor",
+    ringClassName: "lightBgColor",
+  },
+  login: {
+    icon: LogIn,
+    iconClassName: "mainColor",
+    ringClassName: "lightBgColor",
+  },
+  enroll: {
+    icon: UserPlus,
+    iconClassName: "scoundColor",
+    ringClassName: "bgTitleColor",
+  },
+  success: {
+    icon: CircleCheck,
+    iconClassName: "scoundColor",
+    ringClassName: "bgTitleColor",
+  },
+  ready: {
+    icon: BookOpen,
+    iconClassName: "scoundColor",
+    ringClassName: "bgTitleColor",
+  },
+  schedule: {
+    icon: CalendarClock,
+    iconClassName: "mainColor",
+    ringClassName: "lightBgColor",
+  },
+};
 
 export type InfoModalProps = {
   open: boolean;
@@ -19,6 +71,8 @@ export type InfoModalProps = {
   title: string;
   description?: string;
   primaryLabel: string;
+  /** Visual tone and default icon. */
+  variant?: InfoModalVariant;
   /** If set, primary action navigates (modal closes via link click). */
   primaryHref?: string;
   /** When set without `primaryHref`, runs on primary tap; modal does not auto-close (caller closes via `onOpenChange`). */
@@ -37,6 +91,7 @@ export default function InfoModal({
   title,
   description,
   primaryLabel,
+  variant = "info",
   primaryHref,
   onPrimaryClick,
   primaryLoading = false,
@@ -45,83 +100,113 @@ export default function InfoModal({
 }: InfoModalProps) {
   const rtl = dir === "rtl";
   const showSecondary = secondaryLabel.trim() !== "";
+  const hasTitle = title.trim().length > 0;
+  const hasDescription = Boolean(description?.trim());
+  const { icon: Icon, iconClassName, ringClassName } = VARIANT_CONFIG[variant];
+
+  const primaryButtonClass = cn(
+    "scoundBgColor text-white hover:opacity-90",
+    showSecondary ? "w-full sm:w-auto" : "w-full",
+  );
+
+  const primaryButton = primaryHref ? (
+    <Button asChild className={primaryButtonClass} disabled={primaryLoading}>
+      <Link href={primaryHref} onClick={() => onOpenChange(false)}>
+        {primaryLabel}
+      </Link>
+    </Button>
+  ) : (
+    <Button
+      type="button"
+      className={primaryButtonClass}
+      disabled={primaryLoading}
+      onClick={() => {
+        if (primaryLoading) return;
+        if (onPrimaryClick) {
+          void Promise.resolve(onPrimaryClick());
+          return;
+        }
+        onOpenChange(false);
+      }}
+    >
+      {primaryLoading ? (
+        <span className="inline-flex items-center justify-center gap-2">
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+          <span>{primaryLabel}</span>
+        </span>
+      ) : (
+        primaryLabel
+      )}
+    </Button>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn(rtl ? "text-right" : "text-left")}
+        className={cn(
+          "gap-0 overflow-hidden p-0 sm:max-w-xl",
+          rtl ? "text-right" : "text-left",
+          "[&_[data-slot=dialog-close]]:top-3 [&_[data-slot=dialog-close]]:right-3",
+          "[&_[data-slot=dialog-close]]:rtl:right-auto [&_[data-slot=dialog-close]]:rtl:left-3",
+        )}
         dir={dir}
         showCloseButton
       >
-        <DialogHeader className={cn(rtl ? "sm:text-right" : "sm:text-left")}>
-          {title.trim() ? (
-            <DialogTitle className="mainColor">{title}</DialogTitle>
-          ) : null}
-          {description ? (
-            <DialogDescription
+        <div className="min-h-[10.5rem] space-y-5 px-8 pb-4 pt-8">
+          <div
+            className={cn(
+              "flex items-start gap-5",
+              rtl ? "flex-row-reverse" : "flex-row",
+            )}
+          >
+            <div
               className={cn(
-                "text-base text-gray-700 whitespace-pre-line",
-                !title.trim() && "text-lg font-semibold mainColor",
+                "flex h-14 w-14 shrink-0 items-center justify-center rounded-full",
+                ringClassName,
               )}
+              aria-hidden
             >
-              {description}
-            </DialogDescription>
-          ) : null}
-        </DialogHeader>
+              <Icon className={cn("h-7 w-7", iconClassName)} strokeWidth={1.75} />
+            </div>
+
+            <div className="min-w-0 flex-1 space-y-3 pe-7">
+              {hasTitle ? (
+                <DialogTitle className="text-xl font-semibold leading-snug mainColor">
+                  {title}
+                </DialogTitle>
+              ) : null}
+              {hasDescription ? (
+                <DialogDescription
+                  className={cn(
+                    "text-base leading-relaxed descriptionColor whitespace-pre-line",
+                    !hasTitle && "text-lg font-medium mainColor",
+                  )}
+                >
+                  {description}
+                </DialogDescription>
+              ) : null}
+            </div>
+          </div>
+        </div>
 
         <DialogFooter
           className={cn(
-            "flex-col gap-2 sm:flex-row",
-            rtl ? "sm:justify-start sm:gap-3" : "sm:justify-end sm:gap-3",
+            "border-t border-gray-100 bg-gray-50/80 px-8 py-5",
+            "flex-col gap-3 sm:flex-row sm:gap-4",
+            rtl ? "sm:flex-row-reverse sm:justify-start" : "sm:justify-end",
           )}
         >
           {showSecondary ? (
             <Button
               type="button"
               variant="outline"
-              className="w-full sm:w-auto"
+              className="w-full border-gray-300 bg-white sm:w-auto"
               onClick={() => onOpenChange(false)}
             >
               {secondaryLabel}
             </Button>
           ) : null}
-
-          {primaryHref ? (
-            <Button
-              asChild
-              className="scoundBgColor w-full text-white hover:opacity-90 sm:w-auto"
-            >
-              <Link href={primaryHref} onClick={() => onOpenChange(false)}>
-                {primaryLabel}
-              </Link>
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              className="scoundBgColor w-full text-white hover:opacity-90 sm:w-auto"
-              disabled={primaryLoading}
-              onClick={() => {
-                if (primaryLoading) return;
-                if (onPrimaryClick) {
-                  void Promise.resolve(onPrimaryClick());
-                  return;
-                }
-                onOpenChange(false);
-              }}
-            >
-              {primaryLoading ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2
-                    className="h-4 w-4 shrink-0 animate-spin"
-                    aria-hidden
-                  />
-                  <span>{primaryLabel}</span>
-                </span>
-              ) : (
-                primaryLabel
-              )}
-            </Button>
-          )}
+          {primaryButton}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -398,6 +398,19 @@
       "loading": "Loading faculty…",
       "empty": "No faculty members to display.",
       "error": "We could not load faculty. Please try again."
+    },
+    "bookLibrary": {
+      "title": "Scientific ",
+      "titleSpan": "Library",
+      "allBooks": "All books",
+      "chaptersTitle": "Book chapters",
+      "descriptionTitle": "Description",
+      "downloadChapter": "Download chapter",
+      "viewBook": "View book",
+      "emptyBooks": "No books in this section yet.",
+      "notFound": "Content not found",
+      "backToCategories": "Back to categories",
+      "backToBooks": "Back to books"
     }
   },
   "sidebar": {

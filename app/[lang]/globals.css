@@ -207,6 +207,12 @@ svg {
   background: linear-gradient(1deg, #e9dcc185 0%, rgb(245 243 238 / 0%) 100%);
 }
 
+/* Book library category card — Figma linear: #E1D9C8 (top) → #9F854E (bottom) */
+.bookLibraryCategoryCardBg {
+  background:linear-gradient(#e1d9c8 52%, #e1d9c8 0%, #9f854e 150%)
+  
+}
+
 
 .fontBold {
   font-weight: bold;

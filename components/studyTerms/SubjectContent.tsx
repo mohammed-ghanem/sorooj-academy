@@ -9,6 +9,7 @@ import { useGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
 import TranslateHook from "@/translate/TranslateHook";
 import card from "@/public/assets/images/card.jpg";
 import exams from "@/public/assets/images/exam.svg";
+import subjectExam from "@/public/assets/images/subjectExam.svg";
 import level from "@/public/assets/images/level.svg";
 import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
@@ -174,9 +175,7 @@ const SubjectContent = () => {
                             </span>
                           </div>
                           <h5 className="text-xs text-gray-500 mb-3">
-                            {lesson.title ||
-                              lesson.briefContent ||
-                              t?.untitled}
+                            {lesson.title || lesson.briefContent || t?.untitled}
                           </h5>
                         </div>
                         <hr className="my-3" />
@@ -232,6 +231,8 @@ const SubjectContent = () => {
                 </div>
               )}
             </div>
+
+            {/* subject details */}
 
             <div className="lg:col-span-4 w-[95%] mx-auto bg-white rounded-2xl p-4 shadow-r-sm h-fit">
               <div className="relative w-full h-56 mb-4">
@@ -292,6 +293,13 @@ const SubjectContent = () => {
                   style={{ width: `${subject!.progress}%` }}
                 />
               </div>
+              <button
+                className="flex items-center justify-center bkMainColor
+               w-full mt-4 rounded-md py-2 px-4 cursor-pointer"
+              >
+                <Image src={subjectExam.src} width={18} height={18} alt="" />
+                <h3 className="text-lg text-white ms-2">اختبار المادة </h3>
+              </button>
             </div>
           </div>
         )}

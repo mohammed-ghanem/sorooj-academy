@@ -420,7 +420,7 @@ const SingleLessonContent = () => {
                               )}
                               <div className="min-w-0 flex-1">
                                 <p
-                                  className={`mt-3 text-sm font-medium leading-snug break-words md:mt-0 ${
+                                  className={`mt-3 text-sm font-medium leading-snug wrap-break-word md:mt-0 ${
                                     isActive ? "mainColor" : "text-gray-600"
                                   }`}
                                 >
