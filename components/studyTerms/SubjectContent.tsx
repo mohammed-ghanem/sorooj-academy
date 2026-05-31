@@ -4,9 +4,12 @@ import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import SubjectContentSkeleton, {
   SubjectContentHeroTitleSkeleton,
 } from "@/components/skeletons/SubjectContentSkeleton";
+import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
 import { useGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
+import type { StudyLesson } from "@/types/studySubjectDetail";
 import TranslateHook from "@/translate/TranslateHook";
+import { cn } from "@/lib/utils";
 import card from "@/public/assets/images/card.jpg";
 import exams from "@/public/assets/images/exam.svg";
 import subjectExam from "@/public/assets/images/subjectExam.svg";
@@ -14,22 +17,71 @@ import level from "@/public/assets/images/level.svg";
 import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useMemo, useState, type KeyboardEvent } from "react";
 
 function formatLessonLabel(template: string | undefined, index: number) {
   return (template ?? "Lesson {{n}}").replace("{{n}}", String(index + 1));
 }
 
+function isLessonAccessible(lesson: StudyLesson): boolean {
+  return lesson.canAccessLesson && !lesson.isLocked;
+}
+
+function isLessonFullyCompleted(lesson: StudyLesson): boolean {
+  return (
+    lesson.isCompleted ||
+    (lesson.allVideosCompleted && lesson.studentHasPassedLessonExam)
+  );
+}
+
+function hasLessonProgress(lesson: StudyLesson): boolean {
+  return (
+    lesson.videosProgress.percentage > 0 || lesson.videosProgress.completed > 0
+  );
+}
+
+function getLessonActionLabel(
+  lesson: StudyLesson,
+  labels: {
+    startStudy?: string;
+    continueStudy?: string;
+    viewLesson?: string;
+  },
+): string {
+  if (isLessonFullyCompleted(lesson)) {
+    return labels.viewLesson ?? labels.startStudy ?? "";
+  }
+  if (hasLessonProgress(lesson)) {
+    return labels.continueStudy ?? labels.startStudy ?? "";
+  }
+  return labels.startStudy ?? "";
+}
+
+function handleLessonCardKeyDown(
+  event: KeyboardEvent<HTMLDivElement>,
+  lesson: StudyLesson,
+  onStart: (lesson: StudyLesson) => void,
+) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    onStart(lesson);
+  }
+}
+
 const SubjectContent = () => {
   const translate = TranslateHook();
   const t = translate?.pages?.subjectDetail;
+  const router = useRouter();
 
   const { lang, termId, contentId } = useParams<{
     lang: string;
     termId: string;
     contentId: string;
   }>();
+
+  const dir = lang === "en" ? "ltr" : "rtl";
+  const [lessonLockedOpen, setLessonLockedOpen] = useState(false);
 
   const termHref = `/${lang}/study-terms/${termId}`;
 
@@ -58,6 +110,17 @@ const SubjectContent = () => {
     !invalidId && (!apiReady || isLoading || (isFetching && !subject));
   const showError = !invalidId && !showSkeleton && (isError || !subject);
   const subjectLessons = subject?.lessons ?? [];
+
+  const handleLessonStart = (lesson: StudyLesson) => {
+    if (!isLessonAccessible(lesson)) {
+      setLessonLockedOpen(true);
+      return;
+    }
+
+    router.push(
+      `/${lang}/study-terms/${termId}/content/${contentId}/lesson/${lesson.id}`,
+    );
+  };
 
   if (invalidId) {
     return (
@@ -138,18 +201,43 @@ const SubjectContent = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {subjectLessons.map((lesson, index) => {
-                    const statusLabel = lesson.isWatchCompleted
+                    const completed = isLessonFullyCompleted(lesson);
+                    const statusLabel = completed
                       ? t?.completed
-                      : t?.notStarted;
+                      : t?.notCompleted;
+                    const actionLabel = getLessonActionLabel(lesson, {
+                      startStudy: t?.startStudy,
+                      continueStudy: t?.continueStudy,
+                      viewLesson: t?.viewLesson,
+                    });
 
                     return (
                       <div
                         key={lesson.id}
-                        className="rounded-xl border border-gray-100 bg-[#fafafa] p-4"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${lesson.lessonNumber || formatLessonLabel(t?.lessonNumber, index)} — ${actionLabel}`}
+                        onClick={() => handleLessonStart(lesson)}
+                        onKeyDown={(event) =>
+                          handleLessonCardKeyDown(event, lesson, handleLessonStart)
+                        }
+                        className={cn(
+                          "rounded-xl border p-4 shadow-sm transition-shadow cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9f854e]/40",
+                          completed
+                            ? "border-emerald-100 bg-emerald-50/80"
+                            : "border-gray-100 bg-[#fafafa]",
+                        )}
                       >
                         <div className="flex items-center justify-between mb-2 ">
                           <div className="relative">
-                            <span className="text-xl py-2 px-3 scoundColor font-semibold bg-[#efece7] rounded-md">
+                            <span
+                              className={cn(
+                                "text-xl py-2 px-3 font-semibold rounded-md",
+                                completed
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "scoundColor bg-[#efece7]",
+                              )}
+                            >
                               {String(index + 1).padStart(2, "0")}
                             </span>
                             <div className="pointer-events-none absolute right-0 bottom-0">
@@ -170,7 +258,14 @@ const SubjectContent = () => {
                               {lesson.lessonNumber ||
                                 formatLessonLabel(t?.lessonNumber, index)}
                             </h4>
-                            <span className="text-[10px] px-3 py-1.5  scoundColor  bg-[#efece7] rounded-3xl">
+                            <span
+                              className={cn(
+                                "text-[10px] px-3 py-1.5 rounded-3xl",
+                                completed
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "scoundColor bg-[#efece7]",
+                              )}
+                            >
                               {statusLabel}
                             </span>
                           </div>
@@ -181,12 +276,9 @@ const SubjectContent = () => {
                         <hr className="my-3" />
                         <div className="flex  justify-between items-center">
                           <div className="flex items-center border-b border-[#9f854e] pb-2">
-                            <Link
-                              href={`/${lang}/study-terms/${termId}/content/${contentId}/lesson/${lesson.id}`}
-                              className="text-xs font-semibold scoundColor rounded-md"
-                            >
-                              {t?.startStudy}
-                            </Link>
+                            <span className="text-xs font-semibold scoundColor rounded-md">
+                              {actionLabel}
+                            </span>
                             <span>
                               <Image
                                 src="/assets/images/arrow-left.svg"
@@ -303,6 +395,17 @@ const SubjectContent = () => {
             </div>
           </div>
         )}
+
+        <InfoModal
+          open={lessonLockedOpen}
+          onOpenChange={setLessonLockedOpen}
+          variant="info"
+          title={t?.lessonLockedTitle ?? ""}
+          description={t?.lessonLockedMessage}
+          primaryLabel={t?.close ?? ""}
+          onPrimaryClick={() => setLessonLockedOpen(false)}
+          dir={dir}
+        />
       </div>
     </div>
   );

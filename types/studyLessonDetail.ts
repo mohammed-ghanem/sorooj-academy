@@ -1,3 +1,10 @@
+/** Progress summary — maps GET `/lessons/{id}` → `data.lesson.videos_progress`. */
+export type StudyLessonVideosProgress = {
+  completed: number;
+  total: number;
+  percentage: number;
+};
+
 /** Video inside a lesson — maps GET `/lessons/{id}` → `data.lesson.videos`. */
 export type StudyLessonVideo = {
   id: number;
@@ -8,6 +15,12 @@ export type StudyLessonVideo = {
   duration: string;
   briefContent?: string;
   isWatchCompleted: boolean;
+  isCompleted: boolean;
+  isLocked: boolean;
+  canAccessVideo: boolean;
+  hasActiveVideoExam: boolean;
+  studentHasPassedVideoExam: boolean;
+  canAccessVideoExam: boolean;
   orderIndex: number;
 };
 
@@ -33,6 +46,17 @@ export type StudyLessonDetail = {
   isWatchCompleted: boolean;
   hasActiveLessonExam: boolean;
   canAccessLessonExam: boolean;
+  /** Latest attempt status from API (`submitted`, `graded`, …). */
+  lessonExamStatus: string | null;
+  /** Latest attempt pass flag — `null` means pending manual grading. */
+  lessonExamIsPassed?: boolean | null;
+  isLessonExamUnderReview: boolean;
+  canRetakeLessonExam: boolean;
+  /** Whether the student may open the final lesson exam modal. */
+  canOpenLessonFinalExam: boolean;
+  allVideosCompleted: boolean;
+  studentHasPassedLessonExam: boolean;
+  videosProgress: StudyLessonVideosProgress;
   videos: StudyLessonVideo[];
   attachments: StudyLessonAttachment[];
 };

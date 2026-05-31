@@ -1,3 +1,9 @@
+export type StudyLessonVideosProgress = {
+  completed: number;
+  total: number;
+  percentage: number;
+};
+
 /** Lesson inside a subject — maps GET `/subjects/{id}` → `data.Subject.lessons`. */
 export type StudyLesson = {
   id: number;
@@ -7,7 +13,13 @@ export type StudyLesson = {
   videosCount: number;
   attachmentsCount: number;
   isWatchCompleted: boolean;
+  allVideosCompleted: boolean;
+  studentHasPassedLessonExam: boolean;
+  isCompleted: boolean;
+  videosProgress: StudyLessonVideosProgress;
   orderIndex: number;
+  isLocked: boolean;
+  canAccessLesson: boolean;
   doctorName?: string;
 };
 

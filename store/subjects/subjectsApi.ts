@@ -41,6 +41,16 @@ type LessonApiPayload = {
     videos_count?: number;
     attachments_count?: number;
     is_watch_completed?: boolean;
+    all_videos_completed?: boolean;
+    student_has_passed_lesson_exam?: boolean;
+    is_completed?: boolean;
+    is_locked?: boolean | number;
+    can_access_lesson?: boolean | number;
+    videos_progress?: {
+        completed?: number;
+        total?: number;
+        percentage?: number;
+    };
     doctor?: DoctorApiPayload;
 };
 
@@ -123,6 +133,31 @@ function mapLesson(raw: LessonApiPayload): StudyLesson | null {
             ? raw.doctor.name.trim()
             : undefined;
 
+    const progressRaw = raw.videos_progress;
+    const videosTotal =
+        Number(progressRaw?.total) || Number(raw.videos_count) || 0;
+    const videosProgress = {
+        completed: Number(progressRaw?.completed) || 0,
+        total: videosTotal,
+        percentage:
+            progressRaw?.percentage !== undefined &&
+            progressRaw?.percentage !== null
+                ? Number(progressRaw.percentage)
+                : videosTotal > 0
+                  ? Math.round(
+                        ((Number(progressRaw?.completed) || 0) / videosTotal) *
+                            100,
+                    )
+                  : 0,
+    };
+
+    const allVideosCompleted = raw.all_videos_completed === true;
+    const studentHasPassedLessonExam =
+        raw.student_has_passed_lesson_exam === true;
+    const isCompleted =
+        raw.is_completed === true ||
+        (allVideosCompleted && studentHasPassedLessonExam);
+
     return {
         id,
         lessonNumber,
@@ -131,7 +166,13 @@ function mapLesson(raw: LessonApiPayload): StudyLesson | null {
         videosCount: Number(raw.videos_count) || 0,
         attachmentsCount: Number(raw.attachments_count) || 0,
         isWatchCompleted: raw.is_watch_completed === true,
+        allVideosCompleted,
+        studentHasPassedLessonExam,
+        isCompleted,
+        videosProgress,
         orderIndex: Number(raw.order_index) || 0,
+        isLocked: raw.is_locked === true || raw.is_locked === 1,
+        canAccessLesson: raw.can_access_lesson === true || raw.can_access_lesson === 1,
         doctorName,
     };
 }
@@ -149,7 +190,7 @@ function resolveSubjectProgress(
 ): number {
     if (isSubjectWatchCompleted) return 100;
     if (lessons.length === 0) return 0;
-    const completed = lessons.filter((l) => l.isWatchCompleted).length;
+    const completed = lessons.filter((l) => l.isCompleted).length;
     return Math.min(100, Math.round((completed / lessons.length) * 100));
 }
 

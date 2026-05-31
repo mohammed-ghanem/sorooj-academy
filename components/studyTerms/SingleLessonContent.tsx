@@ -4,17 +4,31 @@ import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import SingleLessonContentSkeleton, {
   SingleLessonHeroTitleSkeleton,
 } from "@/components/skeletons/SingleLessonContentSkeleton";
+import ExamModal from "@/components/modals/ExamModal";
+import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamModal";
+import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
-import { useGetLessonDetailQuery } from "@/store/lessons/lessonsApi";
+import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
+import { isLessonExamNoMoreAttemptsMessage } from "@/lib/studyLesson/lessonExamState";
+import {
+  useCompleteVideoWatchMutation,
+  useGetLessonDetailQuery,
+  useLazyGetLessonExamQuery,
+  useLazyGetVideoExamQuery,
+  useSubmitLessonExamMutation,
+  useSubmitVideoExamMutation,
+} from "@/store/lessons/lessonsApi";
 import type { StudyLessonVideo } from "@/types/studyLessonDetail";
+import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import TranslateHook from "@/translate/TranslateHook";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Check } from "lucide-react";
-
-const FALLBACK_DOCTOR_AVATAR = "/assets/images/dd.png";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+const DefaultDoctorAvatar = "/assets/images/doctor.svg";
 
 /** YouTube IDs may include `?si=...`; embed URLs need the bare id. */
 const stripYoutubeVideoId = (youtubeId: string) => youtubeId.split("?")[0];
@@ -50,9 +64,89 @@ function formatVideoListLabel(template: string | undefined, index: number) {
   return (template ?? "Video {{n}}").replace("{{n}}", String(index + 1));
 }
 
+function getApiErrorMessage(err: unknown, fallback: string): string {
+  const errorData = err as {
+    data?: {
+      message?: string;
+      errors?: Record<string, string[]> | string[];
+    };
+  };
+  const payload = errorData?.data;
+
+  if (typeof payload?.message === "string" && payload.message.trim()) {
+    return payload.message.trim();
+  }
+
+  if (payload?.errors) {
+    if (Array.isArray(payload.errors)) {
+      const first = payload.errors.find(
+        (item) => typeof item === "string" && item.trim(),
+      );
+      if (typeof first === "string") return first.trim();
+    } else {
+      const messages = Object.values(payload.errors).flat();
+      if (messages.length) return messages[0];
+    }
+  }
+
+  return fallback;
+}
+
+function resolveResumeVideoId(videos: StudyLessonVideo[]): string {
+  if (!videos.length) return "";
+
+  const inProgress = videos.find(
+    (video) => video.canAccessVideo && !video.isLocked && !video.isCompleted,
+  );
+  if (inProgress) return String(inProgress.id);
+
+  const accessible = videos.filter(
+    (video) => video.canAccessVideo && !video.isLocked,
+  );
+  if (accessible.length > 0) {
+    return String(accessible[accessible.length - 1].id);
+  }
+
+  return String(videos[0].id);
+}
+
+function getExamButtonClassName(
+  enabled: boolean,
+  passed = false,
+  options?: { successWhenEnabled?: boolean; className?: string },
+) {
+  const base =
+    "text-[13px] text-white px-4 py-2 mt-2.5 rounded-md font-medium flex items-center gap-1.5";
+
+  if (passed || (options?.successWhenEnabled && enabled)) {
+    return cn(
+      base,
+      "bg-emerald-600 cursor-pointer hover:bg-emerald-700",
+      options?.className,
+    );
+  }
+
+  return cn(
+    base,
+    enabled
+      ? "bkMainColor cursor-pointer"
+      : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-70",
+    options?.className,
+  );
+}
+
+/** Extra Tailwind classes for the final lesson exam button only — edit here. */
+const LESSON_FINAL_EXAM_BUTTON_CLASS = "font-semibold text-[15px]";
+
+type ExamContext =
+  | { kind: "video"; videoId: number }
+  | { kind: "lesson" }
+  | null;
+
 const SingleLessonContent = () => {
   const translate = TranslateHook();
   const t = translate?.pages?.lessonDetail;
+  const subjectT = translate?.pages?.subjectDetail;
 
   const { lang, termId, contentId, lessonId } = useParams<{
     lang: string;
@@ -75,6 +169,7 @@ const SingleLessonContent = () => {
 
   const {
     data: lesson,
+    error: lessonError,
     isLoading,
     isFetching,
     isError,
@@ -85,6 +180,24 @@ const SingleLessonContent = () => {
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
 
+  const lessonAccessDenied = useMemo(() => {
+    if (!lessonError || typeof lessonError !== "object") return false;
+    return (lessonError as { status?: number }).status === 403;
+  }, [lessonError]);
+
+  const lessonAccessDeniedMessage = useMemo(() => {
+    if (!lessonAccessDenied) return "";
+    return extractApiErrorMessage(
+      lessonError,
+      subjectT?.lessonLockedMessage ?? t?.notFound ?? "",
+    );
+  }, [
+    lessonAccessDenied,
+    lessonError,
+    subjectT?.lessonLockedMessage,
+    t?.notFound,
+  ]);
+
   const showSkeleton =
     !invalidId &&
     (!apiReady ||
@@ -94,35 +207,414 @@ const SingleLessonContent = () => {
       (!lesson && !isError));
   const showError = !invalidId && !showSkeleton && (isError || !lesson);
 
+  const [accessDeniedOpen, setAccessDeniedOpen] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState("");
-  const [completedVideoIds, setCompletedVideoIds] = useState<string[]>([]);
   const [activeLessonTab, setActiveLessonTab] = useState<
     "description" | "files"
   >("description");
+  const [examOpen, setExamOpen] = useState(false);
+  const [examContext, setExamContext] = useState<ExamContext>(null);
+  const [examData, setExamData] = useState<VideoExam | null>(null);
+  const [examResult, setExamResult] = useState<ExamModalResult | null>(null);
 
-  // Sync playlist selection when lesson payload arrives
+  const [completeVideoWatch, { isLoading: completingWatch }] =
+    useCompleteVideoWatchMutation();
+  const [fetchVideoExam, { isFetching: loadingVideoExam }] =
+    useLazyGetVideoExamQuery();
+  const [fetchLessonExam, { isFetching: loadingLessonExam }] =
+    useLazyGetLessonExamQuery();
+  const [submitVideoExam, { isLoading: submittingVideoExam }] =
+    useSubmitVideoExamMutation();
+  const [submitLessonExam, { isLoading: submittingLessonExam }] =
+    useSubmitLessonExamMutation();
+
+  const loadingExam = loadingVideoExam || loadingLessonExam;
+  const submittingExam = submittingVideoExam || submittingLessonExam;
+
+  const dir = lang === "en" ? "ltr" : "rtl";
+
   useEffect(() => {
-    if (!lesson) return;
-    const list = lesson.videos;
-    const firstId = list[0] ? String(list[0].id) : "";
-    setActiveVideoId(firstId);
-    setCompletedVideoIds(
-      list.filter((v) => v.isWatchCompleted).map((v) => String(v.id)),
-    );
-  }, [lesson]);
+    if (showError && lessonAccessDenied) {
+      setAccessDeniedOpen(true);
+    }
+  }, [showError, lessonAccessDenied]);
 
+  // Resume on the current unlocked step (not always the first video).
+  useEffect(() => {
+    if (!lesson?.videos.length) return;
+
+    const resumeId = resolveResumeVideoId(lesson.videos);
+
+    setActiveVideoId((current) => {
+      if (!current) return resumeId;
+
+      const currentVideo = lesson.videos.find(
+        (video) => String(video.id) === current,
+      );
+
+      if (
+        !currentVideo ||
+        !currentVideo.canAccessVideo ||
+        currentVideo.isLocked
+      ) {
+        return resumeId;
+      }
+
+      if (currentVideo.isCompleted && resumeId !== current) {
+        return resumeId;
+      }
+
+      return current;
+    });
+  }, [lesson]);
   const videos = lesson?.videos ?? [];
   const attachments = lesson?.attachments ?? [];
   const activeVideo =
     videos.find((video) => String(video.id) === activeVideoId) ?? videos[0];
   const activePlayback = getVideoPlayback(activeVideo);
-  const progressPercent =
-    videos.length > 0
-      ? Math.round((completedVideoIds.length / videos.length) * 100)
-      : 0;
-  const activeVideoCompleted = activeVideo
-    ? completedVideoIds.includes(String(activeVideo.id))
-    : false;
+  const videosProgress = lesson?.videosProgress ?? {
+    completed: 0,
+    total: videos.length,
+    percentage: 0,
+  };
+  const progressPercent = videosProgress.percentage;
+  const activeVideoWatchCompleted = activeVideo?.isWatchCompleted ?? false;
+
+  const selectNextUnlockedVideo = useCallback(
+    (fromVideoId: number) => {
+      const currentIndex = videos.findIndex((v) => v.id === fromVideoId);
+      const next = videos[currentIndex + 1];
+      if (next && next.canAccessVideo && !next.isLocked) {
+        setActiveVideoId(String(next.id));
+      }
+    },
+    [videos],
+  );
+
+  const resetExamState = useCallback(() => {
+    setExamOpen(false);
+    setExamContext(null);
+    setExamData(null);
+    setExamResult(null);
+  }, []);
+
+  const handleWatchComplete = async () => {
+    if (!activeVideo || completingWatch || activeVideoWatchCompleted) return;
+
+    try {
+      await completeVideoWatch({
+        videoId: activeVideo.id,
+        lessonId: idNum,
+        lang: lang ?? "ar",
+      }).unwrap();
+
+      const { data: refreshedLesson } = await refetch();
+      const refreshedVideo = refreshedLesson?.videos.find(
+        (video) => video.id === activeVideo.id,
+      );
+
+      if (
+        refreshedVideo &&
+        !refreshedVideo.hasActiveVideoExam &&
+        refreshedVideo.isCompleted
+      ) {
+        selectNextUnlockedVideo(activeVideo.id);
+      }
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t?.watchCompleteError ?? ""));
+    }
+  };
+
+  const handleOpenVideoExam = async (video: StudyLessonVideo) => {
+    if (video.studentHasPassedVideoExam) {
+      toast.success(t?.videoExamAlreadyPassed ?? "");
+      return;
+    }
+
+    if (!video.canAccessVideoExam) return;
+
+    setExamContext({ kind: "video", videoId: video.id });
+    setExamData(null);
+    setExamResult(null);
+    setExamOpen(true);
+
+    try {
+      const exam = await fetchVideoExam({
+        videoId: video.id,
+        lang: lang ?? "ar",
+      }).unwrap();
+      setExamData(exam);
+    } catch (err) {
+      resetExamState();
+      toast.error(getApiErrorMessage(err, t?.videoExamLoadError ?? ""));
+    }
+  };
+
+  const handleOpenLessonExam = async () => {
+    if (lesson?.isLessonExamUnderReview) {
+      toast.info(t?.lessonExamUnderReviewToast ?? "");
+      return;
+    }
+
+    if (lesson?.studentHasPassedLessonExam) {
+      toast.success(t?.lessonExamAlreadyPassed ?? "");
+      return;
+    }
+
+    if (!lesson?.canOpenLessonFinalExam) return;
+
+    setExamContext({ kind: "lesson" });
+    setExamData(null);
+    setExamResult(null);
+    setExamOpen(true);
+
+    try {
+      const exam = await fetchLessonExam({
+        lessonId: idNum,
+        lang: lang ?? "ar",
+      }).unwrap();
+      setExamData(exam);
+    } catch (err) {
+      resetExamState();
+      const message = getApiErrorMessage(err, t?.lessonExamLoadError ?? "");
+      if (isLessonExamNoMoreAttemptsMessage(message)) {
+        toast.info(t?.lessonExamUnderReviewToast ?? "");
+        return;
+      }
+      toast.error(message);
+    }
+  };
+
+  const handleSubmitExam = async (answers: VideoExamAnswerPayload[]) => {
+    if (!examContext) return;
+
+    try {
+      const apiResult =
+        examContext.kind === "video"
+          ? await submitVideoExam({
+              videoId: examContext.videoId,
+              lessonId: idNum,
+              lang: lang ?? "ar",
+              answers,
+            }).unwrap()
+          : await submitLessonExam({
+              lessonId: idNum,
+              lang: lang ?? "ar",
+              answers,
+            }).unwrap();
+
+      const { data: refreshedLesson } = await refetch();
+
+      if (examContext.kind === "video") {
+        const refreshedVideo = refreshedLesson?.videos.find(
+          (video) => video.id === examContext.videoId,
+        );
+        const passed =
+          apiResult.passed ||
+          refreshedVideo?.studentHasPassedVideoExam === true ||
+          refreshedVideo?.isCompleted === true;
+
+        setExamResult({
+          passed,
+          score: apiResult.score,
+          message: passed
+            ? apiResult.message || (t?.videoExamPassed ?? "")
+            : undefined,
+        });
+
+        if (passed && refreshedVideo?.isCompleted) {
+          selectNextUnlockedVideo(examContext.videoId);
+        }
+        return;
+      }
+
+      if (apiResult.pendingReview || refreshedLesson?.isLessonExamUnderReview) {
+        setExamResult({
+          passed: false,
+          pendingReview: true,
+          message:
+            apiResult.message || (t?.lessonExamUnderReviewDescription ?? ""),
+        });
+        return;
+      }
+
+      const passed =
+        apiResult.passed ||
+        refreshedLesson?.studentHasPassedLessonExam === true;
+
+      setExamResult({
+        passed,
+        score: apiResult.score,
+        message: passed
+          ? apiResult.message || (t?.lessonFinalExamPassed ?? "")
+          : apiResult.message,
+      });
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          examContext.kind === "video"
+            ? (t?.videoExamSubmitError ?? "")
+            : (t?.lessonExamSubmitError ?? ""),
+        ),
+      );
+    }
+  };
+
+  const handleRetakeExam = async () => {
+    if (!examContext) return;
+
+    setExamResult(null);
+    setExamData(null);
+
+    try {
+      if (examContext.kind === "video") {
+        const exam = await fetchVideoExam({
+          videoId: examContext.videoId,
+          lang: lang ?? "ar",
+        }).unwrap();
+        setExamData(exam);
+        return;
+      }
+
+      const exam = await fetchLessonExam({
+        lessonId: idNum,
+        lang: lang ?? "ar",
+      }).unwrap();
+      setExamData(exam);
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          examContext.kind === "video"
+            ? (t?.videoExamLoadError ?? "")
+            : (t?.lessonExamLoadError ?? ""),
+        ),
+      );
+    }
+  };
+
+  const examModalLabels = useMemo<ExamModalLabels>(
+    () => ({
+      loading: t?.videoExamLoading ?? "",
+      noQuestions: t?.videoExamNoQuestions ?? "",
+      trueAnswer: t?.examTrueAnswer ?? "",
+      falseAnswer: t?.examFalseAnswer ?? "",
+      questionOf: t?.examQuestionOf ?? "",
+      multipleChoice: t?.examMultipleChoice ?? "",
+      trueFalseType: t?.examTrueFalseType ?? "",
+      previous: t?.examPrevious ?? "",
+      next: t?.examNext ?? "",
+      finish: t?.examFinish ?? "",
+      confirmTitle: t?.examConfirmTitle ?? "",
+      confirmDescription: t?.examConfirmDescription ?? "",
+      totalQuestions: t?.examTotalQuestions ?? "",
+      answeredQuestions: t?.examAnsweredQuestions ?? "",
+      remainingQuestions: t?.examRemainingQuestions ?? "",
+      confirmSubmit: t?.examConfirmSubmit ?? "",
+      backToReview: t?.examBackToReview ?? "",
+      passedTitle:
+        examContext?.kind === "lesson"
+          ? (t?.lessonFinalExamPassed ?? "")
+          : (t?.videoExamPassed ?? ""),
+      failedTitle:
+        examContext?.kind === "lesson"
+          ? (t?.lessonExamFailed ?? "")
+          : (t?.videoExamFailed ?? ""),
+      failedDescription: t?.examFailDescription ?? "",
+      pendingReviewTitle: t?.lessonExamUnderReviewTitle ?? "",
+      pendingReviewDescription: t?.lessonExamUnderReviewDescription ?? "",
+      retake: t?.examRetake ?? "",
+      backToLesson: t?.examBackToLesson ?? "",
+      close: t?.videoExamClose ?? "",
+      cancel: t?.videoExamCancel ?? "",
+    }),
+    [examContext?.kind, t],
+  );
+
+  const renderVideoExamButton = (
+    video: StudyLessonVideo,
+    options?: { stopPropagation?: boolean; className?: string },
+  ) => {
+    if (!video.hasActiveVideoExam) return null;
+
+    const passed = video.studentHasPassedVideoExam;
+    const canOpenExam = video.canAccessVideoExam && !passed;
+
+    return (
+      <button
+        type="button"
+        disabled={!canOpenExam && !passed}
+        onClick={(event) => {
+          if (options?.stopPropagation) event.stopPropagation();
+          if (passed) {
+            toast.success(t?.videoExamAlreadyPassed ?? "");
+            return;
+          }
+          if (!canOpenExam) return;
+          void handleOpenVideoExam(video);
+        }}
+        className={cn(
+          getExamButtonClassName(canOpenExam, passed),
+          options?.className,
+        )}
+      >
+        {passed ? (t?.videoExamPassed ?? t?.videoExam) : t?.videoExam}
+      </button>
+    );
+  };
+
+  const renderLessonFinalExamButton = (options?: { className?: string }) => {
+    if (!lesson?.hasActiveLessonExam) return null;
+
+    const underReview = lesson.isLessonExamUnderReview;
+    const passed = lesson.studentHasPassedLessonExam;
+    const canRetake = lesson.canRetakeLessonExam;
+    const canOpen = lesson.canOpenLessonFinalExam;
+    const isHighlighted = passed || (canOpen && !underReview);
+
+    const buttonLabel = underReview
+      ? (t?.lessonExamUnderReview ?? "")
+      : passed
+        ? (t?.lessonFinalExamPassed ?? t?.lessonFinalExam)
+        : t?.lessonFinalExam;
+
+    return (
+      <button
+        type="button"
+        disabled={underReview || (!canOpen && !passed)}
+        onClick={() => {
+          if (underReview) {
+            toast.info(t?.lessonExamUnderReviewToast ?? "");
+            return;
+          }
+          if (passed) {
+            toast.success(t?.lessonExamAlreadyPassed ?? "");
+            return;
+          }
+          if (!canOpen && !canRetake) return;
+          void handleOpenLessonExam();
+        }}
+        className={getExamButtonClassName(canOpen && !underReview, passed, {
+          successWhenEnabled: !canRetake || passed,
+          className: cn(LESSON_FINAL_EXAM_BUTTON_CLASS, options?.className),
+        })}
+      >
+        <Image
+          src="/assets/images/exam.svg"
+          alt=""
+          width={16}
+          height={16}
+          className={cn(
+            "shrink-0",
+            isHighlighted && "brightness-0 invert",
+            !isHighlighted && "opacity-60",
+          )}
+        />
+        <span>{buttonLabel}</span>
+      </button>
+    );
+  };
 
   const lessonDescription =
     lesson?.content?.trim() || lesson?.briefContent?.trim() || "";
@@ -132,21 +624,9 @@ const SingleLessonContent = () => {
       ? `${lesson.lessonNumber}: ${lesson.title}`
       : (lesson?.title ?? "");
 
-  /** Sequential unlock: next video opens after marking previous complete. */
-  const isVideoUnlocked = (index: number) => {
-    if (index === 0) return true;
-    const previousVideo = videos[index - 1];
-    return completedVideoIds.includes(String(previousVideo.id));
-  };
-
-  const handleWatchComplete = (videoId: string) => {
-    setCompletedVideoIds((prev) =>
-      prev.includes(videoId) ? prev : [...prev, videoId],
-    );
-    const currentIndex = videos.findIndex((v) => String(v.id) === videoId);
-    const next = videos[currentIndex + 1];
-    if (next) setActiveVideoId(String(next.id));
-  };
+  /** Unlock state comes from API (`can_access_video` / `is_locked`). */
+  const isVideoUnlocked = (video: StudyLessonVideo) =>
+    video.canAccessVideo && !video.isLocked;
 
   if (invalidId) {
     return (
@@ -189,22 +669,47 @@ const SingleLessonContent = () => {
 
       {showError && (
         <div className="container mx-auto flex min-h-[40vh] w-[90%] flex-col items-center justify-center bg-[#F6F6F6] py-16 text-center">
-          <p className="text-lg mainColor font-medium mb-4">{t?.notFound}</p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="scoundBgColor rounded-lg px-4 py-2 text-sm text-white"
-            >
-              {t?.retry}
-            </button>
-            <Link
-              href={subjectContentHref}
-              className="text-sm scoundColor hover:underline self-center"
-            >
-              {t?.back}
-            </Link>
-          </div>
+          {lessonAccessDenied ? (
+            <>
+              <Link
+                href={subjectContentHref}
+                className="text-sm scoundColor hover:underline"
+              >
+                {t?.back}
+              </Link>
+              <InfoModal
+                open={accessDeniedOpen}
+                onOpenChange={setAccessDeniedOpen}
+                variant="info"
+                title={subjectT?.lessonLockedTitle ?? ""}
+                description={lessonAccessDeniedMessage}
+                primaryLabel={subjectT?.close ?? ""}
+                onPrimaryClick={() => setAccessDeniedOpen(false)}
+                dir={dir}
+              />
+            </>
+          ) : (
+            <>
+              <p className="text-lg mainColor font-medium mb-4">
+                {t?.notFound}
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="scoundBgColor rounded-lg px-4 py-2 text-sm text-white"
+                >
+                  {t?.retry}
+                </button>
+                <Link
+                  href={subjectContentHref}
+                  className="text-sm scoundColor hover:underline self-center"
+                >
+                  {t?.back}
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -227,15 +732,12 @@ const SingleLessonContent = () => {
               <div className="mt-3 flex items-center gap-3">
                 <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[#efe7d8]">
                   <Image
-                    src={lesson.doctorImage || FALLBACK_DOCTOR_AVATAR}
+                    src={lesson.doctorImage ?? DefaultDoctorAvatar}
                     alt={lesson.doctorName}
                     fill
                     className="object-cover"
                     sizes="44px"
-                    unoptimized={Boolean(
-                      lesson.doctorImage &&
-                        lesson.doctorImage !== FALLBACK_DOCTOR_AVATAR,
-                    )}
+                    unoptimized={Boolean(lesson.doctorImage)}
                   />
                 </div>
                 <h2 className="text-sm font-semibold descriptionColor">
@@ -253,18 +755,25 @@ const SingleLessonContent = () => {
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div className="flex items-center justify-between mb-4 w-full">
                       <h2 className="text-lg font-semibold">{lesson.title}</h2>
-                      {activeVideo ? (
-                        <p
-                          className={`text-xs font-semibold ${
-                            activeVideoCompleted
-                              ? "scoundColor"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {activeVideoCompleted
-                            ? t?.completed
-                            : t?.notCompleted}
-                        </p>
+
+                      {/* watch complete + final lesson exam */}
+                      {activeVideo && activePlayback ? (
+                        <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                          {!activeVideoWatchCompleted ? (
+                            <button
+                              type="button"
+                              disabled={completingWatch}
+                              onClick={() => void handleWatchComplete()}
+                              className="text-[13px] text-white bkMainColor px-4 py-2 mt-2.5 rounded-md
+                             font-medium flex items-center gap-1 cursor-pointer disabled:opacity-60"
+                            >
+                              <span>{t?.watchComplete}</span>
+                              <Check size={16} />
+                            </button>
+                          ) : null}
+                          {/* Final lesson exam — extra classes: LESSON_FINAL_EXAM_BUTTON_CLASS (~line 137) */}
+                          {renderLessonFinalExamButton()}
+                        </div>
                       ) : null}
                     </div>
                   </div>
@@ -297,24 +806,6 @@ const SingleLessonContent = () => {
                       {t?.noVideos}
                     </p>
                   )}
-
-                  {activeVideo && !activeVideoCompleted && activePlayback ? (
-                    <div className="mt-4">
-                      <p className="text-xs text-gray-500">
-                        {t?.watchCompleteHint}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleWatchComplete(String(activeVideo.id))
-                        }
-                        className="text-[13px] text-white bkMainColor px-4 py-2 mt-2.5 rounded-md font-medium flex items-center gap-1"
-                      >
-                        <span>{t?.watchComplete}</span>
-                        <Check size={16} />
-                      </button>
-                    </div>
-                  ) : null}
                 </div>
               </div>
 
@@ -326,7 +817,7 @@ const SingleLessonContent = () => {
                       {t?.overallProgress}
                     </h3>
                     <span className="text-xs scoundColor font-semibold">
-                      {completedVideoIds.length}/{videos.length}
+                      {videosProgress.completed}/{videosProgress.total}
                     </span>
                   </div>
                   <div className="w-full h-2 bg-[#ece7db] rounded-full overflow-hidden">
@@ -345,19 +836,27 @@ const SingleLessonContent = () => {
                   ) : (
                     videos.map((video, index) => {
                       const videoKey = String(video.id);
-                      const unlocked = isVideoUnlocked(index);
+                      const unlocked = isVideoUnlocked(video);
                       const isActive = activeVideoId === videoKey;
-                      const isDone = completedVideoIds.includes(videoKey);
+                      const isDone = video.isCompleted;
                       const listTitle =
                         video.title ||
                         formatVideoListLabel(t?.videoNumber, index);
 
                       return (
-                        <button
+                        <div
                           key={videoKey}
-                          type="button"
+                          role={unlocked ? "button" : undefined}
+                          tabIndex={unlocked ? 0 : -1}
                           onClick={() => unlocked && setActiveVideoId(videoKey)}
-                          disabled={!unlocked}
+                          onKeyDown={(event) => {
+                            if (!unlocked) return;
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              setActiveVideoId(videoKey);
+                            }
+                          }}
+                          aria-disabled={!unlocked}
                           className={`w-full text-right px-4 py-3 transition-all duration-300 ease-in-out rounded-md
                       bg-white my-1 shadow-sm border
                       ${
@@ -367,7 +866,7 @@ const SingleLessonContent = () => {
                             ? " border-[#9F854E]/30"
                             : "border-transparent"
                       }
-                       ${!unlocked ? "opacity-60 cursor-not-allowed" : ""}`}
+                       ${unlocked ? "cursor-pointer" : "opacity-60 cursor-not-allowed"}`}
                         >
                           <div className="flex min-w-0 items-start gap-3">
                             <div className="flex shrink-0 items-center">
@@ -415,26 +914,27 @@ const SingleLessonContent = () => {
                                   alt=""
                                   width={45}
                                   height={45}
-                                  className="lightBgColor w-full shrink-0 rounded-full p-2.5 lg:w-[90px]"
+                                  className="lightBgColor  shrink-0 rounded-full p-2.5 "
                                 />
                               )}
                               <div className="min-w-0 flex-1">
                                 <p
-                                  className={`mt-3 text-sm font-medium leading-snug wrap-break-word md:mt-0 ${
-                                    isActive ? "mainColor" : "text-gray-600"
-                                  }`}
+                                  className={`mt-3 text-sm font-medium leading-snug wrap-break-word md:mt-0 
+                                    ${isActive ? "mainColor" : "text-gray-600"}`}
                                 >
                                   {listTitle}
                                 </p>
-                                <span className="text-xs text-gray-500">
-                                  {video.briefContent ||
-                                    video.duration ||
-                                    t?.videoFallback}
-                                </span>
+                                {/* if there video test */}
+                                <div className="flex items-center justify-between gap-2">
+                                  {renderVideoExamButton(video, {
+                                    stopPropagation: true,
+                                    className: "px-2 py-1",
+                                  })}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </button>
+                        </div>
                       );
                     })
                   )}
@@ -532,6 +1032,23 @@ const SingleLessonContent = () => {
               </div>
             </div>
           </div>
+
+          <ExamModal
+            open={examOpen}
+            onOpenChange={(open) => {
+              if (!open) resetExamState();
+              else setExamOpen(true);
+            }}
+            exam={examData}
+            loading={loadingExam}
+            submitting={submittingExam}
+            result={examResult}
+            dir={dir}
+            labels={examModalLabels}
+            onSubmit={handleSubmitExam}
+            onRetake={handleRetakeExam}
+            onCloseResult={resetExamState}
+          />
         </>
       )}
     </div>

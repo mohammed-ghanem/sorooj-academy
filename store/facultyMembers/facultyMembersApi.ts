@@ -34,7 +34,7 @@ export type FacultyMemberCard = {
     description: string;
 };
 
-const FALLBACK_AVATAR = "/assets/images/dd.png";
+const DefaultDoctorAvatar = "/assets/images/doctor.svg";
 
 function asNonEmptyString(v: unknown): string {
     return typeof v === "string" ? v.trim() : "";
@@ -44,7 +44,7 @@ function mapDoctorToCard(user: DoctorUser): FacultyMemberCard {
     const avatar = asNonEmptyString(user.avatar);
     return {
         id: user.id,
-        imageSrc: avatar || FALLBACK_AVATAR,
+        imageSrc: avatar || DefaultDoctorAvatar,
         name: asNonEmptyString(user.name) || "—",
         department: asNonEmptyString(user.specialization) || "—",
         title: asNonEmptyString(user.position) || "—",
