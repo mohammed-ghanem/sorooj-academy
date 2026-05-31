@@ -167,8 +167,8 @@ export default function ExamModal({
         className={cn(
           "gap-0 overflow-hidden p-0 sm:max-w-3xl max-h-[92vh] flex flex-col bg-[#f6f6f6]",
           rtl ? "text-right" : "text-left",
-          "[&_[data-slot=dialog-close]]:top-3 [&_[data-slot=dialog-close]]:right-3",
-          "[&_[data-slot=dialog-close]]:rtl:right-auto [&_[data-slot=dialog-close]]:rtl:left-3",
+          "**:data-[slot=dialog-close]:top-3 **:data-[slot=dialog-close]:right-3",
+          "**:data-[slot=dialog-close]:rtl:right-auto **:data-[slot=dialog-close]:rtl:left-3",
         )}
         dir={dir}
         showCloseButton={!submitting && !showResult}

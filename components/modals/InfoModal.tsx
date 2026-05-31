@@ -146,13 +146,13 @@ export default function InfoModal({
         className={cn(
           "gap-0 overflow-hidden p-0 sm:max-w-xl",
           rtl ? "text-right" : "text-left",
-          "[&_[data-slot=dialog-close]]:top-3 [&_[data-slot=dialog-close]]:right-3",
-          "[&_[data-slot=dialog-close]]:rtl:right-auto [&_[data-slot=dialog-close]]:rtl:left-3",
+          "**:data-[slot=dialog-close]:top-3 **:data-[slot=dialog-close]:right-3",
+          "**:data-[slot=dialog-close]:rtl:right-auto **:data-[slot=dialog-close]:rtl:left-3",
         )}
         dir={dir}
         showCloseButton
       >
-        <div className="min-h-[10.5rem] space-y-5 px-8 pb-4 pt-8">
+        <div className="min-h-42 space-y-5 px-8 pb-4 pt-8">
           <div
             className={cn(
               "flex items-start gap-5",
