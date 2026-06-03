@@ -1,4 +1,10 @@
-/** Subject (material) inside a study term — maps GET `/subjects` items. */
+export type StudySubjectLessonsProgress = {
+  completed: number;
+  total: number;
+  percentage: number;
+};
+
+/** Subject (material) inside a study term — maps GET `/study-terms/{id}/subjects`. */
 export type StudySubject = {
   id: number;
   title: string;
@@ -6,8 +12,11 @@ export type StudySubject = {
   cover?: string;
   lessonsCount: number;
   progress: number;
+  lessonsProgress: StudySubjectLessonsProgress;
   orderIndex: number;
   isActive: boolean;
+  isLocked: boolean;
+  canAccessSubject: boolean;
 };
 
 export type StudyTermDetail = {

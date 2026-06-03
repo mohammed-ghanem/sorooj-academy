@@ -713,6 +713,17 @@ function mapPayloadToVideoExam(raw: ExamApiPayload): VideoExam {
   return { id, title, questions };
 }
 
+function parseExamPercentageScore(...candidates: unknown[]): number | undefined {
+  for (const value of candidates) {
+    if (typeof value === "number" && !Number.isNaN(value)) return value;
+    if (typeof value === "string" && value.trim() !== "") {
+      const parsed = Number(value);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+  }
+  return undefined;
+}
+
 function unwrapSubmitExamResult(response: unknown): VideoExamSubmitResult {
   if (!response || typeof response !== "object") {
     return { passed: false };
@@ -738,18 +749,18 @@ function unwrapSubmitExamResult(response: unknown): VideoExamSubmitResult {
       ? (data.result as Record<string, unknown>)
       : data;
 
-  const score =
-    typeof scoreBlock.percentage_score === "number"
-      ? scoreBlock.percentage_score
-      : typeof data.score === "number"
-        ? data.score
-        : typeof data.percentage === "number"
-          ? data.percentage
-          : typeof data.obtained_percentage === "number"
-            ? data.obtained_percentage
-            : typeof data.result_percentage === "number"
-              ? data.result_percentage
-              : undefined;
+  const score = parseExamPercentageScore(
+    scoreBlock.percentage_score,
+    scoreBlock.percentage,
+    scoreBlock.score,
+    scoreBlock.obtained_percentage,
+    scoreBlock.result_percentage,
+    data.percentage_score,
+    data.score,
+    data.percentage,
+    data.obtained_percentage,
+    data.result_percentage,
+  );
 
   if (pendingReview) {
     return {
@@ -781,6 +792,7 @@ function unwrapSubmitExamResult(response: unknown): VideoExamSubmitResult {
     data.student_has_passed_exam === true ||
     data.student_has_passed_video_exam === true ||
     data.student_has_passed_lesson_exam === true ||
+    data.student_has_passed_subject_exam === true ||
     data.result === "passed" ||
     data.result === true;
 
@@ -961,6 +973,13 @@ export const lessonsApi = createApi({
     }),
   }),
 });
+
+export {
+  buildExamSubmitFormData,
+  mapPayloadToVideoExam,
+  unwrapExamResponse,
+  unwrapSubmitExamResult,
+};
 
 export const {
   useGetLessonDetailQuery,

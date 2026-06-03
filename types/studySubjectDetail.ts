@@ -28,6 +28,12 @@ export type StudySubjectDoctor = {
   name: string;
 };
 
+export type StudySubjectLessonsProgress = {
+  completed: number;
+  total: number;
+  percentage: number;
+};
+
 /** Subject detail with lessons — maps GET `/subjects/{id}` → `data.Subject`. */
 export type StudySubjectDetail = {
   id: number;
@@ -37,7 +43,18 @@ export type StudySubjectDetail = {
   lessonsCount: number;
   lessonExamsCount: number;
   progress: number;
+  lessonsProgress: StudySubjectLessonsProgress;
   isSubjectWatchCompleted: boolean;
+  isLocked: boolean;
+  canAccessSubject: boolean;
+  hasActiveSubjectExam: boolean;
+  canAccessSubjectExam: boolean;
+  studentHasPassedSubjectExam: boolean;
+  subjectExamStatus: string | null;
+  subjectExamIsPassed?: boolean | null;
+  isSubjectExamUnderReview: boolean;
+  canRetakeSubjectExam: boolean;
+  canOpenSubjectExam: boolean;
   studyTermId?: number;
   studyTermName?: string;
   doctors: StudySubjectDoctor[];

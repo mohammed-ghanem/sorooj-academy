@@ -174,10 +174,13 @@ export default function ExamModal({
         showCloseButton={!submitting && !showResult}
       >
         {loading ? (
-          <div className="flex min-h-64 items-center justify-center gap-2 px-6 py-16 text-sm descriptionColor">
-            <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
-            <span>{labels.loading}</span>
-          </div>
+          <>
+            <DialogTitle className="sr-only">{labels.loading}</DialogTitle>
+            <div className="flex min-h-64 items-center justify-center gap-2 px-6 py-16 text-sm descriptionColor">
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+              <span>{labels.loading}</span>
+            </div>
+          </>
         ) : showResult ? (
           <ExamResultView
             result={result!}
@@ -207,17 +210,23 @@ export default function ExamModal({
             onConfirm={handleConfirmSubmit}
           />
         ) : !exam || totalQuestions === 0 ? (
-          <div className="px-6 py-16 text-center text-sm descriptionColor">
-            {labels.noQuestions}
-          </div>
+          <>
+            <DialogTitle className="sr-only">{labels.noQuestions}</DialogTitle>
+            <div className="px-6 py-16 text-center text-sm descriptionColor">
+              {labels.noQuestions}
+            </div>
+          </>
         ) : (
           <>
             <div className="border-b border-[#efe7d8] bg-white px-5 py-4 sm:px-8">
-              {exam.title ? (
-                <DialogTitle className="text-lg font-semibold mainColor sm:text-xl">
-                  {exam.title}
-                </DialogTitle>
-              ) : null}
+              <DialogTitle
+                className={cn(
+                  "text-lg font-semibold mainColor sm:text-xl",
+                  !exam.title?.trim() && "sr-only",
+                )}
+              >
+                {exam.title?.trim() || labels.confirmTitle}
+              </DialogTitle>
 
               <div className="mt-4 flex items-center justify-between gap-3 text-xs sm:text-sm">
                 <span className="scoundColor font-semibold tabular-nums">
@@ -576,6 +585,43 @@ function resolveFailureDescription(
   return isSubmissionAcknowledgement ? fallback : trimmed;
 }
 
+function resolveDisplayScore(score?: number): number | null {
+  if (score === undefined || score === null || Number.isNaN(score)) {
+    return null;
+  }
+  return Math.round(score);
+}
+
+function ExamResultScoreCircle({
+  score,
+  variant,
+}: {
+  score: number;
+  variant: "passed" | "failed";
+}) {
+  const isPassed = variant === "passed";
+
+  return (
+    <div
+      className={cn(
+        "mb-6 flex h-28 w-28 items-center justify-center rounded-full border-4",
+        isPassed
+          ? "border-emerald-200 bg-emerald-50"
+          : "border-red-200 bg-red-50",
+      )}
+    >
+      <span
+        className={cn(
+          "text-3xl font-bold tabular-nums",
+          isPassed ? "text-emerald-600" : "text-red-600",
+        )}
+      >
+        {Math.round(score)}%
+      </span>
+    </div>
+  );
+}
+
 function ExamResultView({
   result,
   labels,
@@ -616,16 +662,22 @@ function ExamResultView({
     );
   }
 
+  const displayScore = resolveDisplayScore(result.score);
+
   if (result.passed) {
     return (
       <div className="flex flex-col items-center px-6 py-12 text-center sm:py-16">
-        <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#faf7f1]">
-          <CircleCheck
-            className="h-10 w-10 scoundColor"
-            strokeWidth={1.75}
-            aria-hidden
-          />
-        </div>
+        {displayScore !== null ? (
+          <ExamResultScoreCircle score={displayScore} variant="passed" />
+        ) : (
+          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#faf7f1]">
+            <CircleCheck
+              className="h-10 w-10 scoundColor"
+              strokeWidth={1.75}
+              aria-hidden
+            />
+          </div>
+        )}
         <DialogTitle className="text-xl font-semibold text-emerald-700 sm:text-2xl">
           {labels.passedTitle}
         </DialogTitle>
@@ -650,23 +702,20 @@ function ExamResultView({
     result.message,
     labels.failedDescription,
   );
-  const hasScore = result.score !== undefined;
 
   return (
     <div className="flex flex-col items-center px-6 py-10 text-center sm:py-14">
-      <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-full border-4 border-red-200 bg-red-50">
-        {hasScore ? (
-          <span className="text-3xl font-bold text-red-600 tabular-nums">
-            {Math.round(result.score!)}%
-          </span>
-        ) : (
+      {displayScore !== null ? (
+        <ExamResultScoreCircle score={displayScore} variant="failed" />
+      ) : (
+        <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-full border-4 border-red-200 bg-red-50">
           <XCircle
             className="h-14 w-14 fill-red-600 text-white"
             strokeWidth={1.5}
             aria-hidden
           />
-        )}
-      </div>
+        </div>
+      )}
       <DialogTitle className="max-w-md text-xl font-semibold mainColor sm:text-2xl">
         {labels.failedTitle}
       </DialogTitle>

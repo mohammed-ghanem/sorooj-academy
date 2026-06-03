@@ -103,11 +103,16 @@ function walkForAttempt(
   const directStatus =
     readStatus(obj.lesson_exam_status) ??
     readStatus(obj.student_lesson_exam_status) ??
-    readStatus(obj.lesson_exam_attempt_status);
+    readStatus(obj.lesson_exam_attempt_status) ??
+    readStatus(obj.subject_exam_status) ??
+    readStatus(obj.student_subject_exam_status) ??
+    readStatus(obj.subject_exam_attempt_status);
 
   const directIsPassed =
     readIsPassed(obj.lesson_exam_is_passed) ??
-    readIsPassed(obj.student_lesson_exam_is_passed);
+    readIsPassed(obj.student_lesson_exam_is_passed) ??
+    readIsPassed(obj.subject_exam_is_passed) ??
+    readIsPassed(obj.student_subject_exam_is_passed);
 
   if (directStatus || directIsPassed !== undefined) {
     snapshot = mergeAttempts(snapshot, {
@@ -116,7 +121,10 @@ function walkForAttempt(
     });
   }
 
-  if (obj.is_lesson_exam_under_review === true) {
+  if (
+    obj.is_lesson_exam_under_review === true ||
+    obj.is_subject_exam_under_review === true
+  ) {
     snapshot = mergeAttempts(snapshot, {
       status: snapshot.status ?? "submitted",
       isPassed: snapshot.isPassed ?? null,
@@ -129,6 +137,10 @@ function walkForAttempt(
     "latest_lesson_exam_attempt",
     "student_lesson_exam",
     "lesson_exam",
+    "subject_exam_attempt",
+    "latest_subject_exam_attempt",
+    "student_subject_exam",
+    "subject_exam",
     "exam_attempt",
     "attempt",
   ] as const;
@@ -207,3 +219,8 @@ export function isLessonExamNoMoreAttemptsMessage(message: string): boolean {
     message,
   );
 }
+
+/** Same rules as lesson final exam — used for subject exam UI. */
+export const resolveSubjectExamUiState = resolveLessonExamUiState;
+export const isSubjectExamUnderReview = isLessonExamUnderReview;
+export const extractSubjectExamAttempt = extractLessonExamAttempt;

@@ -64,7 +64,7 @@ api.interceptors.request.use(
       }
     }
 
-      // إذا لم يكن FormData → اجعله JSON
+      // if not FormData → make it JSON
       if (!(config.data instanceof FormData)) {
         config.headers["Content-Type"] = "application/json";
       }

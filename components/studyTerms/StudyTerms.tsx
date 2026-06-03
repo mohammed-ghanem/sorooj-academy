@@ -3,10 +3,11 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import SmallHeroSection from "../smallHeroSection/SmallHeroSection";
 import TranslateHook from "@/translate/TranslateHook";
+import LangUseParams from "@/translate/LangUseParams";
 import book from "@/public/assets/images/book.svg";
 import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
 import { useGetStudyTermsQuery } from "@/store/studyTerms/studyTermsApi";
@@ -47,7 +48,7 @@ const authCookieOptions = {
   expires: 7,
   secure: process.env.NODE_ENV === "production",
   path: "/",
-} as const;
+} as const; 
 
 function persistProfileToCookie(profile: unknown) {
   const p = profile as { data?: unknown; user?: unknown };
@@ -65,8 +66,7 @@ const StudyTerms = () => {
   const translate = TranslateHook();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { lang: langParam } = useParams<{ lang: string }>();
-  const lang = langParam ?? "ar";
+  const lang = LangUseParams() ?? "ar";
 
   const {
     data: studyTerms = [],

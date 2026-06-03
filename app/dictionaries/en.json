@@ -137,7 +137,9 @@
       "retry": "Try again",
       "startStudy": "Start studying",
       "lessonUnit": "lessons",
-      "emptySubjects": "No materials are available in this term yet."
+      "emptySubjects": "No materials are available in this term yet.",
+      "subjectLockedTitle": "Subject unavailable",
+      "close": "OK"
     },
     "subjectDetail": {
       "back": "← Back to term",
@@ -159,7 +161,17 @@
       "untitled": "Untitled",
       "lessonLockedTitle": "Lesson unavailable",
       "lessonLockedMessage": "You must pass the previous lesson exam to open this lesson",
-      "close": "OK"
+      "subjectLockedMessage": "You must pass the previous subject exam to open this subject",
+      "close": "OK",
+      "subjectExam": "Subject exam",
+      "subjectExamLoadError": "Could not load the subject exam",
+      "subjectExamSubmitError": "Could not submit subject exam answers",
+      "subjectExamPassed": "Subject exam passed",
+      "subjectExamFailed": "Subject exam not passed",
+      "subjectExamAlreadyPassed": "You have already passed the subject exam",
+      "subjectExamUnderReview": "Under review",
+      "subjectExamUnderReviewToast": "Your answers are under review. Please wait for grading.",
+      "subjectExamBack": "Back to subject"
     },
     "lessonDetail": {
       "back": "← Back to subject",

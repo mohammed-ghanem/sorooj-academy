@@ -62,6 +62,13 @@ export type SubjectApiPayload = {
     description?: string;
     lessons_count?: number;
     progress?: number;
+    lessons_progress?: {
+        completed?: number;
+        total?: number;
+        percentage?: number;
+    };
+    is_locked?: boolean | number;
+    can_access_subject?: boolean | number;
     order_index?: number;
     is_active?: number | boolean;
     study_term?: {
@@ -154,6 +161,49 @@ function mapPayloadToStudyTerm(
     };
 }
 
+function resolveLessonsProgress(
+    raw: {
+        lessons_progress?: {
+            completed?: number;
+            total?: number;
+            percentage?: number;
+        };
+        progress?: number;
+        lessons_count?: number;
+    },
+    completedLessons = 0,
+    totalLessons = 0,
+): { completed: number; total: number; percentage: number } {
+    const pr = raw.lessons_progress;
+    if (
+        pr &&
+        (pr.percentage !== undefined ||
+            pr.total !== undefined ||
+            pr.completed !== undefined)
+    ) {
+        const total = Number(pr.total) || Number(raw.lessons_count) || 0;
+        const completed = Number(pr.completed) || 0;
+        const percentage =
+            pr.percentage !== undefined && pr.percentage !== null
+                ? Math.min(100, Math.max(0, Number(pr.percentage)))
+                : total > 0
+                  ? Math.min(100, Math.round((completed / total) * 100))
+                  : 0;
+        return { completed, total, percentage };
+    }
+
+    const total = totalLessons || Number(raw.lessons_count) || 0;
+    const completed = completedLessons;
+    const fromProgress = Number(raw.progress);
+    const percentage = !Number.isNaN(fromProgress)
+        ? Math.min(100, Math.max(0, fromProgress))
+        : total > 0
+          ? Math.min(100, Math.round((completed / total) * 100))
+          : 0;
+
+    return { completed, total, percentage };
+}
+
 function mapPayloadToStudySubject(
     raw: SubjectApiPayload,
     lang: string,
@@ -173,15 +223,25 @@ function mapPayloadToStudySubject(
             ? true
             : raw.is_active === 1 || raw.is_active === true;
 
+    const lessonsProgress = resolveLessonsProgress(raw);
+    const isLocked = raw.is_locked === true || raw.is_locked === 1;
+    const canAccessSubject =
+        raw.can_access_subject === undefined
+            ? !isLocked
+            : raw.can_access_subject === true || raw.can_access_subject === 1;
+
     return {
         id,
         title: pickTitle(raw, lang),
         description: about,
         cover: typeof raw.cover === "string" ? raw.cover : undefined,
-        lessonsCount: Number(raw.lessons_count) || 0,
-        progress: Number(raw.progress) || 0,
+        lessonsCount: Number(raw.lessons_count) || lessonsProgress.total,
+        progress: lessonsProgress.percentage,
+        lessonsProgress,
         orderIndex: Number(raw.order_index) || 0,
         isActive: active,
+        isLocked,
+        canAccessSubject,
     };
 }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import LangUseParams from "@/translate/LangUseParams";
 import {
   hasAccessToken,
   isStudentEnrolledFromCookie,
@@ -21,8 +22,7 @@ export default function StudyTermRouteGuard({
   children,
 }: StudyTermRouteGuardProps) {
   const router = useRouter();
-  const { lang: langParam } = useParams<{ lang: string }>();
-  const lang = langParam ?? "ar";
+  const lang = LangUseParams() ?? "ar";
 
   useEffect(() => {
     const loggedIn = hasAccessToken();

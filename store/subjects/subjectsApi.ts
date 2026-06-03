@@ -2,11 +2,26 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
 import { axiosBaseQuery } from "@/store/base/axiosBaseQuery";
+import {
+    extractSubjectExamAttempt,
+    resolveSubjectExamUiState,
+} from "@/lib/studyLesson/lessonExamState";
+import {
+    buildExamSubmitFormData,
+    mapPayloadToVideoExam,
+    unwrapExamResponse,
+    unwrapSubmitExamResult,
+} from "@/store/lessons/lessonsApi";
 import type {
     StudyLesson,
     StudySubjectDetail,
     StudySubjectDoctor,
 } from "@/types/studySubjectDetail";
+import type {
+    VideoExam,
+    VideoExamAnswerPayload,
+    VideoExamSubmitResult,
+} from "@/types/studyVideoExam";
 
 const BASE_PATH = "subjects";
 
@@ -68,6 +83,22 @@ export type SubjectDetailApiPayload = {
     order_index?: number;
     is_active?: number | boolean;
     is_subject_watch_completed?: boolean;
+    lessons_progress?: {
+        completed?: number;
+        total?: number;
+        percentage?: number;
+    };
+    is_locked?: boolean | number;
+    can_access_subject?: boolean | number;
+    has_active_subject_exam?: boolean;
+    can_access_subject_exam?: boolean;
+    can_retake_subject_exam?: boolean | number;
+    student_has_passed_subject_exam?: boolean;
+    subject_exam_status?: string;
+    student_subject_exam_status?: string;
+    subject_exam_is_passed?: boolean | null;
+    student_subject_exam_is_passed?: boolean | null;
+    is_subject_exam_under_review?: boolean | number;
     study_term?: {
         id?: number | string;
         name?: string;
@@ -106,9 +137,27 @@ function unwrapSubjectPayload(
         if (sub && typeof sub === "object") {
             return sub as SubjectDetailApiPayload;
         }
+        if (looksLikeSubjectPayload(nested)) {
+            return nested as SubjectDetailApiPayload;
+        }
+    }
+
+    if (looksLikeSubjectPayload(r)) {
+        return r as SubjectDetailApiPayload;
     }
 
     return null;
+}
+
+function looksLikeSubjectPayload(value: Record<string, unknown>): boolean {
+    if (toNumericId(value.id) === undefined) return false;
+    return (
+        typeof value.name === "string" ||
+        typeof value.name_ar === "string" ||
+        typeof value.name_en === "string" ||
+        Array.isArray(value.lessons) ||
+        value.lessons_count !== undefined
+    );
 }
 
 function mapDoctor(raw: DoctorApiPayload): StudySubjectDoctor | null {
@@ -184,19 +233,47 @@ function sortLessons(list: StudyLesson[]): StudyLesson[] {
     });
 }
 
-function resolveSubjectProgress(
+function resolveLessonsProgress(
+    raw: SubjectDetailApiPayload,
     lessons: StudyLesson[],
     isSubjectWatchCompleted: boolean,
-): number {
-    if (isSubjectWatchCompleted) return 100;
-    if (lessons.length === 0) return 0;
+): { completed: number; total: number; percentage: number } {
+    const pr = raw.lessons_progress;
+    if (
+        pr &&
+        (pr.percentage !== undefined ||
+            pr.total !== undefined ||
+            pr.completed !== undefined)
+    ) {
+        const total =
+            Number(pr.total) || Number(raw.lessons_count) || lessons.length;
+        const completed = Number(pr.completed) || 0;
+        const percentage =
+            pr.percentage !== undefined && pr.percentage !== null
+                ? Math.min(100, Math.max(0, Number(pr.percentage)))
+                : total > 0
+                  ? Math.min(100, Math.round((completed / total) * 100))
+                  : 0;
+        return { completed, total, percentage };
+    }
+
+    if (isSubjectWatchCompleted) {
+        const total = Number(raw.lessons_count) || lessons.length;
+        return { completed: total, total, percentage: 100 };
+    }
+
+    const total = Number(raw.lessons_count) || lessons.length;
     const completed = lessons.filter((l) => l.isCompleted).length;
-    return Math.min(100, Math.round((completed / lessons.length) * 100));
+    const percentage =
+        total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+
+    return { completed, total, percentage };
 }
 
 function mapPayloadToStudySubjectDetail(
     raw: SubjectDetailApiPayload,
     lang: string,
+    fullResponse?: unknown,
 ): StudySubjectDetail {
     const id = toNumericId(raw.id) ?? 0;
     const about =
@@ -219,6 +296,27 @@ function mapPayloadToStudySubjectDetail(
         .filter((d): d is StudySubjectDoctor => d !== null);
 
     const isSubjectWatchCompleted = raw.is_subject_watch_completed === true;
+    const lessonsProgress = resolveLessonsProgress(
+        raw,
+        lessons,
+        isSubjectWatchCompleted,
+    );
+    const isLocked = raw.is_locked === true || raw.is_locked === 1;
+    const canAccessSubject =
+        raw.can_access_subject === undefined
+            ? !isLocked
+            : raw.can_access_subject === true || raw.can_access_subject === 1;
+
+    const attempt = extractSubjectExamAttempt(
+        fullResponse ? { ...raw, ...(fullResponse as object) } : raw,
+    );
+    const examState = resolveSubjectExamUiState(attempt, {
+        apiPassed: raw.student_has_passed_subject_exam === true,
+        canAccessFromApi: raw.can_access_subject_exam === true,
+        canRetakeFromApi:
+            raw.can_retake_subject_exam === true ||
+            raw.can_retake_subject_exam === 1,
+    });
 
     return {
         id,
@@ -227,8 +325,20 @@ function mapPayloadToStudySubjectDetail(
         cover: typeof raw.cover === "string" ? raw.cover : undefined,
         lessonsCount: Number(raw.lessons_count) || lessons.length,
         lessonExamsCount: Number(raw.lesson_exams_count) || 0,
-        progress: resolveSubjectProgress(lessons, isSubjectWatchCompleted),
+        progress: lessonsProgress.percentage,
+        lessonsProgress,
         isSubjectWatchCompleted,
+        isLocked,
+        canAccessSubject,
+        hasActiveSubjectExam: raw.has_active_subject_exam === true,
+        canAccessSubjectExam: raw.can_access_subject_exam === true,
+        studentHasPassedSubjectExam: examState.passed,
+        subjectExamStatus: examState.status,
+        subjectExamIsPassed:
+            attempt.isPassed === undefined ? undefined : attempt.isPassed,
+        isSubjectExamUnderReview: examState.underReview,
+        canRetakeSubjectExam: examState.canRetake,
+        canOpenSubjectExam: examState.canOpenFinalExam,
         studyTermId: toNumericId(raw.study_term?.id),
         studyTermName:
             typeof raw.study_term?.name === "string"
@@ -262,13 +372,62 @@ export const subjectsApi = createApi({
                 if (!raw || toNumericId(raw.id) === undefined) {
                     throw new Error("Invalid subject detail response");
                 }
-                return mapPayloadToStudySubjectDetail(raw, lang);
+                return mapPayloadToStudySubjectDetail(raw, lang, response);
             },
             providesTags: (_result, _err, arg) => [
                 { type: "Subject", id: String(arg.id) },
             ],
         }),
+
+        /** GET `/subjects/{id}/exam`. */
+        getSubjectExam: builder.query<
+            VideoExam,
+            { subjectId: string | number; lang: string }
+        >({
+            query: ({ subjectId, lang }) => ({
+                url: `/${BASE_PATH}/${subjectId}/exam`,
+                method: "GET",
+                headers: {
+                    "Accept-Language": resolveAcceptLanguage(lang),
+                },
+            }),
+            transformResponse: (response: unknown) => {
+                const raw = unwrapExamResponse(response);
+                if (!raw) throw new Error("Invalid subject exam response");
+                return mapPayloadToVideoExam(raw);
+            },
+        }),
+
+        /** POST `/subjects/{id}/submit-exam`. */
+        submitSubjectExam: builder.mutation<
+            VideoExamSubmitResult,
+            {
+                subjectId: string | number;
+                lang: string;
+                answers: VideoExamAnswerPayload[];
+            }
+        >({
+            query: ({ subjectId, lang, answers }) => ({
+                url: `/${BASE_PATH}/${subjectId}/submit-exam`,
+                method: "POST",
+                data: buildExamSubmitFormData(answers),
+                withCsrf: true,
+                headers: {
+                    "Accept-Language": resolveAcceptLanguage(lang),
+                },
+            }),
+            transformResponse: (response: unknown) =>
+                unwrapSubmitExamResult(response),
+            invalidatesTags: (_result, _err, arg) => [
+                { type: "Subject", id: String(arg.subjectId) },
+            ],
+        }),
     }),
 });
 
-export const { useGetSubjectDetailQuery } = subjectsApi;
+export const {
+    useGetSubjectDetailQuery,
+    useLazyGetSubjectDetailQuery,
+    useLazyGetSubjectExamQuery,
+    useSubmitSubjectExamMutation,
+} = subjectsApi;

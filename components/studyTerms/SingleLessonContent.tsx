@@ -21,6 +21,7 @@ import {
 import type { StudyLessonVideo } from "@/types/studyLessonDetail";
 import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import TranslateHook from "@/translate/TranslateHook";
+import LangUseParams from "@/translate/LangUseParams";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -147,15 +148,15 @@ const SingleLessonContent = () => {
   const translate = TranslateHook();
   const t = translate?.pages?.lessonDetail;
   const subjectT = translate?.pages?.subjectDetail;
+  const lang = LangUseParams();
 
-  const { lang, termId, contentId, lessonId } = useParams<{
-    lang: string;
+  const { termId, contentId, lessonId } = useParams<{
     termId: string;
     contentId: string;
     lessonId: string;
   }>();
 
-  const subjectContentHref = `/${lang}/study-terms/${termId}/content/${contentId}`;
+  const subjectContentHref = `/${lang ?? "ar"}/study-terms/${termId}/content/${contentId}`;
 
   const idNum = useMemo(
     () =>

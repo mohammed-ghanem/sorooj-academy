@@ -4,11 +4,21 @@ import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import SubjectContentSkeleton, {
   SubjectContentHeroTitleSkeleton,
 } from "@/components/skeletons/SubjectContentSkeleton";
+import ExamModal from "@/components/modals/ExamModal";
+import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamModal";
 import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
-import { useGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
+import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
+import { isLessonExamNoMoreAttemptsMessage } from "@/lib/studyLesson/lessonExamState";
+import {
+  useGetSubjectDetailQuery,
+  useLazyGetSubjectExamQuery,
+  useSubmitSubjectExamMutation,
+} from "@/store/subjects/subjectsApi";
 import type { StudyLesson } from "@/types/studySubjectDetail";
+import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import TranslateHook from "@/translate/TranslateHook";
+import LangUseParams from "@/translate/LangUseParams";
 import { cn } from "@/lib/utils";
 import card from "@/public/assets/images/card.jpg";
 import exams from "@/public/assets/images/exam.svg";
@@ -18,10 +28,26 @@ import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+} from "react";
+import { toast } from "sonner";
+
+/** Max characters shown for lesson title/summary on subject cards. */
+const LESSON_CARD_SUMMARY_MAX_LENGTH = 45;
 
 function formatLessonLabel(template: string | undefined, index: number) {
   return (template ?? "Lesson {{n}}").replace("{{n}}", String(index + 1));
+}
+
+function truncateWithEllipsis(text: string, maxLength: number): string {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength).trimEnd()} ...`;
 }
 
 function isLessonAccessible(lesson: StudyLesson): boolean {
@@ -58,6 +84,31 @@ function getLessonActionLabel(
   return labels.startStudy ?? "";
 }
 
+function getExamButtonClassName(
+  enabled: boolean,
+  passed = false,
+  options?: { successWhenEnabled?: boolean; className?: string },
+) {
+  const base =
+    "w-full mt-4 rounded-md py-2 px-4 font-medium flex items-center justify-center gap-2";
+
+  if (passed || (options?.successWhenEnabled && enabled)) {
+    return cn(
+      base,
+      "bg-emerald-600 text-white cursor-pointer hover:bg-emerald-700",
+      options?.className,
+    );
+  }
+
+  return cn(
+    base,
+    enabled
+      ? "bkMainColor text-white cursor-pointer"
+      : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-70",
+    options?.className,
+  );
+}
+
 function handleLessonCardKeyDown(
   event: KeyboardEvent<HTMLDivElement>,
   lesson: StudyLesson,
@@ -72,18 +123,24 @@ function handleLessonCardKeyDown(
 const SubjectContent = () => {
   const translate = TranslateHook();
   const t = translate?.pages?.subjectDetail;
+  const termT = translate?.pages?.studyTermDetail;
+  const lessonT = translate?.pages?.lessonDetail;
   const router = useRouter();
+  const lang = LangUseParams();
 
-  const { lang, termId, contentId } = useParams<{
-    lang: string;
+  const { termId, contentId } = useParams<{
     termId: string;
     contentId: string;
   }>();
 
   const dir = lang === "en" ? "ltr" : "rtl";
   const [lessonLockedOpen, setLessonLockedOpen] = useState(false);
+  const [subjectAccessDeniedOpen, setSubjectAccessDeniedOpen] = useState(false);
+  const [examOpen, setExamOpen] = useState(false);
+  const [examData, setExamData] = useState<VideoExam | null>(null);
+  const [examResult, setExamResult] = useState<ExamModalResult | null>(null);
 
-  const termHref = `/${lang}/study-terms/${termId}`;
+  const termHref = `/${lang ?? "ar"}/study-terms/${termId}`;
 
   const idNum = useMemo(
     () =>
@@ -97,19 +154,182 @@ const SubjectContent = () => {
 
   const {
     data: subject,
+    error: subjectError,
     isLoading,
     isFetching,
     isError,
+    isUninitialized,
     refetch,
   } = useGetSubjectDetailQuery(
     { id: contentId ?? "", lang: lang ?? "ar" },
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
 
+  const subjectAccessDenied = useMemo(() => {
+    if (!subjectError || typeof subjectError !== "object") return false;
+    return (subjectError as { status?: number }).status === 403;
+  }, [subjectError]);
+
+  const subjectAccessDeniedMessage = useMemo(() => {
+    if (!subjectAccessDenied) return "";
+    return extractApiErrorMessage(
+      subjectError,
+      t?.subjectLockedMessage ?? t?.notFound ?? "",
+    );
+  }, [subjectAccessDenied, subjectError, t?.notFound, t?.subjectLockedMessage]);
+
+  const [fetchSubjectExam, { isFetching: loadingSubjectExam }] =
+    useLazyGetSubjectExamQuery();
+  const [submitSubjectExam, { isLoading: submittingSubjectExam }] =
+    useSubmitSubjectExamMutation();
+
+  const resetExamState = useCallback(() => {
+    setExamOpen(false);
+    setExamData(null);
+    setExamResult(null);
+  }, []);
+
   const showSkeleton =
-    !invalidId && (!apiReady || isLoading || (isFetching && !subject));
+    !invalidId &&
+    (!apiReady ||
+      isUninitialized ||
+      isLoading ||
+      isFetching ||
+      (!subject && !isError));
   const showError = !invalidId && !showSkeleton && (isError || !subject);
   const subjectLessons = subject?.lessons ?? [];
+  const progressPercent = subject?.lessonsProgress.percentage ?? subject?.progress ?? 0;
+
+  useEffect(() => {
+    if (showError && subjectAccessDenied) {
+      setSubjectAccessDeniedOpen(true);
+    }
+  }, [showError, subjectAccessDenied]);
+
+  const handleOpenSubjectExam = async () => {
+    if (subject?.isSubjectExamUnderReview) {
+      toast.info(t?.subjectExamUnderReviewToast ?? "");
+      return;
+    }
+
+    if (subject?.studentHasPassedSubjectExam) {
+      toast.success(t?.subjectExamAlreadyPassed ?? "");
+      return;
+    }
+
+    if (!subject?.canOpenSubjectExam) return;
+
+    setExamData(null);
+    setExamResult(null);
+    setExamOpen(true);
+
+    try {
+      const exam = await fetchSubjectExam({
+        subjectId: idNum,
+        lang: lang ?? "ar",
+      }).unwrap();
+      setExamData(exam);
+    } catch (err) {
+      resetExamState();
+      const message = extractApiErrorMessage(err, t?.subjectExamLoadError ?? "");
+      if (isLessonExamNoMoreAttemptsMessage(message)) {
+        toast.info(t?.subjectExamUnderReviewToast ?? "");
+        return;
+      }
+      toast.error(message);
+    }
+  };
+
+  const handleSubmitSubjectExam = async (answers: VideoExamAnswerPayload[]) => {
+    try {
+      const apiResult = await submitSubjectExam({
+        subjectId: idNum,
+        lang: lang ?? "ar",
+        answers,
+      }).unwrap();
+
+      const { data: refreshedSubject } = await refetch();
+
+      if (
+        apiResult.pendingReview ||
+        refreshedSubject?.isSubjectExamUnderReview
+      ) {
+        setExamResult({
+          passed: false,
+          pendingReview: true,
+          message:
+            apiResult.message ||
+            (lessonT?.lessonExamUnderReviewDescription ?? ""),
+        });
+        return;
+      }
+
+      const passed =
+        apiResult.passed ||
+        refreshedSubject?.studentHasPassedSubjectExam === true;
+
+      setExamResult({
+        passed,
+        score: apiResult.score,
+        message: passed
+          ? apiResult.message || (t?.subjectExamPassed ?? "")
+          : apiResult.message,
+      });
+    } catch (err) {
+      toast.error(
+        extractApiErrorMessage(err, t?.subjectExamSubmitError ?? ""),
+      );
+    }
+  };
+
+  const handleRetakeSubjectExam = async () => {
+    setExamResult(null);
+    setExamData(null);
+
+    try {
+      const exam = await fetchSubjectExam({
+        subjectId: idNum,
+        lang: lang ?? "ar",
+      }).unwrap();
+      setExamData(exam);
+    } catch (err) {
+      toast.error(
+        extractApiErrorMessage(err, t?.subjectExamLoadError ?? ""),
+      );
+    }
+  };
+
+  const examModalLabels = useMemo<ExamModalLabels>(
+    () => ({
+      loading: lessonT?.videoExamLoading ?? "",
+      noQuestions: lessonT?.videoExamNoQuestions ?? "",
+      trueAnswer: lessonT?.examTrueAnswer ?? "",
+      falseAnswer: lessonT?.examFalseAnswer ?? "",
+      questionOf: lessonT?.examQuestionOf ?? "",
+      multipleChoice: lessonT?.examMultipleChoice ?? "",
+      trueFalseType: lessonT?.examTrueFalseType ?? "",
+      previous: lessonT?.examPrevious ?? "",
+      next: lessonT?.examNext ?? "",
+      finish: lessonT?.examFinish ?? "",
+      confirmTitle: lessonT?.examConfirmTitle ?? "",
+      confirmDescription: lessonT?.examConfirmDescription ?? "",
+      totalQuestions: lessonT?.examTotalQuestions ?? "",
+      answeredQuestions: lessonT?.examAnsweredQuestions ?? "",
+      remainingQuestions: lessonT?.examRemainingQuestions ?? "",
+      confirmSubmit: lessonT?.examConfirmSubmit ?? "",
+      backToReview: lessonT?.examBackToReview ?? "",
+      passedTitle: t?.subjectExamPassed ?? "",
+      failedTitle: t?.subjectExamFailed ?? "",
+      failedDescription: lessonT?.examFailDescription ?? "",
+      pendingReviewTitle: lessonT?.lessonExamUnderReviewTitle ?? "",
+      pendingReviewDescription: lessonT?.lessonExamUnderReviewDescription ?? "",
+      retake: lessonT?.examRetake ?? "",
+      backToLesson: t?.subjectExamBack ?? "",
+      close: lessonT?.videoExamClose ?? "",
+      cancel: lessonT?.videoExamCancel ?? "",
+    }),
+    [lessonT, t],
+  );
 
   const handleLessonStart = (lesson: StudyLesson) => {
     if (!isLessonAccessible(lesson)) {
@@ -118,7 +338,7 @@ const SubjectContent = () => {
     }
 
     router.push(
-      `/${lang}/study-terms/${termId}/content/${contentId}/lesson/${lesson.id}`,
+      `/${lang ?? "ar"}/study-terms/${termId}/content/${contentId}/lesson/${lesson.id}`,
     );
   };
 
@@ -144,12 +364,12 @@ const SubjectContent = () => {
             >
               {t?.back}
             </Link>
-            {showSkeleton ? (
+            {showSkeleton || !subject ? (
               <SubjectContentHeroTitleSkeleton />
             ) : (
               <h1 className="text-2xl font-semibold mt-2 mb-4">
                 <span className="mainColor">{t?.heroLabel} </span>
-                <span className="scoundColor">{subject!.title}</span>
+                <span className="scoundColor">{subject.title}</span>
               </h1>
             )}
           </div>
@@ -161,35 +381,60 @@ const SubjectContent = () => {
 
         {showError && (
           <div className="container mx-auto flex min-h-[40vh] w-[90%] flex-col items-center justify-center py-16 text-center">
-            <p className="text-lg mainColor font-medium mb-4">{t?.notFound}</p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => refetch()}
-                className="scoundBgColor rounded-lg px-4 py-2 text-sm text-white"
-              >
-                {t?.retry}
-              </button>
-              <Link
-                href={termHref}
-                className="text-sm scoundColor hover:underline self-center"
-              >
-                {t?.back}
-              </Link>
-            </div>
+            {subjectAccessDenied ? (
+              <>
+                <Link
+                  href={termHref}
+                  className="text-sm scoundColor hover:underline mb-4"
+                >
+                  {t?.back}
+                </Link>
+                <InfoModal
+                  open={subjectAccessDeniedOpen}
+                  onOpenChange={setSubjectAccessDeniedOpen}
+                  variant="info"
+                  title={termT?.subjectLockedTitle ?? ""}
+                  description={subjectAccessDeniedMessage}
+                  primaryLabel={t?.close ?? ""}
+                  onPrimaryClick={() => setSubjectAccessDeniedOpen(false)}
+                  dir={dir}
+                />
+              </>
+            ) : (
+              <>
+                <p className="text-lg mainColor font-medium mb-4">
+                  {t?.notFound}
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    className="scoundBgColor rounded-lg px-4 py-2 text-sm text-white"
+                  >
+                    {t?.retry}
+                  </button>
+                  <Link
+                    href={termHref}
+                    className="text-sm scoundColor hover:underline self-center"
+                  >
+                    {t?.back}
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {!showSkeleton && !showError && (
+        {!showSkeleton && !showError && subject && (
           <div className="container mx-auto w-[90%] grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 bg-white rounded-2xl p-4 md:p-6 shadow-r-sm">
               <div className=" mb-4">
                 <h3 className="text-lg font-semibold mainColor">
-                  {subject!.title}
+                  {subject.title}
                 </h3>
-                {subject!.description ? (
+                {subject.description ? (
                   <p className="text-sm text-gray-500 w-[80%] my-4">
-                    {subject!.description}
+                    {subject.description}
                   </p>
                 ) : null}
               </div>
@@ -202,6 +447,12 @@ const SubjectContent = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {subjectLessons.map((lesson, index) => {
                     const completed = isLessonFullyCompleted(lesson);
+                    const lessonSummary =
+                      lesson.title || lesson.briefContent || t?.untitled || "";
+                    const lessonSummaryDisplay = truncateWithEllipsis(
+                      lessonSummary,
+                      LESSON_CARD_SUMMARY_MAX_LENGTH,
+                    );
                     const statusLabel = completed
                       ? t?.completed
                       : t?.notCompleted;
@@ -269,8 +520,15 @@ const SubjectContent = () => {
                               {statusLabel}
                             </span>
                           </div>
-                          <h5 className="text-xs text-gray-500 mb-3">
-                            {lesson.title || lesson.briefContent || t?.untitled}
+                          <h5
+                            className="text-xs text-gray-500 mb-3"
+                            title={
+                              lessonSummary.length > LESSON_CARD_SUMMARY_MAX_LENGTH
+                                ? lessonSummary
+                                : undefined
+                            }
+                          >
+                            {lessonSummaryDisplay}
                           </h5>
                         </div>
                         <hr className="my-3" />
@@ -329,11 +587,11 @@ const SubjectContent = () => {
             <div className="lg:col-span-4 w-[95%] mx-auto bg-white rounded-2xl p-4 shadow-r-sm h-fit">
               <div className="relative w-full h-56 mb-4">
                 <Image
-                  src={subject!.cover || card.src}
-                  alt={subject!.title}
+                  src={subject.cover || card.src}
+                  alt={subject.title}
                   fill
                   className="rounded-xl object-cover"
-                  unoptimized={Boolean(subject!.cover)}
+                  unoptimized={Boolean(subject.cover)}
                 />
               </div>
 
@@ -345,7 +603,7 @@ const SubjectContent = () => {
               </div>
 
               <h3 className="text-lg font-semibold mainColor mb-2">
-                {subject!.title}
+                {subject.title}
               </h3>
 
               <div className="space-y-3 text-sm">
@@ -355,7 +613,7 @@ const SubjectContent = () => {
                     <span className="descriptionColor">{t?.lessonsCount}</span>
                   </div>
                   <span className="mainColor font-semibold">
-                    {subject!.lessonsCount}
+                    {subject.lessonsCount}
                   </span>
                 </div>
                 <div className="flex items-center justify-between my-4">
@@ -364,7 +622,7 @@ const SubjectContent = () => {
                     <span className="descriptionColor">{t?.examsCount}</span>
                   </div>
                   <span className="mainColor font-semibold">
-                    {subject!.lessonExamsCount}
+                    {subject.lessonExamsCount}
                   </span>
                 </div>
 
@@ -374,7 +632,7 @@ const SubjectContent = () => {
                     <span className="descriptionColor">{t?.progress}</span>
                   </div>
                   <span className="mainColor font-semibold">
-                    <span className="me-0.5">{subject!.progress}%</span>
+                    <span className="me-0.5">{progressPercent}%</span>
                   </span>
                 </div>
               </div>
@@ -382,16 +640,46 @@ const SubjectContent = () => {
               <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mt-3">
                 <div
                   className="h-full scoundBgColor transition-all duration-500"
-                  style={{ width: `${subject!.progress}%` }}
+                  style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <button
-                className="flex items-center justify-center bkMainColor
-               w-full mt-4 rounded-md py-2 px-4 cursor-pointer"
-              >
-                <Image src={subjectExam.src} width={18} height={18} alt="" />
-                <h3 className="text-lg text-white ms-2">اختبار المادة </h3>
-              </button>
+              {subject.hasActiveSubjectExam ? (
+                <button
+                  type="button"
+                  disabled={
+                    loadingSubjectExam ||
+                    (subject.isSubjectExamUnderReview &&
+                      !subject.studentHasPassedSubjectExam)
+                  }
+                  onClick={() => void handleOpenSubjectExam()}
+                  className={getExamButtonClassName(
+                    subject.canOpenSubjectExam && !subject.isSubjectExamUnderReview,
+                    subject.studentHasPassedSubjectExam,
+                    { successWhenEnabled: !subject.canRetakeSubjectExam },
+                  )}
+                >
+                  <Image
+                    src={subjectExam.src}
+                    width={18}
+                    height={18}
+                    alt=""
+                    className={cn(
+                      "shrink-0",
+                      (subject.studentHasPassedSubjectExam ||
+                        (subject.canOpenSubjectExam &&
+                          !subject.isSubjectExamUnderReview)) &&
+                        "brightness-0 invert",
+                    )}
+                  />
+                  <span className="text-lg ms-2">
+                    {subject.isSubjectExamUnderReview
+                      ? (t?.subjectExamUnderReview ?? "")
+                      : subject.studentHasPassedSubjectExam
+                        ? (t?.subjectExamPassed ?? t?.subjectExam ?? "")
+                        : (t?.subjectExam ?? "")}
+                  </span>
+                </button>
+              ) : null}
             </div>
           </div>
         )}
@@ -405,6 +693,23 @@ const SubjectContent = () => {
           primaryLabel={t?.close ?? ""}
           onPrimaryClick={() => setLessonLockedOpen(false)}
           dir={dir}
+        />
+
+        <ExamModal
+          open={examOpen}
+          onOpenChange={(open) => {
+            if (!open) resetExamState();
+            else setExamOpen(true);
+          }}
+          exam={examData}
+          loading={loadingSubjectExam}
+          submitting={submittingSubjectExam}
+          result={examResult}
+          dir={dir}
+          labels={examModalLabels}
+          onSubmit={handleSubmitSubjectExam}
+          onRetake={handleRetakeSubjectExam}
+          onCloseResult={resetExamState}
         />
       </div>
     </div>

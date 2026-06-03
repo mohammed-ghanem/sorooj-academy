@@ -133,7 +133,9 @@
       "retry": "إعادة المحاولة",
       "startStudy": "ابدأ الدراسة",
       "lessonUnit": "درس",
-      "emptySubjects": "لا توجد مواد متاحة في هذا المحور حالياً."
+      "emptySubjects": "لا توجد مواد متاحة في هذا المحور حالياً.",
+      "subjectLockedTitle": "المادة غير متاحة",
+      "close": "حسناً"
     },
     "subjectDetail": {
       "back": "← رجوع لتفاصيل المحور",
@@ -155,7 +157,17 @@
       "untitled": "بدون عنوان",
       "lessonLockedTitle": "الدرس غير متاح",
       "lessonLockedMessage": "يجب النجاح في اختبار الدرس السابق لفتح هذا الدرس",
-      "close": "حسناً"
+      "subjectLockedMessage": "يجب النجاح في اختبار المادة السابقة لفتح هذه المادة",
+      "close": "حسناً",
+      "subjectExam": "اختبار المادة",
+      "subjectExamLoadError": "تعذر تحميل اختبار المادة",
+      "subjectExamSubmitError": "تعذر إرسال إجابات اختبار المادة",
+      "subjectExamPassed": "تم اجتياز اختبار المادة",
+      "subjectExamFailed": "لم يتم اجتياز اختبار المادة",
+      "subjectExamAlreadyPassed": "لقد اجتزت اختبار المادة بنجاح",
+      "subjectExamUnderReview": "قيد المراجعة",
+      "subjectExamUnderReviewToast": "إجاباتك قيد المراجعة. انتظر حتى يتم التصحيح.",
+      "subjectExamBack": "العودة إلى المادة"
     },
     "lessonDetail": {
       "back": "← رجوع إلى محتوى المادة",
