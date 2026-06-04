@@ -9,7 +9,7 @@ import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamM
 import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
 import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
-import { isLessonExamNoMoreAttemptsMessage } from "@/lib/studyLesson/lessonExamState";
+import { isExamLoadUnderReviewError } from "@/lib/studyLesson/lessonExamState";
 import {
   useGetSubjectDetailQuery,
   useLazyGetSubjectExamQuery,
@@ -231,12 +231,12 @@ const SubjectContent = () => {
       setExamData(exam);
     } catch (err) {
       resetExamState();
-      const message = extractApiErrorMessage(err, t?.subjectExamLoadError ?? "");
-      if (isLessonExamNoMoreAttemptsMessage(message)) {
+      if (isExamLoadUnderReviewError(err)) {
+        void refetch();
         toast.info(t?.subjectExamUnderReviewToast ?? "");
         return;
       }
-      toast.error(message);
+      toast.error(extractApiErrorMessage(err, t?.subjectExamLoadError ?? ""));
     }
   };
 
@@ -293,6 +293,11 @@ const SubjectContent = () => {
       }).unwrap();
       setExamData(exam);
     } catch (err) {
+      if (isExamLoadUnderReviewError(err)) {
+        void refetch();
+        toast.info(t?.subjectExamUnderReviewToast ?? "");
+        return;
+      }
       toast.error(
         extractApiErrorMessage(err, t?.subjectExamLoadError ?? ""),
       );
@@ -308,6 +313,8 @@ const SubjectContent = () => {
       questionOf: lessonT?.examQuestionOf ?? "",
       multipleChoice: lessonT?.examMultipleChoice ?? "",
       trueFalseType: lessonT?.examTrueFalseType ?? "",
+      articleType: lessonT?.examArticleType ?? "",
+      articlePlaceholder: lessonT?.examArticlePlaceholder ?? "",
       previous: lessonT?.examPrevious ?? "",
       next: lessonT?.examNext ?? "",
       finish: lessonT?.examFinish ?? "",

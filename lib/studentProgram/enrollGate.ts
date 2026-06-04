@@ -1,6 +1,7 @@
 import {
   extractApiSuccessMessage,
   extractStudyStartFromPayload,
+  readRtkQueryHttpStatus,
   studyPeriodHasStarted,
 } from "@/lib/studentProgram/programErrors";
 import {
@@ -41,34 +42,6 @@ function readStudiesHaveStartedFlag(
   return undefined;
 }
 
-/** Backend copy that means the study window is already open. */
-function messageImpliesStudyOpen(message: string): boolean {
-  const m = message.toLowerCase();
-  return (
-    m.includes("بدأت الدراسة") ||
-    m.includes("بدا الدراسة") ||
-    m.includes("بدأ الدراسة") ||
-    m.includes("already started") ||
-    m.includes("study has started") ||
-    m.includes("study is open") ||
-    m.includes("يمكنك بدء") ||
-    m.includes("يمكنك البدء") ||
-    m.includes("يمكنك الدراسة")
-  );
-}
-
-function messageImpliesStudyNotOpen(message: string): boolean {
-  if (messageImpliesStudyOpen(message)) return false;
-  const m = message.toLowerCase();
-  return (
-    m.includes("لم تبدأ") ||
-    m.includes("لم تبدا") ||
-    m.includes("not started") ||
-    m.includes("لم يحن") ||
-    m.includes("not open yet")
-  );
-}
-
 function collectPayloadRecords(payload: unknown): Record<string, unknown>[] {
   const records: Record<string, unknown>[] = [];
   if (!payload || typeof payload !== "object") return records;
@@ -91,7 +64,19 @@ function resolveStudiesHaveStarted(
   return false;
 }
 
-/** Re-evaluate enroll snapshot from API payload + optional cached user flag. */
+/** RTK `unwrap()` rejection shape from `axiosBaseQuery`. */
+export function readEnrollApiHttpStatus(error: unknown): number | undefined {
+  return readRtkQueryHttpStatus(error);
+}
+/**
+ * `POST /enroll-in-program` returns 422 when enrollment is not allowed
+ * (e.g. no open batch). Disable retry in the enroll modal for that case only.
+ */
+export function shouldBlockEnrollRetry(error: unknown): boolean {
+  return readEnrollApiHttpStatus(error) === 422;
+}
+
+/** Re-evaluate enroll snapshot from API payload fields (no message heuristics). */
 export function finalizeEnrollGate(
   snap: Pick<EnrollGateSnapshot, "message" | "studyStartsAt">,
   payload?: unknown,
@@ -108,9 +93,7 @@ export function finalizeEnrollGate(
   let studiesHaveStarted = resolveStudiesHaveStarted(records);
 
   if (!studiesHaveStarted && payload) {
-    if (snap.message && messageImpliesStudyOpen(snap.message)) {
-      studiesHaveStarted = true;
-    } else if (explicitAllow) {
+    if (explicitAllow) {
       studiesHaveStarted = true;
     } else if (snap.studyStartsAt && studyPeriodHasStarted(snap.studyStartsAt)) {
       studiesHaveStarted = true;
@@ -123,15 +106,11 @@ export function finalizeEnrollGate(
 
   let studyOpen = studiesHaveStarted;
   if (!studyOpen) {
-    if (snap.message && messageImpliesStudyOpen(snap.message)) {
-      studyOpen = true;
-    } else if (snap.studyStartsAt && studyPeriodHasStarted(snap.studyStartsAt)) {
+    if (snap.studyStartsAt && studyPeriodHasStarted(snap.studyStartsAt)) {
       studyOpen = true;
     } else if (explicitAllow) {
       studyOpen = true;
     } else if (explicitBlock) {
-      studyOpen = false;
-    } else if (snap.message && messageImpliesStudyNotOpen(snap.message)) {
       studyOpen = false;
     } else if (snap.studyStartsAt) {
       studyOpen = studyPeriodHasStarted(snap.studyStartsAt);
@@ -167,9 +146,14 @@ export function parseEnrollResponse(payload: unknown): EnrollGateSnapshot {
     setStudiesHaveStartedInCookie(true);
   }
 
-  return { ...snap, studiesHaveStarted: studiesHaveStartedFromCookie() || snap.studiesHaveStarted };
+  return {
+    ...snap,
+    studiesHaveStarted:
+      studiesHaveStartedFromCookie() || snap.studiesHaveStarted,
+  };
 }
 
 export function canEnterStudyTerm(): boolean {
   return studiesHaveStartedFromCookie();
 }
+

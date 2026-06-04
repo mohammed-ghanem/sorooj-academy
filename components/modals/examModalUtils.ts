@@ -1,8 +1,9 @@
-import type {
-  VideoExam,
-  VideoExamAnswerPayload,
-  VideoExamOption,
-  VideoExamQuestion,
+import {
+  isArticleExamQuestion,
+  type VideoExam,
+  type VideoExamAnswerPayload,
+  type VideoExamOption,
+  type VideoExamQuestion,
 } from "@/types/studyVideoExam";
 
 export function formatExamLabel(
@@ -32,12 +33,35 @@ export function resolveQuestionOptions(
   return [];
 }
 
+export function isQuestionAnswered(
+  question: VideoExamQuestion,
+  selectedAnswers: Record<number, number>,
+  articleAnswers: Record<number, string>,
+  labels: { trueAnswer: string; falseAnswer: string },
+): boolean {
+  if (isArticleExamQuestion(question.type)) {
+    return Boolean(articleAnswers[question.id]?.trim());
+  }
+
+  const options = resolveQuestionOptions(question, labels);
+  return options.length > 0 && selectedAnswers[question.id] !== undefined;
+}
+
 export function buildExamAnswersPayload(
   exam: VideoExam,
   selectedAnswers: Record<number, number>,
+  articleAnswers: Record<number, string>,
   labels: { trueAnswer: string; falseAnswer: string },
 ): VideoExamAnswerPayload[] {
   return exam.questions.map((question) => {
+    if (isArticleExamQuestion(question.type)) {
+      return {
+        examQuestionId: question.id,
+        type: question.type,
+        articleAnswer: articleAnswers[question.id]?.trim() ?? "",
+      };
+    }
+
     const selected = selectedAnswers[question.id];
 
     if (question.type === "true_false") {
@@ -59,10 +83,10 @@ export function buildExamAnswersPayload(
 export function countAnsweredQuestions(
   exam: VideoExam,
   selectedAnswers: Record<number, number>,
+  articleAnswers: Record<number, string>,
   labels: { trueAnswer: string; falseAnswer: string },
 ) {
-  return exam.questions.filter((question) => {
-    const options = resolveQuestionOptions(question, labels);
-    return options.length > 0 && selectedAnswers[question.id] !== undefined;
-  }).length;
+  return exam.questions.filter((question) =>
+    isQuestionAnswered(question, selectedAnswers, articleAnswers, labels),
+  ).length;
 }

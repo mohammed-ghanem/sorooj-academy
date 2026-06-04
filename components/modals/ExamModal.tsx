@@ -8,14 +8,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   buildExamAnswersPayload,
   countAnsweredQuestions,
   formatExamLabel,
+  isQuestionAnswered,
   resolveQuestionOptions,
 } from "@/components/modals/examModalUtils";
-import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
+import {
+  isArticleExamQuestion,
+  type VideoExam,
+  type VideoExamAnswerPayload,
+} from "@/types/studyVideoExam";
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,6 +38,8 @@ export type ExamModalLabels = {
   questionOf: string;
   multipleChoice: string;
   trueFalseType: string;
+  articleType: string;
+  articlePlaceholder: string;
   previous: string;
   next: string;
   finish: string;
@@ -95,6 +103,9 @@ export default function ExamModal({
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number>
   >({});
+  const [articleAnswers, setArticleAnswers] = useState<Record<number, string>>(
+    {},
+  );
 
   const optionLabels = useMemo(
     () => ({
@@ -108,7 +119,12 @@ export default function ExamModal({
   const totalQuestions = questions.length;
   const currentQuestion = questions[activeIndex];
   const answeredCount = exam
-    ? countAnsweredQuestions(exam, selectedAnswers, optionLabels)
+    ? countAnsweredQuestions(
+        exam,
+        selectedAnswers,
+        articleAnswers,
+        optionLabels,
+      )
     : 0;
   const remainingCount = Math.max(totalQuestions - answeredCount, 0);
   const progressPercent =
@@ -123,6 +139,7 @@ export default function ExamModal({
       setPhase("questions");
       setActiveIndex(0);
       setSelectedAnswers({});
+      setArticleAnswers({});
     }
   }, [open]);
 
@@ -131,10 +148,15 @@ export default function ExamModal({
     setPhase("questions");
     setActiveIndex(0);
     setSelectedAnswers({});
+    setArticleAnswers({});
   }, [exam?.id]);
 
   const handleSelectAnswer = (questionId: number, optionId: number) => {
     setSelectedAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  };
+
+  const handleArticleAnswerChange = (questionId: number, text: string) => {
+    setArticleAnswers((prev) => ({ ...prev, [questionId]: text }));
   };
 
   const handleConfirmSubmit = () => {
@@ -142,6 +164,7 @@ export default function ExamModal({
     const answers = buildExamAnswersPayload(
       exam,
       selectedAnswers,
+      articleAnswers,
       optionLabels,
     );
     void Promise.resolve(onSubmit(answers));
@@ -250,7 +273,12 @@ export default function ExamModal({
               <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
                 {questions.map((question, index) => {
                   const isActive = index === activeIndex;
-                  const isAnswered = selectedAnswers[question.id] !== undefined;
+                  const isAnswered = isQuestionAnswered(
+                    question,
+                    selectedAnswers,
+                    articleAnswers,
+                    optionLabels,
+                  );
 
                   return (
                     <button
@@ -279,11 +307,15 @@ export default function ExamModal({
                 question={currentQuestion}
                 questionIndex={activeIndex}
                 selectedOptionId={selectedAnswers[currentQuestion.id]}
+                articleAnswer={articleAnswers[currentQuestion.id]}
                 labels={labels}
                 optionLabels={optionLabels}
                 rtl={rtl}
                 onSelect={(optionId) =>
                   handleSelectAnswer(currentQuestion.id, optionId)
+                }
+                onArticleChange={(text) =>
+                  handleArticleAnswerChange(currentQuestion.id, text)
                 }
               />
             ) : null}
@@ -354,22 +386,31 @@ function ExamQuestionPanel({
   question,
   questionIndex,
   selectedOptionId,
+  articleAnswer,
   labels,
   optionLabels,
   rtl,
   onSelect,
+  onArticleChange,
 }: {
   question: VideoExam["questions"][number];
   questionIndex: number;
   selectedOptionId?: number;
+  articleAnswer?: string;
   labels: ExamModalLabels;
   optionLabels: { trueAnswer: string; falseAnswer: string };
   rtl: boolean;
   onSelect: (optionId: number) => void;
+  onArticleChange: (text: string) => void;
 }) {
   const options = resolveQuestionOptions(question, optionLabels);
+  const isArticle = isArticleExamQuestion(question.type);
   const isTrueFalse = question.type === "true_false";
-  const typeLabel = isTrueFalse ? labels.trueFalseType : labels.multipleChoice;
+  const typeLabel = isArticle
+    ? labels.articleType
+    : isTrueFalse
+      ? labels.trueFalseType
+      : labels.multipleChoice;
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8">
@@ -387,7 +428,18 @@ function ExamQuestionPanel({
           {question.text}
         </p>
 
-        {options.length === 0 ? (
+        {isArticle ? (
+          <Textarea
+            value={articleAnswer ?? ""}
+            onChange={(event) => onArticleChange(event.target.value)}
+            placeholder={labels.articlePlaceholder}
+            dir={rtl ? "rtl" : "ltr"}
+            className={cn(
+              "min-h-[160px] resize-y border-[#ece7db] bg-white text-base leading-relaxed focus-visible:ring-[#9F854E]",
+              rtl ? "text-right" : "text-left",
+            )}
+          />
+        ) : options.length === 0 ? (
           <p className="text-center text-sm descriptionColor">
             {labels.noQuestions}
           </p>

@@ -203,6 +203,8 @@
       "examQuestionOf": "السؤال {{current}} من {{total}}",
       "examMultipleChoice": "اختيار من متعدد",
       "examTrueFalseType": "صح أو خطأ",
+      "examArticleType": "سؤال مقالي",
+      "examArticlePlaceholder": "اكتب إجابتك هنا...",
       "examPrevious": "السابق",
       "examNext": "التالي",
       "examFinish": "إنهاء الاختبار",

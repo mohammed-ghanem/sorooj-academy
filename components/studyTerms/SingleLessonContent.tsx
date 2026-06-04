@@ -9,7 +9,7 @@ import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamM
 import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
 import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
-import { isLessonExamNoMoreAttemptsMessage } from "@/lib/studyLesson/lessonExamState";
+import { isExamLoadUnderReviewError } from "@/lib/studyLesson/lessonExamState";
 import {
   useCompleteVideoWatchMutation,
   useGetLessonDetailQuery,
@@ -377,12 +377,12 @@ const SingleLessonContent = () => {
       setExamData(exam);
     } catch (err) {
       resetExamState();
-      const message = getApiErrorMessage(err, t?.lessonExamLoadError ?? "");
-      if (isLessonExamNoMoreAttemptsMessage(message)) {
+      if (isExamLoadUnderReviewError(err)) {
+        void refetch();
         toast.info(t?.lessonExamUnderReviewToast ?? "");
         return;
       }
-      toast.error(message);
+      toast.error(getApiErrorMessage(err, t?.lessonExamLoadError ?? ""));
     }
   };
 
@@ -484,6 +484,11 @@ const SingleLessonContent = () => {
       }).unwrap();
       setExamData(exam);
     } catch (err) {
+      if (isExamLoadUnderReviewError(err)) {
+        void refetch();
+        toast.info(t?.lessonExamUnderReviewToast ?? "");
+        return;
+      }
       toast.error(
         getApiErrorMessage(
           err,
@@ -504,6 +509,8 @@ const SingleLessonContent = () => {
       questionOf: t?.examQuestionOf ?? "",
       multipleChoice: t?.examMultipleChoice ?? "",
       trueFalseType: t?.examTrueFalseType ?? "",
+      articleType: t?.examArticleType ?? "",
+      articlePlaceholder: t?.examArticlePlaceholder ?? "",
       previous: t?.examPrevious ?? "",
       next: t?.examNext ?? "",
       finish: t?.examFinish ?? "",

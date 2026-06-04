@@ -79,6 +79,8 @@ export type InfoModalProps = {
   onPrimaryClick?: () => void | Promise<void>;
   /** Disables primary control and shows loading affordance. */
   primaryLoading?: boolean;
+  /** Disables primary without loading spinner (e.g. irrecoverable enroll error). */
+  primaryDisabled?: boolean;
   /** When empty, the outline secondary button is omitted. */
   secondaryLabel?: string;
   /** Layout for Arabic vs English */
@@ -95,6 +97,7 @@ export default function InfoModal({
   primaryHref,
   onPrimaryClick,
   primaryLoading = false,
+  primaryDisabled = false,
   secondaryLabel = "",
   dir = "rtl",
 }: InfoModalProps) {
@@ -103,14 +106,20 @@ export default function InfoModal({
   const hasTitle = title.trim().length > 0;
   const hasDescription = Boolean(description?.trim());
   const { icon: Icon, iconClassName, ringClassName } = VARIANT_CONFIG[variant];
+  const primaryInactive = primaryLoading || primaryDisabled;
 
   const primaryButtonClass = cn(
     "scoundBgColor text-white hover:opacity-90",
     showSecondary ? "w-full sm:w-auto" : "w-full",
+    primaryDisabled && !primaryLoading && "opacity-50 cursor-not-allowed",
   );
 
   const primaryButton = primaryHref ? (
-    <Button asChild className={primaryButtonClass} disabled={primaryLoading}>
+    <Button
+      asChild
+      className={primaryButtonClass}
+      disabled={primaryInactive}
+    >
       <Link href={primaryHref} onClick={() => onOpenChange(false)}>
         {primaryLabel}
       </Link>
@@ -119,9 +128,9 @@ export default function InfoModal({
     <Button
       type="button"
       className={primaryButtonClass}
-      disabled={primaryLoading}
+      disabled={primaryInactive}
       onClick={() => {
-        if (primaryLoading) return;
+        if (primaryInactive) return;
         if (onPrimaryClick) {
           void Promise.resolve(onPrimaryClick());
           return;

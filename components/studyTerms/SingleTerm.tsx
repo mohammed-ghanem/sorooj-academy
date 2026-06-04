@@ -16,7 +16,9 @@ import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import card from "@/public/assets/images/card.jpg";
 
 const SingleTerm = () => {
@@ -53,11 +55,13 @@ const SingleTerm = () => {
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
 
-  const [fetchSubjectDetail, { isFetching: checkingSubjectAccess }] =
-    useLazyGetSubjectDetailQuery();
+  const [fetchSubjectDetail] = useLazyGetSubjectDetailQuery();
 
   const [subjectLockedOpen, setSubjectLockedOpen] = useState(false);
   const [subjectLockedMessage, setSubjectLockedMessage] = useState("");
+  const [startingSubjectId, setStartingSubjectId] = useState<number | null>(
+    null,
+  );
 
   const showSkeleton =
     !invalidId && (!apiReady || isLoading || (isFetching && !term));
@@ -66,6 +70,8 @@ const SingleTerm = () => {
 
   const handleSubjectStart = useCallback(
     async (subject: StudySubject) => {
+      if (startingSubjectId !== null) return;
+
       if (!subject.canAccessSubject) {
         setSubjectLockedMessage(
           subjectT?.subjectLockedMessage ?? t?.subjectLockedTitle ?? "",
@@ -73,6 +79,8 @@ const SingleTerm = () => {
         setSubjectLockedOpen(true);
         return;
       }
+
+      setStartingSubjectId(subject.id);
 
       try {
         await fetchSubjectDetail({
@@ -102,18 +110,30 @@ const SingleTerm = () => {
           extractApiErrorMessage(err, t?.notFound ?? ""),
         );
         setSubjectLockedOpen(true);
+      } finally {
+        setStartingSubjectId(null);
       }
     },
     [
       fetchSubjectDetail,
       lang,
       router,
+      startingSubjectId,
       subjectT?.subjectLockedMessage,
       t?.notFound,
       t?.subjectLockedTitle,
       termId,
     ],
   );
+
+  const handleSubjectCardKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    subject: StudySubject,
+  ) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    void handleSubjectStart(subject);
+  };
 
   if (invalidId) {
     return (
@@ -185,11 +205,22 @@ const SingleTerm = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {subjects.map((subject) => {
                   const progressPercent = subject.lessonsProgress.percentage;
+                  const isStarting = startingSubjectId === subject.id;
 
                   return (
                     <div
                       key={subject.id}
-                      className="bg-white rounded-xl sm:rounded-2xl shadow-r-sm text-center sm:text-right overflow-hidden pb-4"
+                      role="button"
+                      tabIndex={0}
+                      aria-busy={isStarting}
+                      onClick={() => void handleSubjectStart(subject)}
+                      onKeyDown={(event) =>
+                        handleSubjectCardKeyDown(event, subject)
+                      }
+                      className={cn(
+                        "bg-white rounded-xl sm:rounded-2xl shadow-r-sm text-center sm:text-right overflow-hidden pb-4 cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9F854E]/40",
+                        isStarting && "opacity-80",
+                      )}
                     >
                       <div className="mb-4 w-full h-40 relative">
                         <Image
@@ -250,14 +281,14 @@ const SingleTerm = () => {
                         <hr className="my-2" />
 
                         <div className="text-end mt-4">
-                          <button
-                            type="button"
-                            disabled={checkingSubjectAccess}
-                            onClick={() => void handleSubjectStart(subject)}
-                            className="text-sm text-white bkMainColor px-4 py-2 rounded-md font-medium disabled:opacity-60"
+                          <span
+                            className={cn(
+                              "inline-flex items-center justify-center gap-2 text-sm text-white bkMainColor px-4 py-2 rounded-md font-medium",
+                              isStarting && "opacity-90",
+                            )}
                           >
                             {t?.startStudy}
-                          </button>
+                          </span>
                         </div>
                       </div>
                     </div>

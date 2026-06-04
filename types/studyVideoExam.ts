@@ -19,6 +19,17 @@ export type VideoExam = {
   questions: VideoExamQuestion[];
 };
 
+/** Question types returned by the student exam API. */
+export function isArticleExamQuestion(type: string): boolean {
+  const normalized = type.trim().toLowerCase();
+  return (
+    normalized === "article" ||
+    normalized === "essay" ||
+    normalized === "open_text" ||
+    normalized === "text"
+  );
+}
+
 /** Answer row for POST submit-exam (sent as multipart form-data). */
 export type VideoExamAnswerPayload = {
   examQuestionId: number;
@@ -26,6 +37,8 @@ export type VideoExamAnswerPayload = {
   selectedOptionId?: number;
   /** 0 = false, 1 = true — used when `type` is `true_false`. */
   trueFalseAnswer?: number;
+  /** Free-text answer when `type` is `article`. */
+  articleAnswer?: string;
 };
 
 /** Result after POST submit-exam endpoints. */

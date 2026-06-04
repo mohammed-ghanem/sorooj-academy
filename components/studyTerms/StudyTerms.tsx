@@ -29,6 +29,7 @@ import {
 import {
   finalizeEnrollGate,
   parseEnrollResponse,
+  shouldBlockEnrollRetry,
   type EnrollGateSnapshot,
 } from "@/lib/studentProgram/enrollGate";
 import {
@@ -86,6 +87,7 @@ const StudyTerms = () => {
 
   const [gate, setGate] = useState<Gate>(null);
   const [enrollError, setEnrollError] = useState("");
+  const [enrollRetryBlocked, setEnrollRetryBlocked] = useState(false);
   const [enrollSuccessMessage, setEnrollSuccessMessage] = useState("");
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [gateSnapshot, setGateSnapshot] = useState<EnrollGateSnapshot | null>(
@@ -104,6 +106,7 @@ const StudyTerms = () => {
   function resetGateExtras() {
     setPendingHref(null);
     setEnrollError("");
+    setEnrollRetryBlocked(false);
     setEnrollSuccessMessage("");
     setGateSnapshot(null);
     setGateLoading(false);
@@ -166,7 +169,10 @@ const StudyTerms = () => {
   }
 
   async function handleEnrollSubmit() {
+    if (enrollRetryBlocked) return;
+
     setEnrollError("");
+    setEnrollRetryBlocked(false);
     try {
       const data = await enrollInProgram({ lang }).unwrap();
       const snap = parseEnrollResponse(data);
@@ -189,6 +195,7 @@ const StudyTerms = () => {
       setEnrollSuccessMessage(snap.message);
       setGate("enrollSuccess");
     } catch (e) {
+      setEnrollRetryBlocked(shouldBlockEnrollRetry(e));
       setEnrollError(
         messageWithBackendFallback(
           extractApiErrorMessage(e, ""),
@@ -210,6 +217,7 @@ const StudyTerms = () => {
     if (!isStudentEnrolledFromCookie()) {
       setPendingHref(href);
       setEnrollError("");
+      setEnrollRetryBlocked(false);
       setGate("enroll");
       return;
     }
@@ -281,6 +289,8 @@ const StudyTerms = () => {
   const enrollDescription = enrollError.trim()
     ? enrollError
     : (st?.gateEnrollDescription ?? "");
+
+  const enrollPrimaryDisabled = enrollRetryBlocked;
 
   const enrollSuccessDescription = messageWithBackendFallback(
     enrollSuccessMessage,
@@ -537,6 +547,7 @@ const StudyTerms = () => {
                 primaryLabel={st?.gateEnrollAction ?? ""}
                 onPrimaryClick={handleEnrollSubmit}
                 primaryLoading={enrollSubmitting}
+                primaryDisabled={enrollPrimaryDisabled}
                 secondaryLabel={st?.gateClose ?? ""}
                 dir={dir}
               />

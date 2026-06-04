@@ -1,4 +1,9 @@
 /** Snapshot of the latest lesson exam attempt from API payloads. */
+import {
+  readRtkQueryErrorData,
+  readRtkQueryHttpStatus,
+} from "@/lib/studentProgram/programErrors";
+
 export type LessonExamAttemptSnapshot = {
   status: string | null;
   /** `undefined` = field absent (no attempt yet). */
@@ -214,10 +219,17 @@ export function resolveLessonExamUiState(
   };
 }
 
-export function isLessonExamNoMoreAttemptsMessage(message: string): boolean {
-  return /لا يمكنك إجراء المزيد من محاولات|no more attempts|maximum attempts/i.test(
-    message,
-  );
+/**
+ * GET lesson/subject exam rejects with 422 when the attempt is not available
+ * (e.g. under review). Also reads structured attempt fields from the error body.
+ */
+export function isExamLoadUnderReviewError(error: unknown): boolean {
+  if (readRtkQueryHttpStatus(error) === 422) return true;
+
+  const payload = readRtkQueryErrorData(error);
+  if (!payload) return false;
+
+  return isLessonExamUnderReview(extractLessonExamAttempt(payload));
 }
 
 /** Same rules as lesson final exam — used for subject exam UI. */

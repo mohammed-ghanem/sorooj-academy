@@ -81,6 +81,19 @@ export function extractApiErrorMessage(
   return fallback;
 }
 
+/** RTK `unwrap()` rejection shape from `axiosBaseQuery`. */
+export function readRtkQueryHttpStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const status = (error as { status?: unknown }).status;
+  return typeof status === "number" ? status : undefined;
+}
+
+/** Laravel JSON body on failed RTK requests (`error.data`). */
+export function readRtkQueryErrorData(error: unknown): unknown {
+  if (!error || typeof error !== "object") return undefined;
+  return (error as { data?: unknown }).data;
+}
+
 const API_MESSAGE_KEYS = [
   "message",
   "message_ar",

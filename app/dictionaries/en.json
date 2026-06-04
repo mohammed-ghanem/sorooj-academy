@@ -207,6 +207,8 @@
       "examQuestionOf": "Question {{current}} of {{total}}",
       "examMultipleChoice": "Multiple choice",
       "examTrueFalseType": "True or false",
+      "examArticleType": "Essay question",
+      "examArticlePlaceholder": "Type your answer here...",
       "examPrevious": "Previous",
       "examNext": "Next",
       "examFinish": "Finish exam",

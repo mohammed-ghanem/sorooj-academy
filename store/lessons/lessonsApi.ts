@@ -19,6 +19,7 @@ import type {
   VideoExamQuestion,
   VideoExamSubmitResult,
 } from "@/types/studyVideoExam";
+import { isArticleExamQuestion } from "@/types/studyVideoExam";
 
 const BASE_PATH = "lessons";
 const VIDEO_BASE_PATH = "lesson-videos";
@@ -819,6 +820,14 @@ function buildExamSubmitFormData(answers: VideoExamAnswerPayload[]): FormData {
       formData.append(
         `answers[${index}][true_false_answer]`,
         String(answer.trueFalseAnswer ?? 0),
+      );
+      return;
+    }
+
+    if (isArticleExamQuestion(answer.type)) {
+      formData.append(
+        `answers[${index}][article_answer]`,
+        answer.articleAnswer?.trim() ?? "",
       );
       return;
     }
