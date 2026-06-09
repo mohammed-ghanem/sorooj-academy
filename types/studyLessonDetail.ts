@@ -48,6 +48,11 @@ export type StudyLessonDetail = {
   canAccessLessonExam: boolean;
   /** Latest attempt status from API (`submitted`, `graded`, …). */
   lessonExamStatus: string | null;
+  /** Direct `lesson_exam_attempt_status` from GET `/lessons/{id}`. */
+  lessonExamAttemptStatus: string | null;
+  canStartNewLessonExam: boolean;
+  /** Optional backend copy for exam status toasts. */
+  lessonExamBackendMessage?: string;
   /** Latest attempt pass flag — `null` means pending manual grading. */
   lessonExamIsPassed?: boolean | null;
   isLessonExamUnderReview: boolean;

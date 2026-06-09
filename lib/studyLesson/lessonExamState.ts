@@ -182,13 +182,113 @@ export function extractLessonExamAttempt(
   return walkForAttempt(payload);
 }
 
+export function normalizeExamAttemptStatus(
+  status: string | null | undefined,
+): string | null {
+  if (!status?.trim()) return null;
+  const normalized = status.trim().toLowerCase();
+  if (normalized === "submited") return "submitted";
+  return normalized;
+}
+
 export function isLessonExamUnderReview(
   attempt: Pick<LessonExamAttemptSnapshot, "status" | "isPassed">,
 ): boolean {
-  const status = attempt.status?.trim().toLowerCase() ?? null;
+  const status = normalizeExamAttemptStatus(attempt.status);
   if (status === "submitted") return true;
   if (attempt.isPassed === null) return true;
   return false;
+}
+
+export type LessonFinalExamPhase =
+  | "not_started"
+  | "passed"
+  | "retake"
+  | "under_review"
+  | "hidden";
+
+export type LessonFinalExamUiState = {
+  phase: LessonFinalExamPhase;
+  canOpenExam: boolean;
+  showToastOnClick: boolean;
+  toastVariant: "info" | "success" | null;
+  /** True when `can_start_new_*_exam` is false and the student may not retry yet. */
+  attemptsExhausted: boolean;
+};
+
+/** Button + click behaviour from `lesson_exam_attempt_status` and pass flag. */
+export function resolveLessonFinalExamUiState(input: {
+  hasActiveLessonExam: boolean;
+  lessonExamAttemptStatus: string | null;
+  studentHasPassedLessonExam: boolean;
+  canAccessLessonExam?: boolean;
+  canStartNewLessonExam?: boolean;
+  canRetakeLessonExam?: boolean;
+}): LessonFinalExamUiState {
+  if (!input.hasActiveLessonExam) {
+    return {
+      phase: "hidden",
+      canOpenExam: false,
+      showToastOnClick: false,
+      toastVariant: null,
+      attemptsExhausted: false,
+    };
+  }
+
+  const status = normalizeExamAttemptStatus(input.lessonExamAttemptStatus);
+  const passed = input.studentHasPassedLessonExam;
+  const canAccess = input.canAccessLessonExam !== false;
+  const canStartNew = input.canStartNewLessonExam !== false;
+  const attemptsExhausted =
+    !canStartNew && !passed && status !== "submitted";
+
+  if (status === null) {
+    return {
+      phase: "not_started",
+      canOpenExam: canAccess && canStartNew,
+      showToastOnClick: false,
+      toastVariant: null,
+      attemptsExhausted,
+    };
+  }
+
+  if (status === "graded") {
+    if (passed) {
+      return {
+        phase: "passed",
+        canOpenExam: false,
+        showToastOnClick: true,
+        toastVariant: "success",
+        attemptsExhausted: false,
+      };
+    }
+
+    return {
+      phase: "retake",
+      canOpenExam: canAccess && canStartNew,
+      showToastOnClick: false,
+      toastVariant: null,
+      attemptsExhausted,
+    };
+  }
+
+  if (status === "submitted") {
+    return {
+      phase: "under_review",
+      canOpenExam: false,
+      showToastOnClick: true,
+      toastVariant: "info",
+      attemptsExhausted: false,
+    };
+  }
+
+  return {
+    phase: "not_started",
+    canOpenExam: canAccess && canStartNew,
+    showToastOnClick: false,
+    toastVariant: null,
+    attemptsExhausted,
+  };
 }
 
 export function resolveLessonExamUiState(
@@ -234,5 +334,6 @@ export function isExamLoadUnderReviewError(error: unknown): boolean {
 
 /** Same rules as lesson final exam — used for subject exam UI. */
 export const resolveSubjectExamUiState = resolveLessonExamUiState;
+export const resolveSubjectFinalExamUiState = resolveLessonFinalExamUiState;
 export const isSubjectExamUnderReview = isLessonExamUnderReview;
 export const extractSubjectExamAttempt = extractLessonExamAttempt;

@@ -4,8 +4,11 @@ import Cookies from "js-cookie";
 import { axiosBaseQuery } from "@/store/base/axiosBaseQuery";
 import {
     extractSubjectExamAttempt,
+    normalizeExamAttemptStatus,
     resolveSubjectExamUiState,
+    resolveSubjectFinalExamUiState,
 } from "@/lib/studyLesson/lessonExamState";
+import { readCanStartNewExamFlag } from "@/lib/studyLesson/examAccessNotice";
 import {
     buildExamSubmitFormData,
     mapPayloadToVideoExam,
@@ -96,9 +99,12 @@ export type SubjectDetailApiPayload = {
     student_has_passed_subject_exam?: boolean;
     subject_exam_status?: string;
     student_subject_exam_status?: string;
+    subject_exam_attempt_status?: string | null;
     subject_exam_is_passed?: boolean | null;
     student_subject_exam_is_passed?: boolean | null;
     is_subject_exam_under_review?: boolean | number;
+    can_start_new_subject_exam?: boolean | number;
+    subject_exam_message?: string;
     study_term?: {
         id?: number | string;
         name?: string;
@@ -318,6 +324,39 @@ function mapPayloadToStudySubjectDetail(
             raw.can_retake_subject_exam === 1,
     });
 
+    const hasExplicitAttemptStatus = Object.prototype.hasOwnProperty.call(
+        raw,
+        "subject_exam_attempt_status",
+    );
+
+    const subjectExamAttemptStatus = hasExplicitAttemptStatus
+        ? normalizeExamAttemptStatus(
+              typeof raw.subject_exam_attempt_status === "string"
+                  ? raw.subject_exam_attempt_status
+                  : null,
+          )
+        : normalizeExamAttemptStatus(examState.status);
+
+    const canStartNewSubjectExam = readCanStartNewExamFlag(
+        raw.can_start_new_subject_exam,
+    );
+
+    const finalExamUi = resolveSubjectFinalExamUiState({
+        hasActiveLessonExam: raw.has_active_subject_exam === true,
+        lessonExamAttemptStatus: subjectExamAttemptStatus,
+        studentHasPassedLessonExam: raw.student_has_passed_subject_exam === true,
+        canAccessLessonExam: raw.can_access_subject_exam === true,
+        canStartNewLessonExam: canStartNewSubjectExam,
+        canRetakeLessonExam:
+            raw.can_retake_subject_exam === true ||
+            raw.can_retake_subject_exam === 1,
+    });
+
+    const subjectExamBackendMessage =
+        (typeof raw.subject_exam_message === "string" &&
+            raw.subject_exam_message.trim()) ||
+        undefined;
+
     return {
         id,
         title: pickTitle(raw, lang),
@@ -332,13 +371,16 @@ function mapPayloadToStudySubjectDetail(
         canAccessSubject,
         hasActiveSubjectExam: raw.has_active_subject_exam === true,
         canAccessSubjectExam: raw.can_access_subject_exam === true,
-        studentHasPassedSubjectExam: examState.passed,
+        studentHasPassedSubjectExam: finalExamUi.phase === "passed",
         subjectExamStatus: examState.status,
+        subjectExamAttemptStatus,
         subjectExamIsPassed:
             attempt.isPassed === undefined ? undefined : attempt.isPassed,
-        isSubjectExamUnderReview: examState.underReview,
-        canRetakeSubjectExam: examState.canRetake,
-        canOpenSubjectExam: examState.canOpenFinalExam,
+        canStartNewSubjectExam,
+        subjectExamBackendMessage,
+        isSubjectExamUnderReview: finalExamUi.phase === "under_review",
+        canRetakeSubjectExam: finalExamUi.phase === "retake",
+        canOpenSubjectExam: finalExamUi.canOpenExam,
         studyTermId: toNumericId(raw.study_term?.id),
         studyTermName:
             typeof raw.study_term?.name === "string"

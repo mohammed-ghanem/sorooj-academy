@@ -416,15 +416,20 @@ type TermDetailBaseQuery = (
     },
 ) => Promise<{ data?: unknown; error?: unknown }>;
 
+type FetchSubjectsForTermResult =
+    | { ok: true; subjects: StudySubject[] }
+    | { ok: false; error: unknown };
+
 async function fetchSubjectsForTerm(
     baseQuery: TermDetailBaseQuery,
     id: string | number,
     lang: string,
-): Promise<StudySubject[]> {
+): Promise<FetchSubjectsForTermResult> {
     const headers = { "Accept-Language": lang };
+    const primarySubjectsPath = `/${BASE_PATH}/${id}/subjects`;
     /** Backend: GET `/study-terms/{id}/subjects` → `{ data: { Subjects: [...] } }`. */
     const paths = [
-        `/${BASE_PATH}/${id}/subjects`,
+        primarySubjectsPath,
         `/subjects?study_term_id=${id}`,
         `/subjects?study_term=${id}`,
         "/subjects",
@@ -432,7 +437,15 @@ async function fetchSubjectsForTerm(
 
     for (const url of paths) {
         const res = await baseQuery({ url, method: "GET", headers });
-        if (res.error) continue;
+        if (res.error) {
+            if (
+                url === primarySubjectsPath &&
+                (res.error as { status?: number }).status === 403
+            ) {
+                return { ok: false, error: res.error };
+            }
+            continue;
+        }
 
         let raw = unwrapSubjectsArray(res.data);
         const isGlobalSubjectsList =
@@ -444,10 +457,10 @@ async function fetchSubjectsForTerm(
         }
 
         const subjects = sortSubjects(mapSubjectsPayload(raw, lang));
-        if (subjects.length > 0) return subjects;
+        if (subjects.length > 0) return { ok: true, subjects };
     }
 
-    return [];
+    return { ok: true, subjects: [] };
 }
 
 export const studyTermsApi = createApi({
@@ -566,11 +579,19 @@ export const studyTermsApi = createApi({
                     term = mapPayloadToStudyTerm(termRaw, lang);
                 }
 
-                subjects = await fetchSubjectsForTerm(
+                const subjectsResult = await fetchSubjectsForTerm(
                     baseQuery as TermDetailBaseQuery,
                     arg.id,
                     lang,
                 );
+
+                if (!subjectsResult.ok) {
+                    return {
+                        error: subjectsResult.error as FetchBaseQueryError,
+                    };
+                }
+
+                subjects = subjectsResult.subjects;
 
                 if (subjects.length === 0 && detailRes.data) {
                     const termRaw = unwrapStudyTermPayload(detailRes.data);
@@ -599,6 +620,28 @@ export const studyTermsApi = createApi({
                 { type: "StudyTerm", id: String(arg.id) },
             ],
         }),
+
+        /** GET `/study-terms/{id}/subjects` — used before navigating into a term. */
+        getStudyTermSubjects: builder.query<
+            StudySubject[],
+            { id: string | number; lang: string }
+        >({
+            query: ({ id, lang }) => ({
+                url: `/${BASE_PATH}/${id}/subjects`,
+                method: "GET",
+                headers: {
+                    "Accept-Language": resolveAcceptLanguage(lang),
+                },
+            }),
+            transformResponse: (response: unknown, _meta, arg) => {
+                const resolvedLang = resolveAcceptLanguage(arg?.lang);
+                const raw = unwrapSubjectsArray(response);
+                return sortSubjects(mapSubjectsPayload(raw, resolvedLang));
+            },
+            providesTags: (_result, _err, arg) => [
+                { type: "StudyTerm", id: String(arg.id) },
+            ],
+        }),
     }),
 });
 
@@ -608,4 +651,5 @@ export const {
     useGetStudyTermByIdQuery,
     useLazyGetStudyTermByIdQuery,
     useGetStudyTermDetailQuery,
+    useLazyGetStudyTermSubjectsQuery,
 } = studyTermsApi;

@@ -8,8 +8,20 @@ import ExamModal from "@/components/modals/ExamModal";
 import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamModal";
 import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
-import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
-import { isExamLoadUnderReviewError } from "@/lib/studyLesson/lessonExamState";
+import {
+  extractApiErrorMessage,
+  readRtkQueryHttpStatus,
+} from "@/lib/studentProgram/programErrors";
+import {
+  buildExamAccessBlockedDescription,
+  fetchExamBlockedBackendMessage,
+} from "@/lib/studyLesson/examAccessNotice";
+import {
+  isExamLoadUnderReviewError,
+  resolveSubjectFinalExamUiState,
+  type LessonFinalExamPhase,
+} from "@/lib/studyLesson/lessonExamState";
+import type { StudySubjectDetail } from "@/types/studySubjectDetail";
 import {
   useGetSubjectDetailQuery,
   useLazyGetSubjectExamQuery,
@@ -87,7 +99,11 @@ function getLessonActionLabel(
 function getExamButtonClassName(
   enabled: boolean,
   passed = false,
-  options?: { successWhenEnabled?: boolean; className?: string },
+  options?: {
+    successWhenEnabled?: boolean;
+    underReview?: boolean;
+    className?: string;
+  },
 ) {
   const base =
     "w-full mt-4 rounded-md py-2 px-4 font-medium flex items-center justify-center gap-2";
@@ -100,13 +116,50 @@ function getExamButtonClassName(
     );
   }
 
+  if (options?.underReview) {
+    return cn(
+      base,
+      "bg-gray-400 text-white cursor-pointer hover:bg-gray-500 opacity-90",
+      options?.className,
+    );
+  }
+
   return cn(
     base,
     enabled
       ? "bkMainColor text-white cursor-pointer"
-      : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-70",
+      : "bg-gray-300 text-gray-500 cursor-pointer hover:opacity-90 opacity-70",
     options?.className,
   );
+}
+
+function getSubjectExamButtonLabel(
+  phase: LessonFinalExamPhase,
+  labels: {
+    subjectExam?: string;
+    subjectExamPassed?: string;
+    examRetake?: string;
+    subjectExamUnderReview?: string;
+  },
+): string {
+  switch (phase) {
+    case "passed":
+      return labels.subjectExamPassed ?? labels.subjectExam ?? "";
+    case "retake":
+      return labels.examRetake ?? labels.subjectExam ?? "";
+    case "under_review":
+      return labels.subjectExamUnderReview ?? "";
+    case "not_started":
+    default:
+      return labels.subjectExam ?? "";
+  }
+}
+
+function subjectExamStatusToastMessage(
+  subject: StudySubjectDetail,
+  fallback: string,
+): string {
+  return subject.subjectExamBackendMessage?.trim() || fallback;
 }
 
 function handleLessonCardKeyDown(
@@ -139,8 +192,15 @@ const SubjectContent = () => {
   const [examOpen, setExamOpen] = useState(false);
   const [examData, setExamData] = useState<VideoExam | null>(null);
   const [examResult, setExamResult] = useState<ExamModalResult | null>(null);
+  const [examAccessBlockedOpen, setExamAccessBlockedOpen] = useState(false);
+  const [examAccessBlockedDescription, setExamAccessBlockedDescription] =
+    useState("");
+  const [examAccessBlockedShowContact, setExamAccessBlockedShowContact] =
+    useState(false);
 
   const termHref = `/${lang ?? "ar"}/study-terms/${termId}`;
+  const contactUsHref = `/${lang ?? "ar"}/contact-us`;
+  const contactUsLabel = translate?.home?.navbar?.contactUs ?? "";
 
   const idNum = useMemo(
     () =>
@@ -200,27 +260,95 @@ const SubjectContent = () => {
   const subjectLessons = subject?.lessons ?? [];
   const progressPercent = subject?.lessonsProgress.percentage ?? subject?.progress ?? 0;
 
+  const subjectFinalExamUi = useMemo(() => {
+    if (!subject) return null;
+    return resolveSubjectFinalExamUiState({
+      hasActiveLessonExam: subject.hasActiveSubjectExam,
+      lessonExamAttemptStatus: subject.subjectExamAttemptStatus,
+      studentHasPassedLessonExam: subject.studentHasPassedSubjectExam,
+      canAccessLessonExam: subject.canAccessSubjectExam,
+      canStartNewLessonExam: subject.canStartNewSubjectExam,
+      canRetakeLessonExam: subject.canRetakeSubjectExam,
+    });
+  }, [subject]);
+
   useEffect(() => {
     if (showError && subjectAccessDenied) {
       setSubjectAccessDeniedOpen(true);
     }
   }, [showError, subjectAccessDenied]);
 
+  const showSubjectExamStatusToast = () => {
+    if (!subject || !subjectFinalExamUi?.showToastOnClick) return;
+
+    if (subjectFinalExamUi.toastVariant === "success") {
+      toast.success(
+        subjectExamStatusToastMessage(
+          subject,
+          t?.subjectExamAlreadyPassed ?? "",
+        ),
+      );
+      return;
+    }
+
+    toast.info(
+      subjectExamStatusToastMessage(
+        subject,
+        t?.subjectExamUnderReviewToast ?? "",
+      ),
+    );
+  };
+
+  const showSubjectExamAccessBlockedNotice = async (
+    attemptsExhausted: boolean,
+  ) => {
+    if (!subject) return;
+
+    const message = await fetchExamBlockedBackendMessage(
+      () =>
+        fetchSubjectExam({
+          subjectId: idNum,
+          lang: lang ?? "ar",
+        }).unwrap(),
+      {
+        cachedMessage: subject.subjectExamBackendMessage,
+        fallbackMessage: t?.subjectExamLoadError ?? "",
+      },
+    );
+
+    if (attemptsExhausted) {
+      setExamAccessBlockedDescription(
+        buildExamAccessBlockedDescription(
+          message,
+          lessonT?.examAttemptsBlockedContactHint,
+        ),
+      );
+      setExamAccessBlockedShowContact(true);
+      setExamAccessBlockedOpen(true);
+      return;
+    }
+
+    toast.info(message);
+  };
+
   const handleOpenSubjectExam = async () => {
-    if (subject?.isSubjectExamUnderReview) {
-      toast.info(t?.subjectExamUnderReviewToast ?? "");
+    if (!subject || !subjectFinalExamUi) return;
+
+    if (subjectFinalExamUi.showToastOnClick) {
+      showSubjectExamStatusToast();
       return;
     }
-
-    if (subject?.studentHasPassedSubjectExam) {
-      toast.success(t?.subjectExamAlreadyPassed ?? "");
-      return;
-    }
-
-    if (!subject?.canOpenSubjectExam) return;
 
     setExamData(null);
     setExamResult(null);
+
+    if (!subjectFinalExamUi.canOpenExam) {
+      await showSubjectExamAccessBlockedNotice(
+        subjectFinalExamUi.attemptsExhausted,
+      );
+      return;
+    }
+
     setExamOpen(true);
 
     try {
@@ -233,10 +361,17 @@ const SubjectContent = () => {
       resetExamState();
       if (isExamLoadUnderReviewError(err)) {
         void refetch();
-        toast.info(t?.subjectExamUnderReviewToast ?? "");
+        toast.info(
+          extractApiErrorMessage(err, t?.subjectExamUnderReviewToast ?? ""),
+        );
         return;
       }
-      toast.error(extractApiErrorMessage(err, t?.subjectExamLoadError ?? ""));
+      const message = extractApiErrorMessage(err, t?.subjectExamLoadError ?? "");
+      if (readRtkQueryHttpStatus(err) === 403) {
+        toast.info(message);
+        return;
+      }
+      toast.error(message);
     }
   };
 
@@ -295,12 +430,17 @@ const SubjectContent = () => {
     } catch (err) {
       if (isExamLoadUnderReviewError(err)) {
         void refetch();
-        toast.info(t?.subjectExamUnderReviewToast ?? "");
+        toast.info(
+          extractApiErrorMessage(err, t?.subjectExamUnderReviewToast ?? ""),
+        );
         return;
       }
-      toast.error(
-        extractApiErrorMessage(err, t?.subjectExamLoadError ?? ""),
-      );
+      const message = extractApiErrorMessage(err, t?.subjectExamLoadError ?? "");
+      if (readRtkQueryHttpStatus(err) === 403) {
+        toast.info(message);
+        return;
+      }
+      toast.error(message);
     }
   };
 
@@ -575,7 +715,7 @@ const SubjectContent = () => {
                                 alt=""
                               />
                               <p className="mx-1 descriptionColor">
-                                <span className="me-0.5">
+                                <span className="me-0.5"> 
                                   {lesson.attachmentsCount}
                                 </span>
                               </p>
@@ -650,19 +790,25 @@ const SubjectContent = () => {
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              {subject.hasActiveSubjectExam ? (
+              {/* subject exam button */}
+              {subject.hasActiveSubjectExam && subjectFinalExamUi ? (
                 <button
                   type="button"
-                  disabled={
-                    loadingSubjectExam ||
-                    (subject.isSubjectExamUnderReview &&
-                      !subject.studentHasPassedSubjectExam)
-                  }
+                  disabled={loadingSubjectExam}
                   onClick={() => void handleOpenSubjectExam()}
                   className={getExamButtonClassName(
-                    subject.canOpenSubjectExam && !subject.isSubjectExamUnderReview,
-                    subject.studentHasPassedSubjectExam,
-                    { successWhenEnabled: !subject.canRetakeSubjectExam },
+                    subjectFinalExamUi.canOpenExam ||
+                      subjectFinalExamUi.showToastOnClick ||
+                      subjectFinalExamUi.attemptsExhausted ||
+                      !subject.canAccessSubjectExam,
+                    subjectFinalExamUi.phase === "passed",
+                    {
+                      successWhenEnabled:
+                        subjectFinalExamUi.phase === "not_started" ||
+                        subjectFinalExamUi.phase === "passed",
+                      underReview:
+                        subjectFinalExamUi.phase === "under_review",
+                    },
                   )}
                 >
                   <Image
@@ -672,18 +818,19 @@ const SubjectContent = () => {
                     alt=""
                     className={cn(
                       "shrink-0",
-                      (subject.studentHasPassedSubjectExam ||
-                        (subject.canOpenSubjectExam &&
-                          !subject.isSubjectExamUnderReview)) &&
+                      (subjectFinalExamUi.phase === "passed" ||
+                        subjectFinalExamUi.phase === "under_review" ||
+                        subjectFinalExamUi.canOpenExam) &&
                         "brightness-0 invert",
                     )}
                   />
                   <span className="text-lg ms-2">
-                    {subject.isSubjectExamUnderReview
-                      ? (t?.subjectExamUnderReview ?? "")
-                      : subject.studentHasPassedSubjectExam
-                        ? (t?.subjectExamPassed ?? t?.subjectExam ?? "")
-                        : (t?.subjectExam ?? "")}
+                    {getSubjectExamButtonLabel(subjectFinalExamUi.phase, {
+                      subjectExam: t?.subjectExam,
+                      subjectExamPassed: t?.subjectExamPassed,
+                      examRetake: lessonT?.examRetake,
+                      subjectExamUnderReview: t?.subjectExamUnderReview,
+                    })}
                   </span>
                 </button>
               ) : null}
@@ -699,6 +846,29 @@ const SubjectContent = () => {
           description={t?.lessonLockedMessage}
           primaryLabel={t?.close ?? ""}
           onPrimaryClick={() => setLessonLockedOpen(false)}
+          dir={dir}
+        />
+
+        <InfoModal
+          open={examAccessBlockedOpen}
+          onOpenChange={setExamAccessBlockedOpen}
+          variant="info"
+          title=""
+          description={examAccessBlockedDescription}
+          primaryLabel={
+            examAccessBlockedShowContact ? contactUsLabel : (t?.close ?? "")
+          }
+          primaryHref={
+            examAccessBlockedShowContact ? contactUsHref : undefined
+          }
+          onPrimaryClick={
+            examAccessBlockedShowContact
+              ? undefined
+              : () => setExamAccessBlockedOpen(false)
+          }
+          secondaryLabel={
+            examAccessBlockedShowContact ? (t?.close ?? "") : ""
+          }
           dir={dir}
         />
 

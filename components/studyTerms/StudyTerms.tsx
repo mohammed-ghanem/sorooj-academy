@@ -10,7 +10,10 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
-import { useGetStudyTermsQuery } from "@/store/studyTerms/studyTermsApi";
+import {
+  useGetStudyTermsQuery,
+  useLazyGetStudyTermSubjectsQuery,
+} from "@/store/studyTerms/studyTermsApi";
 import StudyTermsCardsSkeleton from "@/components/skeletons/StudyTermsCardsSkeleton";
 import InfoModal from "@/components/modals/InfoModal";
 import {
@@ -25,6 +28,7 @@ import {
   extractStudyStartFromPayload,
   formatStudyStartForLocale,
   messageWithBackendFallback,
+  readRtkQueryHttpStatus,
 } from "@/lib/studentProgram/programErrors";
 import {
   finalizeEnrollGate,
@@ -98,9 +102,13 @@ const StudyTerms = () => {
   const [studiesHaveStarted, setStudiesHaveStarted] = useState(
     () => studiesHaveStartedFromCookie(),
   );
+  const [checkingTermId, setCheckingTermId] = useState<number | null>(null);
+  const [termAccessDeniedOpen, setTermAccessDeniedOpen] = useState(false);
+  const [termAccessDeniedMessage, setTermAccessDeniedMessage] = useState("");
 
   const [enrollInProgram, { isLoading: enrollSubmitting }] =
     useEnrollInProgramMutation();
+  const [fetchTermSubjects] = useLazyGetStudyTermSubjectsQuery();
   const [triggerGetProfile] = useLazyGetProfileQuery();
 
   function resetGateExtras() {
@@ -162,6 +170,41 @@ const StudyTerms = () => {
     router.push(href);
   }
 
+  function parseTermIdFromHref(href: string): number | null {
+    const match = href.match(/\/study-terms\/(\d+)/);
+    if (!match) return null;
+    const id = Number(match[1]);
+    return Number.isNaN(id) ? null : id;
+  }
+
+  function showTermAccessDenied(err: unknown) {
+    setTermAccessDeniedMessage(
+      extractApiErrorMessage(err, st?.termLockedTitle ?? ""),
+    );
+    setTermAccessDeniedOpen(true);
+  }
+
+  async function tryEnterTerm(href: string, termId: number) {
+    if (checkingTermId !== null) return;
+
+    setCheckingTermId(termId);
+    try {
+      await fetchTermSubjects({ id: termId, lang }).unwrap();
+      navigateToTerm(href);
+    } catch (err) {
+      if (readRtkQueryHttpStatus(err) === 403) {
+        showTermAccessDenied(err);
+        return;
+      }
+
+      toast.error(
+        extractApiErrorMessage(err, st?.loadFailed ?? ""),
+      );
+    } finally {
+      setCheckingTermId(null);
+    }
+  }
+
   function resolveTermHref(termId?: number): string | null {
     if (termId != null) return `/${lang}/study-terms/${termId}`;
     const first = studyTerms[0];
@@ -188,7 +231,13 @@ const StudyTerms = () => {
 
       const target = pendingHref ?? resolveTermHref();
       if (target) {
-        navigateToTerm(target);
+        const termId =
+          parseTermIdFromHref(target) ?? studyTerms[0]?.id ?? null;
+        if (termId != null) {
+          await tryEnterTerm(target, termId);
+        } else {
+          navigateToTerm(target);
+        }
         return;
       }
 
@@ -207,6 +256,7 @@ const StudyTerms = () => {
 
   async function handleTermActivate(
     href: string,
+    termId: number,
     termUnlocked: boolean,
     isFirstTerm: boolean,
   ) {
@@ -243,7 +293,7 @@ const StudyTerms = () => {
         }
       }
 
-      navigateToTerm(href);
+      await tryEnterTerm(href, termId);
       return;
     }
 
@@ -252,25 +302,31 @@ const StudyTerms = () => {
       return;
     }
 
-    navigateToTerm(href);
+    await tryEnterTerm(href, termId);
   }
 
   function handleTermKeyDown(
     e: KeyboardEvent<HTMLDivElement>,
     href: string,
+    termId: number,
     termUnlocked: boolean,
     isFirstTerm: boolean,
   ) {
     if (e.key !== "Enter" && e.key !== " ") return;
     e.preventDefault();
-    void handleTermActivate(href, termUnlocked, isFirstTerm);
+    void handleTermActivate(href, termId, termUnlocked, isFirstTerm);
   }
 
   function goToPendingTerm() {
     if (!pendingHref) return;
     const href = pendingHref;
+    const termId = parseTermIdFromHref(href);
     setGate(null);
     resetGateExtras();
+    if (termId != null) {
+      void tryEnterTerm(href, termId);
+      return;
+    }
     router.push(href);
   }
 
@@ -494,20 +550,33 @@ const StudyTerms = () => {
                   const enrolled = isStudentEnrolledFromCookie();
                   const canInteract =
                     unlocked || (enrolled && hasAccessToken() && !studiesHaveStarted);
+                  const isChecking = checkingTermId === item.id;
 
                   return (
                     <div
                       key={item.id}
                       role="button"
-                      tabIndex={canInteract ? 0 : -1}
-                      aria-disabled={!canInteract}
+                      tabIndex={canInteract && !isChecking ? 0 : -1}
+                      aria-disabled={!canInteract || isChecking}
+                      aria-busy={isChecking}
                       onClick={() =>
-                        void handleTermActivate(href, unlocked, isFirstTerm)
+                        void handleTermActivate(
+                          href,
+                          item.id,
+                          unlocked,
+                          isFirstTerm,
+                        )
                       }
                       onKeyDown={(e) =>
-                        handleTermKeyDown(e, href, unlocked, isFirstTerm)
+                        handleTermKeyDown(
+                          e,
+                          href,
+                          item.id,
+                          unlocked,
+                          isFirstTerm,
+                        )
                       }
-                      className={`${cardClass} group`}
+                      className={`${cardClass} group${isChecking ? " opacity-80" : ""}`}
                       aria-label={item.title}
                     >
                       {body}
@@ -602,6 +671,17 @@ const StudyTerms = () => {
                 primaryLabel={st?.gateStudyPlanAction ?? ""}
                 primaryHref={studyPlanHref}
                 secondaryLabel={st?.gateClose ?? ""}
+                dir={dir}
+              />
+
+              <InfoModal
+                open={termAccessDeniedOpen}
+                onOpenChange={setTermAccessDeniedOpen}
+                variant="info"
+                title={st?.termLockedTitle ?? ""}
+                description={termAccessDeniedMessage}
+                primaryLabel={st?.gateClose ?? ""}
+                onPrimaryClick={() => setTermAccessDeniedOpen(false)}
                 dir={dir}
               />
             </>

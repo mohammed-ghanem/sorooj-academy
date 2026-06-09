@@ -6,7 +6,10 @@ import SingleTermDetailSkeleton, {
 } from "@/components/skeletons/SingleTermDetailSkeleton";
 import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
-import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
+import {
+  extractApiErrorMessage,
+  readRtkQueryHttpStatus,
+} from "@/lib/studentProgram/programErrors";
 import { useGetStudyTermDetailQuery } from "@/store/studyTerms/studyTermsApi";
 import { useLazyGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
 import type { StudySubject } from "@/types/studySubject";
@@ -16,10 +19,33 @@ import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import card from "@/public/assets/images/card.jpg";
+
+function getSubjectActionLabel(
+  progressPercent: number,
+  labels: {
+    startStudy?: string;
+    continueStudy?: string;
+    reviewStudy?: string;
+  },
+): string {
+  if (progressPercent >= 100) {
+    return labels.reviewStudy ?? labels.startStudy ?? "";
+  }
+  if (progressPercent > 0) {
+    return labels.continueStudy ?? labels.startStudy ?? "";
+  }
+  return labels.startStudy ?? "";
+}
 
 const SingleTerm = () => {
   const translate = TranslateHook();
@@ -49,6 +75,7 @@ const SingleTerm = () => {
     isLoading,
     isFetching,
     isError,
+    error: termError,
     refetch,
   } = useGetStudyTermDetailQuery(
     { id: termId ?? "", lang: lang ?? "ar" },
@@ -59,14 +86,31 @@ const SingleTerm = () => {
 
   const [subjectLockedOpen, setSubjectLockedOpen] = useState(false);
   const [subjectLockedMessage, setSubjectLockedMessage] = useState("");
+  const [termAccessDeniedOpen, setTermAccessDeniedOpen] = useState(false);
+  const [termAccessDeniedMessage, setTermAccessDeniedMessage] = useState("");
   const [startingSubjectId, setStartingSubjectId] = useState<number | null>(
     null,
   );
 
   const showSkeleton =
     !invalidId && (!apiReady || isLoading || (isFetching && !term));
-  const showError = !invalidId && !showSkeleton && (isError || !term);
+
+  const termAccessDenied =
+    !invalidId &&
+    !showSkeleton &&
+    isError &&
+    readRtkQueryHttpStatus(termError) === 403;
+  const showError =
+    !invalidId && !showSkeleton && !termAccessDenied && (isError || !term);
   const subjects = term?.subjects ?? [];
+
+  useEffect(() => {
+    if (!termAccessDenied) return;
+    setTermAccessDeniedMessage(
+      extractApiErrorMessage(termError, t?.notFound ?? ""),
+    );
+    setTermAccessDeniedOpen(true);
+  }, [termAccessDenied, termError, t?.notFound]);
 
   const handleSubjectStart = useCallback(
     async (subject: StudySubject) => {
@@ -287,7 +331,11 @@ const SingleTerm = () => {
                               isStarting && "opacity-90",
                             )}
                           >
-                            {t?.startStudy}
+                            {getSubjectActionLabel(progressPercent, {
+                              startStudy: t?.startStudy,
+                              continueStudy: t?.continueStudy,
+                              reviewStudy: t?.reviewStudy,
+                            })}
                           </span>
                         </div>
                       </div>
@@ -307,6 +355,23 @@ const SingleTerm = () => {
           description={subjectLockedMessage}
           primaryLabel={t?.close ?? subjectT?.close ?? ""}
           onPrimaryClick={() => setSubjectLockedOpen(false)}
+          dir={dir}
+        />
+
+        <InfoModal
+          open={termAccessDeniedOpen}
+          onOpenChange={(open) => {
+            setTermAccessDeniedOpen(open);
+            if (!open) router.push(listHref);
+          }}
+          variant="info"
+          title={translate?.pages?.studyTerms?.termLockedTitle ?? ""}
+          description={termAccessDeniedMessage}
+          primaryLabel={t?.close ?? ""}
+          onPrimaryClick={() => {
+            setTermAccessDeniedOpen(false);
+            router.push(listHref);
+          }}
           dir={dir}
         />
       </div>

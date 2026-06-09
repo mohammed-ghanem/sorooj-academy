@@ -4,8 +4,11 @@ import Cookies from "js-cookie";
 import { axiosBaseQuery } from "@/store/base/axiosBaseQuery";
 import {
   extractLessonExamAttempt,
+  normalizeExamAttemptStatus,
   resolveLessonExamUiState,
+  resolveLessonFinalExamUiState,
 } from "@/lib/studyLesson/lessonExamState";
+import { readCanStartNewExamFlag } from "@/lib/studyLesson/examAccessNotice";
 import type {
   StudyLessonAttachment,
   StudyLessonDetail,
@@ -157,9 +160,12 @@ export type LessonDetailApiPayload = {
   can_retake_lesson_exam?: boolean | number;
   lesson_exam_status?: string;
   student_lesson_exam_status?: string;
+  lesson_exam_attempt_status?: string | null;
   lesson_exam_is_passed?: boolean | null;
   student_lesson_exam_is_passed?: boolean | null;
   is_lesson_exam_under_review?: boolean | number;
+  can_start_new_lesson_exam?: boolean | number;
+  lesson_exam_message?: string;
   all_videos_completed?: boolean;
   student_has_passed_lesson_exam?: boolean;
   videos_progress?: {
@@ -541,6 +547,38 @@ function mapPayloadToStudyLessonDetail(
       raw.can_retake_lesson_exam === true || raw.can_retake_lesson_exam === 1,
   });
 
+  const hasExplicitAttemptStatus = Object.prototype.hasOwnProperty.call(
+    raw,
+    "lesson_exam_attempt_status",
+  );
+
+  const lessonExamAttemptStatus = hasExplicitAttemptStatus
+    ? normalizeExamAttemptStatus(
+        typeof raw.lesson_exam_attempt_status === "string"
+          ? raw.lesson_exam_attempt_status
+          : null,
+      )
+    : normalizeExamAttemptStatus(examState.status);
+
+  const canStartNewLessonExam = readCanStartNewExamFlag(
+    raw.can_start_new_lesson_exam,
+  );
+
+  const finalExamUi = resolveLessonFinalExamUiState({
+    hasActiveLessonExam: raw.has_active_lesson_exam === true,
+    lessonExamAttemptStatus,
+    studentHasPassedLessonExam: raw.student_has_passed_lesson_exam === true,
+    canAccessLessonExam: raw.can_access_lesson_exam === true,
+    canStartNewLessonExam,
+    canRetakeLessonExam:
+      raw.can_retake_lesson_exam === true || raw.can_retake_lesson_exam === 1,
+  });
+
+  const lessonExamBackendMessage =
+    (typeof raw.lesson_exam_message === "string" &&
+      raw.lesson_exam_message.trim()) ||
+    undefined;
+
   return {
     id,
     lessonNumber,
@@ -560,13 +598,16 @@ function mapPayloadToStudyLessonDetail(
     hasActiveLessonExam: raw.has_active_lesson_exam === true,
     canAccessLessonExam: raw.can_access_lesson_exam === true,
     lessonExamStatus: examState.status,
+    lessonExamAttemptStatus,
     lessonExamIsPassed:
       attempt.isPassed === undefined ? undefined : attempt.isPassed,
-    isLessonExamUnderReview: examState.underReview,
-    canRetakeLessonExam: examState.canRetake,
-    canOpenLessonFinalExam: examState.canOpenFinalExam,
+    canStartNewLessonExam,
+    lessonExamBackendMessage,
+    isLessonExamUnderReview: finalExamUi.phase === "under_review",
+    canRetakeLessonExam: finalExamUi.phase === "retake",
+    canOpenLessonFinalExam: finalExamUi.canOpenExam,
     allVideosCompleted: raw.all_videos_completed === true,
-    studentHasPassedLessonExam: examState.passed,
+    studentHasPassedLessonExam: finalExamUi.phase === "passed",
     videosProgress,
     videos,
     attachments,

@@ -105,6 +105,11 @@ export default function InfoModal({
   const showSecondary = secondaryLabel.trim() !== "";
   const hasTitle = title.trim().length > 0;
   const hasDescription = Boolean(description?.trim());
+  const accessibleTitle =
+    title.trim() ||
+    description?.trim().split("\n")[0]?.trim() ||
+    primaryLabel.trim() ||
+    "Info";
   const { icon: Icon, iconClassName, ringClassName } = VARIANT_CONFIG[variant];
   const primaryInactive = primaryLoading || primaryDisabled;
 
@@ -179,11 +184,14 @@ export default function InfoModal({
             </div>
 
             <div className="min-w-0 flex-1 space-y-3 pe-7">
-              {hasTitle ? (
-                <DialogTitle className="text-xl font-semibold leading-snug mainColor">
-                  {title}
-                </DialogTitle>
-              ) : null}
+              <DialogTitle
+                className={cn(
+                  "text-xl font-semibold leading-snug mainColor",
+                  !hasTitle && "sr-only",
+                )}
+              >
+                {hasTitle ? title : accessibleTitle}
+              </DialogTitle>
               {hasDescription ? (
                 <DialogDescription
                   className={cn(

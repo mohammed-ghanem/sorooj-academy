@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleCheck,
+  Clock3,
   Loader2,
   XCircle,
 } from "lucide-react";
@@ -690,9 +691,9 @@ function ExamResultView({
   if (result.pendingReview) {
     return (
       <div className="flex flex-col items-center px-6 py-12 text-center sm:py-16">
-        <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#faf7f1]">
-          <Loader2
-            className="h-10 w-10 scoundColor animate-spin"
+        <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full border-4 border-[#ece7db] bg-[#faf7f1]">
+          <Clock3
+            className="h-10 w-10 scoundColor"
             strokeWidth={1.75}
             aria-hidden
           />

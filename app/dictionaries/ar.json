@@ -122,6 +122,7 @@
       "previous": "سابق",
       "loadingGateMessage": "جاري تحميل الرسالة…",
       "completePreviousTerm": "أكمل المحور السابق أولاً لفتح هذا المحور.",
+      "termLockedTitle": "المحور غير متاح",
       "loadFailed": "حدث خطأ. يرجى المحاولة مرة أخرى."
     },
     "studyTermDetail": {
@@ -132,6 +133,8 @@
       "progress": "نسبة الإنجاز",
       "retry": "إعادة المحاولة",
       "startStudy": "ابدأ الدراسة",
+      "continueStudy": "متابعة الدراسة",
+      "reviewStudy": "مراجعة الدرس",
       "lessonUnit": "درس",
       "emptySubjects": "لا توجد مواد متاحة في هذا المحور حالياً.",
       "subjectLockedTitle": "المادة غير متاحة",
@@ -189,7 +192,7 @@
       "videoExamLoadError": "تعذر تحميل التقييم",
       "videoExamSubmitError": "تعذر إرسال الإجابات",
       "lessonFinalExam": "الاختبار النهائى للدرس",
-      "lessonFinalExamPassed": "تم اجتياز الاختبار النهائي",
+      "lessonFinalExamPassed": "تم اجتياز الامتحان",
       "lessonExamAlreadyPassed": "لقد تجاوزت الاختبار النهائي بنجاح",
       "lessonExamFailed": "لم يتم اجتياز الاختبار النهائي",
       "lessonExamLoadError": "تعذر تحميل الاختبار النهائي",
@@ -217,6 +220,7 @@
       "examBackToReview": "الرجوع للمراجعة",
       "examFailDescription": "يمكنك مراجعة محتوى الدرس مرة أخرى ثم إعادة الاختبار لإكمال متطلبات هذا الدرس بنجاح.",
       "examRetake": "إعادة الاختبار",
+      "examAttemptsBlockedContactHint": "تواصل مع الإدارة عبر صفحة اتصل بنا وأرسل طلباً للسماح لك بمواصلة الدراسة وإعادة الاختبار مرة أخرى مع ذكر السبب في الطلب.",
       "examBackToLesson": "العودة إلى الدرس",
       "descriptionTab": "وصف الدرس",
       "filesTab": "الملفات المرفقة",

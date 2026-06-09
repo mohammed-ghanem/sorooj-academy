@@ -51,7 +51,10 @@ export type StudySubjectDetail = {
   canAccessSubjectExam: boolean;
   studentHasPassedSubjectExam: boolean;
   subjectExamStatus: string | null;
+  subjectExamAttemptStatus: string | null;
   subjectExamIsPassed?: boolean | null;
+  canStartNewSubjectExam: boolean;
+  subjectExamBackendMessage?: string;
   isSubjectExamUnderReview: boolean;
   canRetakeSubjectExam: boolean;
   canOpenSubjectExam: boolean;

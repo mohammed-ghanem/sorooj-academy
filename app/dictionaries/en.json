@@ -126,6 +126,7 @@
       "previous": "Previous",
       "loadingGateMessage": "Loading message…",
       "completePreviousTerm": "Complete the previous term to unlock this one.",
+      "termLockedTitle": "Track unavailable",
       "loadFailed": "Something went wrong. Please try again."
     },
     "studyTermDetail": {
@@ -136,6 +137,8 @@
       "progress": "Progress",
       "retry": "Try again",
       "startStudy": "Start studying",
+      "continueStudy": "Continue studying",
+      "reviewStudy": "Review lesson",
       "lessonUnit": "lessons",
       "emptySubjects": "No materials are available in this term yet.",
       "subjectLockedTitle": "Subject unavailable",
@@ -221,6 +224,7 @@
       "examBackToReview": "Back to review",
       "examFailDescription": "Review the lesson content and try the exam again to complete this lesson.",
       "examRetake": "Retake exam",
+      "examAttemptsBlockedContactHint": "Contact the administration through the Contact Us page and submit a request to continue your studies and retake the exam, including your reason in the request.",
       "examBackToLesson": "Back to lesson",
       "descriptionTab": "Lesson description",
       "filesTab": "Attachments",

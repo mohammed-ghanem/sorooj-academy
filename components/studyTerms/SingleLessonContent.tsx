@@ -9,7 +9,16 @@ import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamM
 import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
 import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
-import { isExamLoadUnderReviewError } from "@/lib/studyLesson/lessonExamState";
+import {
+  buildExamAccessBlockedDescription,
+  fetchExamBlockedBackendMessage,
+} from "@/lib/studyLesson/examAccessNotice";
+import {
+  isExamLoadUnderReviewError,
+  resolveLessonFinalExamUiState,
+  type LessonFinalExamPhase,
+} from "@/lib/studyLesson/lessonExamState";
+import type { StudyLessonDetail } from "@/types/studyLessonDetail";
 import {
   useCompleteVideoWatchMutation,
   useGetLessonDetailQuery,
@@ -114,7 +123,11 @@ function resolveResumeVideoId(videos: StudyLessonVideo[]): string {
 function getExamButtonClassName(
   enabled: boolean,
   passed = false,
-  options?: { successWhenEnabled?: boolean; className?: string },
+  options?: {
+    successWhenEnabled?: boolean;
+    underReview?: boolean;
+    className?: string;
+  },
 ) {
   const base =
     "text-[13px] text-white px-4 py-2 mt-2.5 rounded-md font-medium flex items-center gap-1.5";
@@ -127,6 +140,14 @@ function getExamButtonClassName(
     );
   }
 
+  if (options?.underReview) {
+    return cn(
+      base,
+      "bg-gray-400 text-white cursor-pointer hover:bg-gray-500 opacity-90",
+      options?.className,
+    );
+  }
+
   return cn(
     base,
     enabled
@@ -134,6 +155,35 @@ function getExamButtonClassName(
       : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-70",
     options?.className,
   );
+}
+
+function getLessonFinalExamButtonLabel(
+  phase: LessonFinalExamPhase,
+  labels: {
+    lessonFinalExam?: string;
+    lessonFinalExamPassed?: string;
+    examRetake?: string;
+    lessonExamUnderReview?: string;
+  },
+): string {
+  switch (phase) {
+    case "passed":
+      return labels.lessonFinalExamPassed ?? labels.lessonFinalExam ?? "";
+    case "retake":
+      return labels.examRetake ?? labels.lessonFinalExam ?? "";
+    case "under_review":
+      return labels.lessonExamUnderReview ?? "";
+    case "not_started":
+    default:
+      return labels.lessonFinalExam ?? "";
+  }
+}
+
+function lessonExamStatusToastMessage(
+  lesson: StudyLessonDetail,
+  fallback: string,
+): string {
+  return lesson.lessonExamBackendMessage?.trim() || fallback;
 }
 
 /** Extra Tailwind classes for the final lesson exam button only — edit here. */
@@ -181,6 +231,18 @@ const SingleLessonContent = () => {
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
 
+  const lessonFinalExamUi = useMemo(() => {
+    if (!lesson) return null;
+    return resolveLessonFinalExamUiState({
+      hasActiveLessonExam: lesson.hasActiveLessonExam,
+      lessonExamAttemptStatus: lesson.lessonExamAttemptStatus,
+      studentHasPassedLessonExam: lesson.studentHasPassedLessonExam,
+      canAccessLessonExam: lesson.canAccessLessonExam,
+      canStartNewLessonExam: lesson.canStartNewLessonExam,
+      canRetakeLessonExam: lesson.canRetakeLessonExam,
+    });
+  }, [lesson]);
+
   const lessonAccessDenied = useMemo(() => {
     if (!lessonError || typeof lessonError !== "object") return false;
     return (lessonError as { status?: number }).status === 403;
@@ -217,6 +279,11 @@ const SingleLessonContent = () => {
   const [examContext, setExamContext] = useState<ExamContext>(null);
   const [examData, setExamData] = useState<VideoExam | null>(null);
   const [examResult, setExamResult] = useState<ExamModalResult | null>(null);
+  const [examAccessBlockedOpen, setExamAccessBlockedOpen] = useState(false);
+  const [examAccessBlockedDescription, setExamAccessBlockedDescription] =
+    useState("");
+  const [examAccessBlockedShowContact, setExamAccessBlockedShowContact] =
+    useState(false);
 
   const [completeVideoWatch, { isLoading: completingWatch }] =
     useCompleteVideoWatchMutation();
@@ -351,18 +418,71 @@ const SingleLessonContent = () => {
     }
   };
 
+  const showLessonExamStatusToast = () => {
+    if (!lesson || !lessonFinalExamUi?.showToastOnClick) return;
+
+    if (lessonFinalExamUi.toastVariant === "success") {
+      toast.success(
+        lessonExamStatusToastMessage(
+          lesson,
+          t?.lessonExamAlreadyPassed ?? "",
+        ),
+      );
+      return;
+    }
+
+    toast.info(
+      lessonExamStatusToastMessage(
+        lesson,
+        t?.lessonExamUnderReviewToast ?? "",
+      ),
+    );
+  };
+
+  const contactUsHref = `/${lang ?? "ar"}/contact-us`;
+  const contactUsLabel = translate?.home?.navbar?.contactUs ?? "";
+
+  const showLessonExamAccessBlockedNotice = async (
+    attemptsExhausted: boolean,
+  ) => {
+    if (!lesson) return;
+
+    const message = await fetchExamBlockedBackendMessage(
+      () =>
+        fetchLessonExam({
+          lessonId: idNum,
+          lang: lang ?? "ar",
+        }).unwrap(),
+      {
+        cachedMessage: lesson.lessonExamBackendMessage,
+        fallbackMessage: t?.lessonExamLoadError ?? "",
+      },
+    );
+
+    setExamAccessBlockedDescription(
+      buildExamAccessBlockedDescription(
+        message,
+        attemptsExhausted ? t?.examAttemptsBlockedContactHint : undefined,
+      ),
+    );
+    setExamAccessBlockedShowContact(attemptsExhausted);
+    setExamAccessBlockedOpen(true);
+  };
+
   const handleOpenLessonExam = async () => {
-    if (lesson?.isLessonExamUnderReview) {
-      toast.info(t?.lessonExamUnderReviewToast ?? "");
+    if (!lesson || !lessonFinalExamUi) return;
+
+    if (lessonFinalExamUi.showToastOnClick) {
+      showLessonExamStatusToast();
       return;
     }
 
-    if (lesson?.studentHasPassedLessonExam) {
-      toast.success(t?.lessonExamAlreadyPassed ?? "");
+    if (!lessonFinalExamUi.canOpenExam) {
+      await showLessonExamAccessBlockedNotice(
+        lessonFinalExamUi.attemptsExhausted,
+      );
       return;
     }
-
-    if (!lesson?.canOpenLessonFinalExam) return;
 
     setExamContext({ kind: "lesson" });
     setExamData(null);
@@ -379,10 +499,12 @@ const SingleLessonContent = () => {
       resetExamState();
       if (isExamLoadUnderReviewError(err)) {
         void refetch();
-        toast.info(t?.lessonExamUnderReviewToast ?? "");
+        toast.info(
+          extractApiErrorMessage(err, t?.lessonExamUnderReviewToast ?? ""),
+        );
         return;
       }
-      toast.error(getApiErrorMessage(err, t?.lessonExamLoadError ?? ""));
+      toast.error(extractApiErrorMessage(err, t?.lessonExamLoadError ?? ""));
     }
   };
 
@@ -573,40 +695,37 @@ const SingleLessonContent = () => {
   };
 
   const renderLessonFinalExamButton = (options?: { className?: string }) => {
-    if (!lesson?.hasActiveLessonExam) return null;
+    if (!lesson?.hasActiveLessonExam || !lessonFinalExamUi) return null;
+    if (lessonFinalExamUi.phase === "hidden") return null;
 
-    const underReview = lesson.isLessonExamUnderReview;
-    const passed = lesson.studentHasPassedLessonExam;
-    const canRetake = lesson.canRetakeLessonExam;
-    const canOpen = lesson.canOpenLessonFinalExam;
-    const isHighlighted = passed || (canOpen && !underReview);
+    const { phase, canOpenExam, showToastOnClick, attemptsExhausted } =
+      lessonFinalExamUi;
+    const passed = phase === "passed";
+    const underReview = phase === "under_review";
+    const isClickable =
+      canOpenExam || showToastOnClick || attemptsExhausted || !lesson.canAccessLessonExam;
+    const isHighlighted = passed || underReview || canOpenExam;
 
-    const buttonLabel = underReview
-      ? (t?.lessonExamUnderReview ?? "")
-      : passed
-        ? (t?.lessonFinalExamPassed ?? t?.lessonFinalExam)
-        : t?.lessonFinalExam;
+    const buttonLabel = getLessonFinalExamButtonLabel(phase, {
+      lessonFinalExam: t?.lessonFinalExam,
+      lessonFinalExamPassed: t?.lessonFinalExamPassed,
+      examRetake: t?.examRetake,
+      lessonExamUnderReview: t?.lessonExamUnderReview,
+    });
 
     return (
       <button
         type="button"
-        disabled={underReview || (!canOpen && !passed)}
-        onClick={() => {
-          if (underReview) {
-            toast.info(t?.lessonExamUnderReviewToast ?? "");
-            return;
-          }
-          if (passed) {
-            toast.success(t?.lessonExamAlreadyPassed ?? "");
-            return;
-          }
-          if (!canOpen && !canRetake) return;
-          void handleOpenLessonExam();
-        }}
-        className={getExamButtonClassName(canOpen && !underReview, passed, {
-          successWhenEnabled: !canRetake || passed,
-          className: cn(LESSON_FINAL_EXAM_BUTTON_CLASS, options?.className),
-        })}
+        onClick={() => void handleOpenLessonExam()}
+        className={getExamButtonClassName(
+          isClickable,
+          passed,
+          {
+            successWhenEnabled: phase === "not_started" || passed,
+            underReview,
+            className: cn(LESSON_FINAL_EXAM_BUTTON_CLASS, options?.className),
+          },
+        )}
       >
         <Image
           src="/assets/images/exam.svg"
@@ -1040,6 +1159,31 @@ const SingleLessonContent = () => {
               </div>
             </div>
           </div>
+
+          <InfoModal
+            open={examAccessBlockedOpen}
+            onOpenChange={setExamAccessBlockedOpen}
+            variant="info"
+            title=""
+            description={examAccessBlockedDescription}
+            primaryLabel={
+              examAccessBlockedShowContact
+                ? contactUsLabel
+                : (subjectT?.close ?? "")
+            }
+            primaryHref={
+              examAccessBlockedShowContact ? contactUsHref : undefined
+            }
+            onPrimaryClick={
+              examAccessBlockedShowContact
+                ? undefined
+                : () => setExamAccessBlockedOpen(false)
+            }
+            secondaryLabel={
+              examAccessBlockedShowContact ? (subjectT?.close ?? "") : ""
+            }
+            dir={dir}
+          />
 
           <ExamModal
             open={examOpen}
