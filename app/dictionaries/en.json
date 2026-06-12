@@ -11,6 +11,18 @@
       "contactUs": "Contact Us",
       "login": "Login",
       "student": "Student"
+    },
+    "hero": {
+      "enrollNow": "Enroll in the program now",
+      "continueStudy": "Continue your learning journey",
+      "startStudyNow": "Start your study now",
+      "loginRequiredDescription": "You must sign in before you can enroll in the academy.",
+      "learnAboutProgram": "Learn about the program",
+      "batchBadge": "New batch — enrollment is open for 2026–2027",
+      "headlineMain": "Learn with knowledge ...",
+      "headlineAccent": "and progress with certainty",
+      "description": "An integrated study path combining sound scholarship, structured understanding, and practical application in Islamic studies.",
+      "independentPathsHint": "You can benefit from independent learning paths until a new academic enrollment batch opens."
     }
   },
   "loading": {

@@ -1,4 +1,4 @@
-/** Study topic (axis) — list + detail. Maps GET `/study-terms` items. */
+/** Study topic (axis) — list + detail. Maps GET `/study-terms` or `/public-study-terms`. */
 export type StudyTerm = {
   id: number;
   title: string;
@@ -16,6 +16,10 @@ export type StudyTerm = {
   isCurrent?: boolean;
   /** True when backend marks the term complete or progress is 100%. */
   isCompleted?: boolean;
+  /** From GET `/study-terms` — term locked for this student. */
+  isLocked?: boolean;
+  /** From GET `/study-terms` — student may open this term. */
+  canAccessStudyTerm?: boolean;
   /** Localized label from `academic_year` when present. */
   academicYearLabel?: string;
 };

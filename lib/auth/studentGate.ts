@@ -62,6 +62,11 @@ export function studiesHaveStartedFromCookie(): boolean {
   return false;
 }
 
+/** Authenticated student list: GET `/study-terms`. Otherwise GET `/public-study-terms`. */
+export function shouldUseStudentStudyTermsApi(): boolean {
+  return hasAccessToken() && isStudentEnrolledFromCookie();
+}
+
 export function setStudiesHaveStartedInCookie(started: boolean): void {
   const u = readUserFromCookie();
   if (!u) return;

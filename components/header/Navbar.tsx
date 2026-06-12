@@ -58,7 +58,7 @@ const Navbar = () => {
     { label: translate?.home?.navbar?.studyPlan, href: `/${lang}/study-plan` },
     { label: translate?.home?.navbar?.teachingStaff, href: `/${lang}/faculty-members`},
     { label: translate?.home?.navbar?.StudyTopics, href: `/${lang}/study-terms` },
-    { label: translate?.home?.navbar?.independentScientificPaths, href: "" }, 
+    { label: translate?.home?.navbar?.independentScientificPaths, href: `/${lang}/single-learning-pathes` }, 
     { label: translate?.home?.navbar?.library, href: `/${lang}/book-library` },
     { label: translate?.home?.navbar?.contactUs, href: `/${lang}/contact-us` },
   ];

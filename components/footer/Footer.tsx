@@ -14,9 +14,9 @@ const Footer = () => {
 
   const mainLinks = [
     { label: "الرئيسية", href: `/${lang}/` },
-    { label: "اعضاء هيئة التدريس", href: "#" },
+    { label: "اعضاء هيئة التدريس", href: `/${lang}/faculty-members` },
     { label: "الخطة الدراسية", href: `/${lang}/study-plan` },
-    { label: "مسارات علمية مستقلة", href: "#" },
+    { label: "مسارات علمية مستقلة", href: `/${lang}/single-learning-pathes` },
     { label: "المكتبة العلمية", href: `/${lang}/book-library` },
     { label: "تواصل معنا", href: `/${lang}/contact-us` },
   ];
@@ -101,7 +101,7 @@ const Footer = () => {
         </div>
 
         {/* Divider */}
-        {/* <div className="border-t border-gray-500 mb-2"></div> */}
+        
 
         <div className="text-center text-white font-bold text-xs mt-6 pb-4">
           <p>

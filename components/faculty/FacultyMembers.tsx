@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
+import FacultyMembersSkeleton, {
+  FacultyMembersHeroTitleSkeleton,
+} from "@/components/skeletons/FacultyMembersSkeleton";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
 import { useGetDoctorsQuery } from "@/store/facultyMembers/facultyMembersApi";
@@ -31,7 +34,12 @@ const FacultyMembers = () => {
 
   if (!translate) {
     return (
-      <div className="min-h-[50vh] animate-pulse bg-gray-100/50" aria-hidden />
+      <div className="bg-white">
+        <SmallHeroSection title={<FacultyMembersHeroTitleSkeleton />} />
+        <div className="container mx-auto mt-20 w-[92%] max-w-7xl px-2 pt-4 pb-16 md:pt-6 md:pb-20">
+          <FacultyMembersSkeleton />
+        </div>
+      </div>
     );
   }
 
@@ -47,20 +55,7 @@ const FacultyMembers = () => {
       />
 
       <div className="container mx-auto mt-20 w-[92%] max-w-7xl px-2 pt-4 pb-16 md:pt-6 md:pb-20">
-        {isLoading && (
-          <div
-            className="grid grid-cols-1 gap-x-10 gap-y-20 sm:grid-cols-2 md:gap-y-16 lg:grid-cols-4 lg:gap-y-8"
-            aria-busy
-            aria-label={f?.loading ?? "Loading"}
-          >
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="relative mx-auto h-72 w-full max-w-sm animate-pulse rounded-3xl border border-[#E8E0D4]/60 bg-[#FAF7F2] px-5 pt-16 pb-8"
-              />
-            ))}
-          </div>
-        )}
+        {isLoading && <FacultyMembersSkeleton />}
 
         {isError && !isLoading && (
           <div

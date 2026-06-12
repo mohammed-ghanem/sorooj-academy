@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
 import {
+  useGetPublicStudyTermsQuery,
   useGetStudyTermsQuery,
   useLazyGetStudyTermSubjectsQuery,
 } from "@/store/studyTerms/studyTermsApi";
@@ -19,8 +20,10 @@ import InfoModal from "@/components/modals/InfoModal";
 import {
   hasAccessToken,
   isStudentEnrolledFromCookie,
+  shouldUseStudentStudyTermsApi,
   studiesHaveStartedFromCookie,
 } from "@/lib/auth/studentGate";
+import { useSessionReady } from "@/hooks/useSessionReady";
 import { useEnrollInProgramMutation } from "@/store/studentHome/studentHomeApi";
 import { useLazyGetProfileQuery } from "@/store/auth/authApi";
 import {
@@ -40,6 +43,7 @@ import {
   isStudyTermCompleted,
   isStudyTermUnlocked,
 } from "@/lib/studyTerms/termUnlock";
+import { cn } from "@/lib/utils";
 
 type Gate =
   | "login"
@@ -53,7 +57,7 @@ const authCookieOptions = {
   expires: 7,
   secure: process.env.NODE_ENV === "production",
   path: "/",
-} as const; 
+} as const;
 
 function persistProfileToCookie(profile: unknown) {
   const p = profile as { data?: unknown; user?: unknown };
@@ -72,14 +76,37 @@ const StudyTerms = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const lang = LangUseParams() ?? "ar";
+  const sessionReady = useSessionReady();
+
+  const [studentTermsMode, setStudentTermsMode] = useState(() =>
+    shouldUseStudentStudyTermsApi(),
+  );
+
+  const usePublicTermsApi = !studentTermsMode;
 
   const {
-    data: studyTerms = [],
-    isLoading,
-    isError,
-    error: studyTermsError,
-    refetch,
-  } = useGetStudyTermsQuery({ lang });
+    data: publicStudyTerms = [],
+    isLoading: publicLoading,
+    isError: publicError,
+    error: publicStudyTermsError,
+    refetch: refetchPublicTerms,
+  } = useGetPublicStudyTermsQuery({ lang }, { skip: !usePublicTermsApi });
+
+  const {
+    data: studentStudyTerms = [],
+    isLoading: studentLoading,
+    isError: studentError,
+    error: studentStudyTermsError,
+    refetch: refetchStudentTerms,
+  } = useGetStudyTermsQuery({ lang }, { skip: usePublicTermsApi });
+
+  const studyTerms = usePublicTermsApi ? publicStudyTerms : studentStudyTerms;
+  const isLoading = usePublicTermsApi ? publicLoading : studentLoading;
+  const isError = usePublicTermsApi ? publicError : studentError;
+  const studyTermsError = usePublicTermsApi
+    ? publicStudyTermsError
+    : studentStudyTermsError;
+  const refetch = usePublicTermsApi ? refetchPublicTerms : refetchStudentTerms;
 
   const td = translate?.pages?.studyTermDetail;
   const st = translate?.pages?.studyTerms;
@@ -99,8 +126,8 @@ const StudyTerms = () => {
   );
   const [gateLoading, setGateLoading] = useState(false);
   const [enterTermMessage, setEnterTermMessage] = useState("");
-  const [studiesHaveStarted, setStudiesHaveStarted] = useState(
-    () => studiesHaveStartedFromCookie(),
+  const [studiesHaveStarted, setStudiesHaveStarted] = useState(() =>
+    studiesHaveStartedFromCookie(),
   );
   const [checkingTermId, setCheckingTermId] = useState<number | null>(null);
   const [termAccessDeniedOpen, setTermAccessDeniedOpen] = useState(false);
@@ -197,9 +224,7 @@ const StudyTerms = () => {
         return;
       }
 
-      toast.error(
-        extractApiErrorMessage(err, st?.loadFailed ?? ""),
-      );
+      toast.error(extractApiErrorMessage(err, st?.loadFailed ?? ""));
     } finally {
       setCheckingTermId(null);
     }
@@ -223,6 +248,7 @@ const StudyTerms = () => {
       setGateSnapshot(snap);
       await syncProfileAfterEnroll();
       setStudiesHaveStarted(studiesHaveStartedFromCookie());
+      setStudentTermsMode(shouldUseStudentStudyTermsApi());
 
       if (!snap.studiesHaveStarted) {
         showStudyNotStarted(snap);
@@ -231,8 +257,7 @@ const StudyTerms = () => {
 
       const target = pendingHref ?? resolveTermHref();
       if (target) {
-        const termId =
-          parseTermIdFromHref(target) ?? studyTerms[0]?.id ?? null;
+        const termId = parseTermIdFromHref(target) ?? studyTerms[0]?.id ?? null;
         if (termId != null) {
           await tryEnterTerm(target, termId);
         } else {
@@ -274,8 +299,7 @@ const StudyTerms = () => {
 
     setPendingHref(href);
 
-    const started =
-      studiesHaveStarted || studiesHaveStartedFromCookie();
+    const started = studiesHaveStarted || studiesHaveStartedFromCookie();
 
     if (!started) {
       const snap = await refreshEnrollGate();
@@ -331,8 +355,10 @@ const StudyTerms = () => {
   }
 
   useEffect(() => {
+    if (!sessionReady) return;
     setStudiesHaveStarted(studiesHaveStartedFromCookie());
-  }, [lang]);
+    setStudentTermsMode(shouldUseStudentStudyTermsApi());
+  }, [lang, sessionReady]);
 
   useEffect(() => {
     if (searchParams.get("studyPending") !== "1") return;
@@ -389,9 +415,7 @@ const StudyTerms = () => {
       : (st?.gateStudyNotStartedTitle ?? "");
 
   const studyAccessActive =
-    hasAccessToken() &&
-    isStudentEnrolledFromCookie() &&
-    studiesHaveStarted;
+    hasAccessToken() && isStudentEnrolledFromCookie() && studiesHaveStarted;
 
   return (
     <div>
@@ -412,7 +436,7 @@ const StudyTerms = () => {
 
       <div className=" bg-[#F6F6F6] px-2 pt-4 pb-16  md:pt-6 md:pb-70">
         <div className="container mx-auto w-[90%] mt-20">
-          {isLoading && <StudyTermsCardsSkeleton />}
+          {isLoading && <StudyTermsCardsSkeleton dir={dir} />}
 
           {!isLoading && isError && (
             <div
@@ -420,10 +444,7 @@ const StudyTerms = () => {
               role="alert"
             >
               <p className="mb-4 font-semibold whitespace-pre-line">
-                {extractApiErrorMessage(
-                  studyTermsError,
-                  st?.loadFailed ?? "",
-                )}
+                {extractApiErrorMessage(studyTermsError, st?.loadFailed ?? "")}
               </p>
               <button
                 type="button"
@@ -436,9 +457,7 @@ const StudyTerms = () => {
           )}
 
           {!isLoading && !isError && studyTerms.length === 0 && (
-            <p className="text-center text-sm text-gray-600">
-              {st?.emptyList}
-            </p>
+            <p className="text-center text-sm text-gray-600">{st?.emptyList}</p>
           )}
 
           {!isLoading && !isError && studyTerms.length > 0 && (
@@ -449,19 +468,26 @@ const StudyTerms = () => {
                   const isFirstTerm = index === 0;
                   const unlocked = isStudyTermUnlocked(
                     index,
+                    item,
                     studyTerms,
                     studyAccessActive,
                   );
                   const completed = isStudyTermCompleted(item);
                   const progressWidth = studyAccessActive ? item.progress : 0;
+                  const isRtl = dir === "rtl";
 
-                  const cardClass = unlocked
-                    ? `block bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 relative
-      opacity-100 shadow-r-sm transition-all duration-300 ease-in-out text-center sm:text-right
-      hover:shadow-md cursor-pointer`
-                    : `block bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 relative
-      opacity-50 shadow-r-sm transition-all duration-300 ease-in-out text-center sm:text-right
-      ${studyAccessActive ? "cursor-not-allowed" : "hover:opacity-100 hover:shadow-md cursor-pointer"}`;
+                  const cardClass = cn(
+                    "group relative block rounded-xl bg-white p-4 shadow-r-sm transition-all duration-300 ease-in-out sm:rounded-2xl sm:p-5 lg:p-6",
+                    isRtl ? "text-center sm:text-right" : "text-center sm:text-left",
+                    unlocked
+                      ? "cursor-pointer opacity-100 hover:shadow-md"
+                      : cn(
+                          "opacity-50",
+                          studyAccessActive
+                            ? "cursor-not-allowed"
+                            : "cursor-pointer hover:opacity-100 hover:shadow-md",
+                        ),
+                  );
 
                   const statusLabel = completed
                     ? previousLabel
@@ -477,70 +503,93 @@ const StudyTerms = () => {
 
                   const body = (
                     <>
-                      <div className="flex justify-between items-center mb-8 md:mb-4">
-                        <h2 className="text-lg md:text-l font-semibold mainColor">
+                      <span
+                        className={cn(
+                          "absolute top-0 bg-[#F6F6F6] px-6 py-4 text-3xl font-bold text-[#c6a96aad]",
+                          isRtl
+                            ? "left-0 rounded-br-xl"
+                            : "right-0 rounded-bl-xl",
+                        )}
+                      >
+                        {String(item.id).padStart(2, "0")}
+                      </span>
+
+                      <div
+                        className={cn(
+                          "mb-8 min-h-16 md:mb-4",
+                          isRtl ? "pt-1 pe-2 text-right" : "pt-1 ps-2 pe-20 text-left",
+                        )}
+                      >
+                        <h2 className="text-lg font-semibold mainColor md:text-xl">
                           {item.title}
                         </h2>
-                        <div>
-                          <span
-                            className="bg-[#F6F6F6] text-[#c6a96aad] text-3xl px-6 py-4 
-                  rounded-br-xl font-bold absolute top-0 left-0"
-                          >
-                            {String(item.id).padStart(2, "0")}
-                          </span>
-                        </div>
                       </div>
 
-                      <div className="flex justify-start">
-                        <div className="flex">
+                      <div
+                        className={cn(
+                          "flex flex-wrap gap-x-4 gap-y-2",
+                          isRtl ? "justify-start" : "justify-start",
+                        )}
+                      >
+                        <div className="flex items-center">
                           <Image
                             src={book.src}
                             width={18}
                             height={18}
-                            alt="book"
+                            alt=""
                           />
-                          <p className="me-2 ms-2 descriptionColor">
+                          <p className="ms-2 me-2 descriptionColor">
                             <span className="me-0.5">
                               {item.materialsCount}
                             </span>
                             <span>{td?.materials ?? "مواد تعليمية"}</span>
                           </p>
                         </div>
-                        <div className="flex ms-4">
+                        <div className="flex items-center">
                           <Image
                             src={lessons.src}
                             width={18}
                             height={18}
-                            alt="lessonscreen"
+                            alt=""
                           />
-                          <p className="me-2 ms-2 descriptionColor">
+                          <p className="ms-2 me-2 descriptionColor">
                             <span className="me-0.5">{item.lessonsCount}</span>
                             <span>{td?.lessons ?? "دروس"}</span>
                           </p>
                         </div>
                       </div>
 
-                      <p className="text-xs mt-2">{item.shortDescription}</p>
+                      <p
+                        className={cn(
+                          "mt-2 text-xs leading-relaxed descriptionColor",
+                          isRtl ? "text-right" : "text-left",
+                        )}
+                      >
+                        {item.shortDescription}
+                      </p>
 
-                      <div className="w-full bg-gray-200 mt-3 rounded-full h-2 mb-3 overflow-hidden">
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold mainColor">
+                          {td?.progress ?? "نسبة الإنجاز"}
+                        </p>
+                        <p className="text-xs text-gray-500">{progressWidth}%</p>
+                      </div>
+
+                      <div className="mt-2 mb-3 h-2 w-full overflow-hidden rounded-full bg-gray-200">
                         <div
                           className="h-full scoundBgColor transition-all duration-500"
                           style={{ width: `${progressWidth}%` }}
                         />
                       </div>
 
-                      {statusLabel ? (
-                        <div className="text-xs text-gray-500 mb-4">
-                          {statusLabel}
-                        </div>
-                      ) : null}
-
                       <span
-                        className={`text-sm font-medium scoundColor ${
+                        className={cn(
+                          "block text-sm font-medium scoundColor",
+                          isRtl ? "text-end" : "text-start",
                           unlocked
                             ? "group-hover:underline"
-                            : "cursor-not-allowed"
-                        }`}
+                            : "cursor-not-allowed",
+                        )}
                       >
                         {actionLabel}
                       </span>
@@ -549,7 +598,8 @@ const StudyTerms = () => {
 
                   const enrolled = isStudentEnrolledFromCookie();
                   const canInteract =
-                    unlocked || (enrolled && hasAccessToken() && !studiesHaveStarted);
+                    unlocked ||
+                    (enrolled && hasAccessToken() && !studiesHaveStarted);
                   const isChecking = checkingTermId === item.id;
 
                   return (
@@ -576,7 +626,7 @@ const StudyTerms = () => {
                           isFirstTerm,
                         )
                       }
-                      className={`${cardClass} group${isChecking ? " opacity-80" : ""}`}
+                      className={cn(cardClass, isChecking && "opacity-80")}
                       aria-label={item.title}
                     >
                       {body}

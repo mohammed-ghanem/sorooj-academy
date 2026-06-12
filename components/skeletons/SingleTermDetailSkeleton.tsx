@@ -2,14 +2,33 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function SubjectCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-xl bg-white pb-4 shadow-r-sm sm:rounded-2xl">
-      <Skeleton className="mb-4 h-40 w-full rounded-none scoundBgColor opacity-15" />
-      <div className="mx-4 space-y-3">
-        <Skeleton className="h-5 w-3/4 rounded-md scoundBgColor opacity-15" />
-        <Skeleton className="h-3 w-full rounded-md scoundBgColor opacity-15" />
-        <Skeleton className="h-3 w-5/6 rounded-md scoundBgColor opacity-15" />
-        <Skeleton className="h-2 w-full rounded-full scoundBgColor opacity-15" />
-        <Skeleton className="ms-auto h-9 w-28 rounded-md scoundBgColor opacity-15" />
+    <div
+      className="overflow-hidden rounded-xl bg-white pb-4 text-center shadow-r-sm sm:rounded-2xl sm:text-right"
+      aria-hidden
+    >
+      <div className="relative mb-4 h-40 w-full p-2.5">
+        <Skeleton className="h-full w-full rounded-3xl scoundBgColor opacity-15" />
+      </div>
+
+      <div className="mx-4">
+        <Skeleton className="mb-4 h-5 w-3/4 rounded-md scoundBgColor opacity-15" />
+
+        <Skeleton className="mb-2 h-3 w-full rounded-md scoundBgColor opacity-15" />
+
+        <Skeleton className="mb-1 h-4 w-24 rounded-md scoundBgColor opacity-15" />
+
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-16 rounded-md scoundBgColor opacity-15" />
+          <Skeleton className="h-3 w-10 rounded-md scoundBgColor opacity-15" />
+        </div>
+
+        <Skeleton className="mt-2 h-2 w-full rounded-full scoundBgColor opacity-15" />
+
+        <hr className="my-2" />
+
+        <div className="mt-4 text-end">
+          <Skeleton className="ms-auto inline-block h-9 w-28 rounded-md scoundBgColor opacity-15" />
+        </div>
       </div>
     </div>
   );
@@ -19,7 +38,7 @@ type SingleTermDetailSkeletonProps = {
   count?: number;
 };
 
-/** Term detail: grid of subject cards. */
+/** Term detail: grid of subject cards — matches `SingleTerm.tsx`. */
 export default function SingleTermDetailSkeleton({
   count = 4,
 }: SingleTermDetailSkeletonProps) {

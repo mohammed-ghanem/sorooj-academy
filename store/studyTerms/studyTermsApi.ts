@@ -7,6 +7,7 @@ import type { StudyTerm } from "@/types/studyTerm";
 import type { StudySubject, StudyTermDetail } from "@/types/studySubject";
 
 const BASE_PATH = "study-terms";
+const PUBLIC_BASE_PATH = "public-study-terms";
 
 /** Match auth-style `Accept-Language`: URL `lang` first, then cookie, then `ar`. */
 function resolveAcceptLanguage(lang?: string): string {
@@ -42,6 +43,14 @@ export type StudyTermApiPayload = {
     is_term_watch_completed?: number | boolean;
     is_active?: number | boolean;
     is_current?: number | boolean;
+    is_locked?: boolean | number;
+    can_access_study_term?: boolean | number;
+    student_has_completed_study_term?: boolean | number;
+    subjects_progress?: {
+        completed?: number;
+        total?: number;
+        percentage?: number;
+    };
     subjects?: SubjectApiPayload[];
     academic_year?: {
         id?: number;
@@ -104,6 +113,14 @@ function pickAcademicYearLabel(
 }
 
 function resolveTermProgress(raw: StudyTermApiPayload): number {
+    const sp = raw.subjects_progress;
+    if (sp?.percentage !== undefined && sp.percentage !== null) {
+        const fromSubjects = Number(sp.percentage);
+        if (!Number.isNaN(fromSubjects)) {
+            return Math.min(100, Math.max(0, fromSubjects));
+        }
+    }
+
     const value =
         raw.progress ??
         raw.progress_percent ??
@@ -118,6 +135,13 @@ function resolveTermCompleted(
     raw: StudyTermApiPayload,
     progress: number,
 ): boolean {
+    if (
+        raw.student_has_completed_study_term === true ||
+        raw.student_has_completed_study_term === 1
+    ) {
+        return true;
+    }
+
     if (
         raw.is_completed === true ||
         raw.is_completed === 1 ||
@@ -145,6 +169,13 @@ function mapPayloadToStudyTerm(
         raw.is_current === 1 || raw.is_current === true ? true : undefined;
     const progress = resolveTermProgress(raw);
     const isCompleted = resolveTermCompleted(raw, progress);
+    const isLocked =
+        raw.is_locked === true || raw.is_locked === 1 ? true : undefined;
+    const canAccessStudyTerm =
+        raw.can_access_study_term === undefined
+            ? undefined
+            : raw.can_access_study_term === true ||
+              raw.can_access_study_term === 1;
 
     return {
         id,
@@ -157,6 +188,8 @@ function mapPayloadToStudyTerm(
         description: about,
         isActive: active,
         isCurrent,
+        isLocked,
+        canAccessStudyTerm,
         academicYearLabel: pickAcademicYearLabel(raw, lang),
     };
 }
@@ -468,6 +501,35 @@ export const studyTermsApi = createApi({
     baseQuery: axiosBaseQuery(),
     tagTypes: ["StudyTerm"],
     endpoints: (builder) => ({
+        /** GET `/public-study-terms` — visitors and students not yet enrolled. */
+        getPublicStudyTerms: builder.query<StudyTerm[], { lang: string }>({
+            query: ({ lang }) => ({
+                url: `/${PUBLIC_BASE_PATH}`,
+                method: "GET",
+                headers: {
+                    "Accept-Language": resolveAcceptLanguage(lang),
+                },
+            }),
+            transformResponse: (response: unknown, _meta, arg) => {
+                const list = unwrapRawStudyTerms(response);
+                const resolvedLang = resolveAcceptLanguage(arg?.lang);
+                return list
+                    .map((item) => mapPayloadToStudyTerm(item, resolvedLang))
+                    .sort((a, b) => a.id - b.id);
+            },
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({
+                              type: "StudyTerm" as const,
+                              id: String(id),
+                          })),
+                          { type: "StudyTerm", id: "PUBLIC_LIST" },
+                      ]
+                    : [{ type: "StudyTerm", id: "PUBLIC_LIST" }],
+        }),
+
+        /** GET `/study-terms` — enrolled students with auth token. */
         getStudyTerms: builder.query<StudyTerm[], { lang: string }>({
             query: ({ lang }) => ({
                 url: `/${BASE_PATH}`,
@@ -646,6 +708,7 @@ export const studyTermsApi = createApi({
 });
 
 export const {
+    useGetPublicStudyTermsQuery,
     useGetStudyTermsQuery,
     useLazyGetStudyTermsQuery,
     useGetStudyTermByIdQuery,
