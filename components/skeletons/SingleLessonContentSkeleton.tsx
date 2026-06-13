@@ -76,6 +76,10 @@ export default function SingleLessonContentSkeleton() {
                 <PlaylistItemSkeleton key={`playlist-skeleton-${i}`} />
               ))}
             </div>
+
+            <div className="border-t border-[#efe7d8] mt-8 bg-white px-4 py-4">
+              <Skeleton className="h-44 w-full rounded-xl scoundBgColor opacity-15" />
+            </div>
           </div>
 
           <div className="order-3 rounded-2xl shadow-r-sm lg:order-0 lg:col-span-8 lg:row-start-2">

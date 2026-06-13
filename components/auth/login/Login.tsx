@@ -84,7 +84,7 @@ const Login = () => {
   return (
     <div>
       <HeroAuth contentClassName="max-w-3xl ">
-        <div className="flex w-full flex-col items-center gap-6 mb-10">
+        <div className="flex w-full flex-col items-center gap-6 mb-16 mt-12">
           {/* logo */}
           <Link href={`/${lang}`}>
             <Image
@@ -127,7 +127,7 @@ const Login = () => {
             </div>
             {/* login form */}
             <form
-              className="p-0 md:p-4 mt-4  mx-auto z-30 relative"
+              className="p-0 md:p-4 mx-auto z-30 relative mt-8"
               dir="ltr"
               onSubmit={handleSubmit}
             >
@@ -202,7 +202,7 @@ const Login = () => {
                 {translate?.pages.login.loginButton}
               </button>
             </form>
-            <SocialLogin />
+            {/* <SocialLogin /> */}
 
             <div className="mt-2 text-center ">
               <span className="text-[13px] font-semibold mainColor">

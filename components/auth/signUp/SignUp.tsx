@@ -370,6 +370,11 @@ const SignUp = () => {
                         className="mt-1 w-full p-2 border border-gray-300 rounded-md outline-none"
                       />
                     </div>
+                    <span
+                      className={`mt-1.5 block text-xs text-red-500 leading-relaxed ${lang === "ar" ? "text-right" : "text-left"}`}
+                    >
+                      {translate?.pages?.signUp?.nameCertificateHint}
+                    </span>
                   </div>
 
                   {/* email */}

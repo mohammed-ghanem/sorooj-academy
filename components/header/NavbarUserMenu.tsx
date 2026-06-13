@@ -37,6 +37,12 @@ const clearAuthCookies = () => {
   Cookies.remove("auth_otp_flow", { path: "/" });
 };
 
+function truncateDisplayName(text: string, maxLength: number): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength)}`;
+}
+
 export default function NavbarUserMenu({
   displayName,
   studentFallback,
@@ -50,7 +56,9 @@ export default function NavbarUserMenu({
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const label = displayName?.trim() || studentFallback || "Student";
+  const fullLabel = displayName?.trim() || studentFallback || "Student";
+  const triggerLabel = truncateDisplayName(fullLabel, 15);
+  const dropdownLabel = truncateDisplayName(fullLabel, 25);
   const dd = translate?.pages?.userDropDown;
 
   const handleLogoutConfirm = async () => {
@@ -87,7 +95,9 @@ export default function NavbarUserMenu({
             className,
           )}
         >
-          <span className="truncate">{label}</span>
+          <span className="whitespace-nowrap" title={fullLabel}>
+            {triggerLabel}
+          </span>
           <ChevronDown className="size-4 shrink-0 opacity-70" aria-hidden />
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -96,8 +106,11 @@ export default function NavbarUserMenu({
           className="min-w-48 dir-rtl"
           sideOffset={6}
         >
-          <DropdownMenuLabel className="max-w-[240px] truncate font-semibold">
-            {label}
+          <DropdownMenuLabel
+            className="max-w-[240px] font-semibold wrap-break-word"
+            title={fullLabel}
+          >
+            {dropdownLabel}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>

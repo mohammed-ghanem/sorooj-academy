@@ -19,6 +19,7 @@ import {
   type LessonFinalExamPhase,
 } from "@/lib/studyLesson/lessonExamState";
 import type { StudyLessonDetail } from "@/types/studyLessonDetail";
+import type { StudyLesson } from "@/types/studySubjectDetail";
 import {
   useCompleteVideoWatchMutation,
   useGetLessonDetailQuery,
@@ -27,18 +28,82 @@ import {
   useSubmitLessonExamMutation,
   useSubmitVideoExamMutation,
 } from "@/store/lessons/lessonsApi";
+import { useGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
 import type { StudyLessonVideo } from "@/types/studyLessonDetail";
 import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import TranslateHook from "@/translate/TranslateHook";
 import LangUseParams from "@/translate/LangUseParams";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+} from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 const DefaultDoctorAvatar = "/assets/images/doctor.svg";
+
+/** Max characters shown for lesson title/summary on next-lesson card. */
+const LESSON_CARD_SUMMARY_MAX_LENGTH = 45;
+
+function formatLessonLabel(template: string | undefined, index: number) {
+  return (template ?? "Lesson {{n}}").replace("{{n}}", String(index + 1));
+}
+
+function truncateWithEllipsis(text: string, maxLength: number): string {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength).trimEnd()} ...`;
+}
+
+function isLessonAccessible(lesson: StudyLesson): boolean {
+  return lesson.canAccessLesson && !lesson.isLocked;
+}
+
+function isLessonFullyCompleted(lesson: StudyLesson): boolean {
+  return (
+    lesson.isCompleted ||
+    (lesson.allVideosCompleted && lesson.studentHasPassedLessonExam)
+  );
+}
+
+function hasLessonProgress(lesson: StudyLesson): boolean {
+  return (
+    lesson.videosProgress.percentage > 0 || lesson.videosProgress.completed > 0
+  );
+}
+
+function getLessonActionLabel(
+  lesson: StudyLesson,
+  labels: {
+    startStudy?: string;
+    continueStudy?: string;
+    viewLesson?: string;
+  },
+): string {
+  if (isLessonFullyCompleted(lesson)) {
+    return labels.viewLesson ?? labels.startStudy ?? "";
+  }
+  if (hasLessonProgress(lesson)) {
+    return labels.continueStudy ?? labels.startStudy ?? "";
+  }
+  return labels.startStudy ?? "";
+}
+
+function handleLessonCardKeyDown(
+  event: KeyboardEvent<HTMLDivElement>,
+  onActivate: () => void,
+) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    onActivate();
+  }
+}
 
 /** YouTube IDs may include `?si=...`; embed URLs need the bare id. */
 const stripYoutubeVideoId = (youtubeId: string) => youtubeId.split("?")[0];
@@ -199,6 +264,7 @@ const SingleLessonContent = () => {
   const t = translate?.pages?.lessonDetail;
   const subjectT = translate?.pages?.subjectDetail;
   const lang = LangUseParams();
+  const router = useRouter();
 
   const { termId, contentId, lessonId } = useParams<{
     termId: string;
@@ -214,9 +280,17 @@ const SingleLessonContent = () => {
     [lessonId],
   );
 
+  const contentIdNum = useMemo(
+    () =>
+      contentId && !Number.isNaN(Number(contentId)) ? Number(contentId) : NaN,
+    [contentId],
+  );
+
   const apiReady = useStudentApiReady();
   const invalidId = !lessonId || Number.isNaN(idNum);
   const skipQuery = invalidId || !apiReady;
+  const skipSubjectQuery =
+    !contentId || Number.isNaN(contentIdNum) || !apiReady;
 
   const {
     data: lesson,
@@ -229,6 +303,11 @@ const SingleLessonContent = () => {
   } = useGetLessonDetailQuery(
     { id: lessonId ?? "", lang: lang ?? "ar" },
     { skip: skipQuery, refetchOnMountOrArgChange: true },
+  );
+
+  const { data: subject } = useGetSubjectDetailQuery(
+    { id: contentId ?? "", lang: lang ?? "ar" },
+    { skip: skipSubjectQuery, refetchOnMountOrArgChange: true },
   );
 
   const lessonFinalExamUi = useMemo(() => {
@@ -271,6 +350,8 @@ const SingleLessonContent = () => {
   const showError = !invalidId && !showSkeleton && (isError || !lesson);
 
   const [accessDeniedOpen, setAccessDeniedOpen] = useState(false);
+  const [nextLessonBlockedOpen, setNextLessonBlockedOpen] = useState(false);
+  const [nextLessonLockedOpen, setNextLessonLockedOpen] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState("");
   const [activeLessonTab, setActiveLessonTab] = useState<
     "description" | "files"
@@ -347,6 +428,43 @@ const SingleLessonContent = () => {
   };
   const progressPercent = videosProgress.percentage;
   const activeVideoWatchCompleted = activeVideo?.isWatchCompleted ?? false;
+
+  const subjectLessons = subject?.lessons ?? [];
+  const currentLessonIndex = subjectLessons.findIndex(
+    (item) => item.id === idNum,
+  );
+  const nextLesson =
+    currentLessonIndex >= 0 && currentLessonIndex < subjectLessons.length - 1
+      ? subjectLessons[currentLessonIndex + 1]
+      : null;
+  const nextLessonIndex =
+    currentLessonIndex >= 0 ? currentLessonIndex + 1 : -1;
+  const canOpenNextLesson = Boolean(lesson?.studentHasPassedLessonExam);
+
+  const handleNextLessonActivate = useCallback(() => {
+    if (!nextLesson) return;
+
+    if (!canOpenNextLesson) {
+      setNextLessonBlockedOpen(true);
+      return;
+    }
+
+    if (!isLessonAccessible(nextLesson)) {
+      setNextLessonLockedOpen(true);
+      return;
+    }
+
+    router.push(
+      `/${lang ?? "ar"}/study-terms/${termId}/content/${contentId}/lesson/${nextLesson.id}`,
+    );
+  }, [
+    canOpenNextLesson,
+    contentId,
+    lang,
+    nextLesson,
+    router,
+    termId,
+  ]);
 
   const selectNextUnlockedVideo = useCallback(
     (fromVideoId: number) => {
@@ -739,7 +857,7 @@ const SingleLessonContent = () => {
           )}
         />
         <span>{buttonLabel}</span>
-      </button>
+      </button> 
     );
   };
 
@@ -1066,6 +1184,154 @@ const SingleLessonContent = () => {
                     })
                   )}
                 </div>
+
+                {nextLesson && nextLessonIndex >= 0 ? (
+                  <div className="border-t border-[#efe7d8] mt-8 bg-white px-4 py-4">
+                    {(() => {
+                      const completed = isLessonFullyCompleted(nextLesson);
+                      const lessonSummary =
+                        nextLesson.title ||
+                        nextLesson.briefContent ||
+                        subjectT?.untitled ||
+                        "";
+                      const lessonSummaryDisplay = truncateWithEllipsis(
+                        lessonSummary,
+                        LESSON_CARD_SUMMARY_MAX_LENGTH,
+                      );
+                      const statusLabel = completed
+                        ? subjectT?.completed ?? t?.completed
+                        : subjectT?.notCompleted ?? t?.notCompleted;
+                      const actionLabel = getLessonActionLabel(nextLesson, {
+                        startStudy: subjectT?.startStudy,
+                        continueStudy: subjectT?.continueStudy,
+                        viewLesson: subjectT?.viewLesson,
+                      });
+
+                      return (
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${nextLesson.lessonNumber || formatLessonLabel(subjectT?.lessonNumber, nextLessonIndex)} — ${actionLabel}`}
+                          onClick={handleNextLessonActivate}
+                          onKeyDown={(event) =>
+                            handleLessonCardKeyDown(
+                              event,
+                              handleNextLessonActivate,
+                            )
+                          }
+                          className={cn(
+                            "rounded-xl border p-4 shadow-sm transition-shadow cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9f854e]/40",
+                            completed
+                              ? "border-emerald-100 bg-emerald-50/80"
+                              : "border-gray-100 bg-[#fafafa]",
+                            !canOpenNextLesson && "opacity-80",
+                          )}
+                        >
+                          <div className="flex items-center justify-between mb-2 ">
+                            <div className="relative">
+                              <span
+                                className={cn(
+                                  "text-xl py-2 px-3 font-semibold rounded-md",
+                                  completed
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "scoundColor bg-[#efece7]",
+                                )}
+                              >
+                                {String(nextLessonIndex + 1).padStart(2, "0")}
+                              </span>
+                              <div className="pointer-events-none absolute right-0 bottom-0">
+                                <Image
+                                  src="/assets/images/lineCard.svg"
+                                  alt=""
+                                  width={100}
+                                  height={100}
+                                  className="h-full w-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-5">
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className="text-sm font-semibold text-gray-500">
+                                {nextLesson.lessonNumber ||
+                                  formatLessonLabel(
+                                    subjectT?.lessonNumber,
+                                    nextLessonIndex,
+                                  )}
+                              </h4>
+                              <span
+                                className={cn(
+                                  "text-[10px] px-3 py-1.5 rounded-3xl",
+                                  completed
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "scoundColor bg-[#efece7]",
+                                )}
+                              >
+                                {statusLabel}
+                              </span>
+                            </div>
+                            <h5
+                              className="text-xs text-gray-500 mb-3"
+                              title={
+                                lessonSummary.length >
+                                LESSON_CARD_SUMMARY_MAX_LENGTH
+                                  ? lessonSummary
+                                  : undefined
+                              }
+                            >
+                              {lessonSummaryDisplay}
+                            </h5>
+                          </div>
+                          <hr className="my-3" />
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center border-b border-[#9f854e] pb-2">
+                              <span className="text-xs font-semibold scoundColor rounded-md">
+                                {actionLabel}
+                              </span>
+                              <span>
+                                <Image
+                                  src="/assets/images/arrow-left.svg"
+                                  width={20}
+                                  height={20}
+                                  alt=""
+                                />
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap justify-center sm:justify-start gap-1">
+                              <div className="flex items-center">
+                                <Image
+                                  src="/assets/images/video-circle.svg"
+                                  width={16}
+                                  height={16}
+                                  alt=""
+                                />
+                                <p className="mx-1 descriptionColor">
+                                  <span className="me-0.5">
+                                    {nextLesson.videosCount}
+                                  </span>
+                                </p>
+                              </div>
+                              <div className="flex items-center">
+                                <Image
+                                  src="/assets/images/doc.svg"
+                                  width={16}
+                                  height={16}
+                                  alt=""
+                                />
+                                <p className="mx-1 descriptionColor">
+                                  <span className="me-0.5">
+                                    {nextLesson.attachmentsCount}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : null}
               </div>
 
               {/* Description / attachments tabs */}
@@ -1159,6 +1425,28 @@ const SingleLessonContent = () => {
               </div>
             </div>
           </div>
+
+          <InfoModal
+            open={nextLessonBlockedOpen}
+            onOpenChange={setNextLessonBlockedOpen}
+            variant="info"
+            title={t?.nextLessonLockedTitle ?? ""}
+            description={t?.nextLessonLockedMessage}
+            primaryLabel={subjectT?.close ?? ""}
+            onPrimaryClick={() => setNextLessonBlockedOpen(false)}
+            dir={dir}
+          />
+
+          <InfoModal
+            open={nextLessonLockedOpen}
+            onOpenChange={setNextLessonLockedOpen}
+            variant="info"
+            title={subjectT?.lessonLockedTitle ?? ""}
+            description={subjectT?.lessonLockedMessage}
+            primaryLabel={subjectT?.close ?? ""}
+            onPrimaryClick={() => setNextLessonLockedOpen(false)}
+            dir={dir}
+          />
 
           <InfoModal
             open={examAccessBlockedOpen}

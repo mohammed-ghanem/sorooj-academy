@@ -59,6 +59,7 @@
       "step": "الخطوة",
       "from": "من",
       "name": "الاسم",
+      "nameCertificateHint": "برجاء كتابة الاسم ثلاثى كما ترغب فى اظهارة فى شهادة التخرج",
       "email": "البريد الالكترونى",
       "password": "كلمة المرور",
       "confirmPassword": "تاكيد كلمة المرور",
@@ -242,7 +243,9 @@
       "noFiles": "لا توجد ملفات مرفقة لهذا الدرس.",
       "noDescription": "لا يوجد وصف لهذا الدرس.",
       "videoFallback": "فيديو",
-      "videoNumber": "فيديو {{n}}"
+      "videoNumber": "فيديو {{n}}",
+      "nextLessonLockedTitle": "الدرس التالي غير متاح",
+      "nextLessonLockedMessage": "يجب اجتياز الاختبار النهائي للدرس الحالي للانتقال إلى الدرس التالي"
     },
     "selectAuth": {
       "title": "تسجيل ",

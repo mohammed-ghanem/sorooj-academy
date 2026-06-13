@@ -62,6 +62,7 @@
       "step": "Step",
       "from": "From",
       "name": "Name",
+      "nameCertificateHint": "Please enter your full name as you want it to appear on your graduation certificate",
       "email": "Email",
       "password": "Password",
       "confirmPassword": "Confirm Password",
@@ -246,7 +247,9 @@
       "noFiles": "No attachments for this lesson.",
       "noDescription": "No description for this lesson.",
       "videoFallback": "Video",
-      "videoNumber": "Video {{n}}"
+      "videoNumber": "Video {{n}}",
+      "nextLessonLockedTitle": "Next lesson unavailable",
+      "nextLessonLockedMessage": "You must pass the current lesson's final exam before moving to the next lesson"
     },
     "selectAuth": {
       "title": "Login",

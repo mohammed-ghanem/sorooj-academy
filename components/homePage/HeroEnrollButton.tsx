@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { Loader2 } from "lucide-react";
 import InfoModal from "@/components/modals/InfoModal";
 import {
   hasAccessToken,
@@ -112,7 +111,9 @@ export default function HeroEnrollButton() {
     if (enrolling) return;
 
     if (!hasAccessToken()) {
-      setModalDescription(hero?.loginRequiredDescription ?? st?.gateLoginDescription ?? "");
+      setModalDescription(
+        hero?.loginRequiredDescription ?? st?.gateLoginDescription ?? "",
+      );
       setModal("login");
       return;
     }
@@ -120,7 +121,6 @@ export default function HeroEnrollButton() {
     try {
       const data = await enrollInProgram({ lang }).unwrap();
       const snap = parseEnrollResponse(data);
-      await syncProfileAfterEnroll();
 
       setModalDescription(
         messageWithBackendFallback(
@@ -129,6 +129,8 @@ export default function HeroEnrollButton() {
         ),
       );
       setModal("success");
+
+      void syncProfileAfterEnroll();
     } catch (err) {
       const backendMessage = extractApiErrorMessage(
         err,
@@ -148,30 +150,30 @@ export default function HeroEnrollButton() {
     }
   };
 
-  if (enrolled) {
-    return (
-      <Link href={studyTermsHref} className={buttonClassName}>
-        {hero?.continueStudy ?? st?.continueStudyLink}
-      </Link>
-    );
-  }
+  const showContinueLink = enrolled && modal === null;
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => void handleEnrollClick()}
-        disabled={enrolling}
-        className={cn(buttonClassName, "cursor-pointer")}
-      >
-        {enrolling ? (
-          <>
-            <span>{hero?.enrollNow}</span>
-          </>
-        ) : (
-          hero?.enrollNow
-        )}
-      </button>
+      {showContinueLink ? (
+        <Link href={studyTermsHref} className={buttonClassName}>
+          {hero?.continueStudy ?? st?.continueStudyLink}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => void handleEnrollClick()}
+          disabled={enrolling}
+          className={cn(buttonClassName, "cursor-pointer")}
+        >
+          {enrolling ? (
+            <>
+              <span>{hero?.enrollNow}</span>
+            </>
+          ) : (
+            hero?.enrollNow
+          )}
+        </button>
+      )}
 
       <InfoModal
         open={modal === "login"}
@@ -190,7 +192,10 @@ export default function HeroEnrollButton() {
       <InfoModal
         open={modal === "success"}
         onOpenChange={(open) => {
-          if (!open) closeModal();
+          if (!open) {
+            syncEnrollmentState();
+            closeModal();
+          }
         }}
         variant="success"
         title={st?.gateEnrollSuccessTitle ?? ""}
