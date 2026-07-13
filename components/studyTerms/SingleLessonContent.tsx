@@ -29,7 +29,9 @@ import {
   useSubmitVideoExamMutation,
 } from "@/store/lessons/lessonsApi";
 import { useGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
+import { useGetScientificSubjectDetailQuery } from "@/store/scientificTracks/scientificTracksApi";
 import type { StudyLessonVideo } from "@/types/studyLessonDetail";
+import type { ScientificTrackLesson } from "@/types/scientificTrack";
 import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import TranslateHook from "@/translate/TranslateHook";
 import LangUseParams from "@/translate/LangUseParams";
@@ -42,7 +44,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -50,6 +52,8 @@ const DefaultDoctorAvatar = "/assets/images/doctor.svg";
 
 /** Max characters shown for lesson title/summary on next-lesson card. */
 const LESSON_CARD_SUMMARY_MAX_LENGTH = 45;
+
+type NextLessonCardSource = StudyLesson | ScientificTrackLesson;
 
 function formatLessonLabel(template: string | undefined, index: number) {
   return (template ?? "Lesson {{n}}").replace("{{n}}", String(index + 1));
@@ -61,25 +65,25 @@ function truncateWithEllipsis(text: string, maxLength: number): string {
   return `${trimmed.slice(0, maxLength).trimEnd()} ...`;
 }
 
-function isLessonAccessible(lesson: StudyLesson): boolean {
+function isLessonAccessible(lesson: NextLessonCardSource): boolean {
   return lesson.canAccessLesson && !lesson.isLocked;
 }
 
-function isLessonFullyCompleted(lesson: StudyLesson): boolean {
+function isLessonFullyCompleted(lesson: NextLessonCardSource): boolean {
   return (
     lesson.isCompleted ||
     (lesson.allVideosCompleted && lesson.studentHasPassedLessonExam)
   );
 }
 
-function hasLessonProgress(lesson: StudyLesson): boolean {
+function hasLessonProgress(lesson: NextLessonCardSource): boolean {
   return (
     lesson.videosProgress.percentage > 0 || lesson.videosProgress.completed > 0
   );
 }
 
 function getLessonActionLabel(
-  lesson: StudyLesson,
+  lesson: NextLessonCardSource,
   labels: {
     startStudy?: string;
     continueStudy?: string;
@@ -263,16 +267,34 @@ const SingleLessonContent = () => {
   const translate = TranslateHook();
   const t = translate?.pages?.lessonDetail;
   const subjectT = translate?.pages?.subjectDetail;
+  const pathsT = translate?.pages?.singleLearningPaths;
   const lang = LangUseParams();
   const router = useRouter();
+  const pathname = usePathname() ?? "";
 
-  const { termId, contentId, lessonId } = useParams<{
-    termId: string;
-    contentId: string;
+  const isScientificTrack = pathname.includes("/single-learning-pathes/");
+
+  const params = useParams<{
+    termId?: string;
+    contentId?: string;
+    categoryId?: string;
+    subjectId?: string;
     lessonId: string;
   }>();
 
-  const subjectContentHref = `/${lang ?? "ar"}/study-terms/${termId}/content/${contentId}`;
+  const lessonId = params.lessonId;
+  const termId = params.termId;
+  const contentId = params.contentId;
+  const categoryId = params.categoryId;
+  const subjectId = params.subjectId;
+
+  const subjectContentHref = isScientificTrack
+    ? `/${lang ?? "ar"}/single-learning-pathes/${categoryId}/subject/${subjectId}`
+    : `/${lang ?? "ar"}/study-terms/${termId}/content/${contentId}`;
+
+  const backLabel = isScientificTrack
+    ? (pathsT?.backToSubjects ?? t?.back)
+    : t?.back;
 
   const idNum = useMemo(
     () =>
@@ -286,11 +308,25 @@ const SingleLessonContent = () => {
     [contentId],
   );
 
+  const subjectIdNum = useMemo(
+    () =>
+      subjectId && !Number.isNaN(Number(subjectId)) ? Number(subjectId) : NaN,
+    [subjectId],
+  );
+
   const apiReady = useStudentApiReady();
   const invalidId = !lessonId || Number.isNaN(idNum);
   const skipQuery = invalidId || !apiReady;
-  const skipSubjectQuery =
-    !contentId || Number.isNaN(contentIdNum) || !apiReady;
+  const skipStudySubjectQuery =
+    isScientificTrack ||
+    !contentId ||
+    Number.isNaN(contentIdNum) ||
+    !apiReady;
+  const skipScientificSubjectQuery =
+    !isScientificTrack ||
+    !subjectId ||
+    Number.isNaN(subjectIdNum) ||
+    !apiReady;
 
   const {
     data: lesson,
@@ -305,9 +341,14 @@ const SingleLessonContent = () => {
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
 
-  const { data: subject } = useGetSubjectDetailQuery(
+  const { data: studySubject } = useGetSubjectDetailQuery(
     { id: contentId ?? "", lang: lang ?? "ar" },
-    { skip: skipSubjectQuery, refetchOnMountOrArgChange: true },
+    { skip: skipStudySubjectQuery, refetchOnMountOrArgChange: true },
+  );
+
+  const { data: scientificSubject } = useGetScientificSubjectDetailQuery(
+    { subjectId: subjectId ?? "", lang: lang ?? "ar" },
+    { skip: skipScientificSubjectQuery, refetchOnMountOrArgChange: true },
   );
 
   const lessonFinalExamUi = useMemo(() => {
@@ -429,7 +470,9 @@ const SingleLessonContent = () => {
   const progressPercent = videosProgress.percentage;
   const activeVideoWatchCompleted = activeVideo?.isWatchCompleted ?? false;
 
-  const subjectLessons = subject?.lessons ?? [];
+  const subjectLessons: NextLessonCardSource[] = isScientificTrack
+    ? (scientificSubject?.lessons ?? [])
+    : (studySubject?.lessons ?? []);
   const currentLessonIndex = subjectLessons.findIndex(
     (item) => item.id === idNum,
   );
@@ -454,15 +497,20 @@ const SingleLessonContent = () => {
       return;
     }
 
-    router.push(
-      `/${lang ?? "ar"}/study-terms/${termId}/content/${contentId}/lesson/${nextLesson.id}`,
-    );
+    const href = isScientificTrack
+      ? `/${lang ?? "ar"}/single-learning-pathes/${categoryId}/subject/${subjectId}/lesson/${nextLesson.id}`
+      : `/${lang ?? "ar"}/study-terms/${termId}/content/${contentId}/lesson/${nextLesson.id}`;
+
+    router.push(href);
   }, [
     canOpenNextLesson,
+    categoryId,
     contentId,
+    isScientificTrack,
     lang,
     nextLesson,
     router,
+    subjectId,
     termId,
   ]);
 
@@ -881,7 +929,7 @@ const SingleLessonContent = () => {
           href={subjectContentHref}
           className="text-sm scoundColor hover:underline"
         >
-          {t?.back}
+          {backLabel}
         </Link>
       </div>
     );
@@ -897,7 +945,7 @@ const SingleLessonContent = () => {
               href={subjectContentHref}
               className="text-sm scoundColor hover:underline inline-block mb-2"
             >
-              {t?.back}
+              {backLabel}
             </Link>
             {showSkeleton ? (
               <SingleLessonHeroTitleSkeleton />
@@ -920,7 +968,7 @@ const SingleLessonContent = () => {
                 href={subjectContentHref}
                 className="text-sm scoundColor hover:underline"
               >
-                {t?.back}
+                {backLabel}
               </Link>
               <InfoModal
                 open={accessDeniedOpen}
@@ -950,7 +998,7 @@ const SingleLessonContent = () => {
                   href={subjectContentHref}
                   className="text-sm scoundColor hover:underline self-center"
                 >
-                  {t?.back}
+                  {backLabel}
                 </Link>
               </div>
             </>

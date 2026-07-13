@@ -490,6 +490,33 @@
       "notFound": "Content not found",
       "backToCategories": "Back to categories",
       "backToBooks": "Back to books"
+    },
+    "singleLearningPaths": {
+      "title": "Independent Scientific ",
+      "titleSpan": "Paths",
+      "subjectsCount": "Subjects",
+      "cardLink": "View path →",
+      "retry": "Try again",
+      "emptyList": "No scientific paths are available at the moment.",
+      "loadFailed": "Something went wrong. Please try again.",
+      "gateLoginTitle": "Login required",
+      "gateLoginDescription": "Please sign in first to view independent scientific paths and start studying.",
+      "gateLoginAction": "Sign in",
+      "gateClose": "Close",
+      "back": "Back to scientific paths",
+      "notFound": "This path is not available",
+      "emptySubjects": "No subjects are available in this path yet.",
+      "untitledCategory": "Scientific path",
+      "lessonUnit": "lesson",
+      "progress": "Progress",
+      "startStudy": "Start studying",
+      "continueStudy": "Continue studying",
+      "reviewStudy": "Review lesson",
+      "backToSubjects": "Back to path subjects",
+      "subjectNotFound": "This subject is not available",
+      "subjectHeroLabel": "Subject content",
+      "emptyLessons": "No lessons are available in this subject yet.",
+      "detailsTitle": "Subject details"
     }
   },
   "sidebar": {

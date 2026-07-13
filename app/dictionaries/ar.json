@@ -489,6 +489,33 @@
       "notFound": "المحتوى غير متوفر",
       "backToCategories": "العودة إلى الأقسام",
       "backToBooks": "العودة إلى الكتب"
+    },
+    "singleLearningPaths": {
+      "title": "المسارات العلمية ",
+      "titleSpan": "المستقلة",
+      "subjectsCount": "مواد تعليمية",
+      "cardLink": "عرض المسار ←",
+      "retry": "إعادة المحاولة",
+      "emptyList": "لا توجد مسارات علمية متاحة حالياً.",
+      "loadFailed": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+      "gateLoginTitle": "تسجيل الدخول مطلوب",
+      "gateLoginDescription": "يجب تسجيل الدخول أولاً لعرض المسارات العلمية المستقلة والبدء في الدراسة.",
+      "gateLoginAction": "تسجيل الدخول",
+      "gateClose": "إغلاق",
+      "back": "رجوع للمسارات العلمية",
+      "notFound": "هذا المسار غير متوفر",
+      "emptySubjects": "لا توجد مواد متاحة في هذا المسار حالياً.",
+      "untitledCategory": "مسار علمي",
+      "lessonUnit": "درس",
+      "progress": "نسبة الإنجاز",
+      "startStudy": "ابدأ الدراسة",
+      "continueStudy": "متابعة الدراسة",
+      "reviewStudy": "مراجعة الدرس",
+      "backToSubjects": "رجوع لمواد المسار",
+      "subjectNotFound": "هذه المادة غير متوفرة",
+      "subjectHeroLabel": "محتوى المادة",
+      "emptyLessons": "لا توجد دروس متاحة في هذه المادة حالياً.",
+      "detailsTitle": "تفاصيل المادة"
     }
   },
   "sidebar": {
