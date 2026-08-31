@@ -4,17 +4,53 @@ import Image from "next/image";
 import Link from "next/link";
 import HeroEnrollButton from "@/components/homePage/HeroEnrollButton";
 import HeroSectionSkeleton from "@/components/skeletons/HeroSectionSkeleton";
+import { useGetEnrollmentStatusQuery } from "@/store/studentHome/studentHomeApi";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
+
+function batchBadgeText(
+  hero: {
+    batchBadge?: string;
+    batchBadgeOpen?: string;
+    batchBadgeClosed?: string;
+  },
+  enrollment:
+    | {
+        isEnrollmentOpen: boolean;
+        startYear: number | null;
+        endYear: number | null;
+      }
+    | undefined,
+): string {
+  if (!enrollment) {
+    return hero.batchBadge ?? "";
+  }
+
+  if (!enrollment.isEnrollmentOpen) {
+    return hero.batchBadgeClosed ?? hero.batchBadge ?? "";
+  }
+
+  const start = enrollment.startYear != null ? String(enrollment.startYear) : "";
+  const end = enrollment.endYear != null ? String(enrollment.endYear) : "";
+  const template = hero.batchBadgeOpen ?? hero.batchBadge ?? "";
+
+  return template
+    .replace("{startYear}", start)
+    .replace("{endYear}", end);
+}
 
 const HeroSection = () => {
   const lang = LangUseParams();
   const translate = TranslateHook();
   const hero = translate?.home?.hero;
+  const locale = lang === "en" ? "en" : "ar";
+  const { data: enrollment } = useGetEnrollmentStatusQuery({ lang: locale });
 
   if (!translate || !hero) {
     return <HeroSectionSkeleton />;
   }
+
+  const badge = batchBadgeText(hero, enrollment);
 
   return (
     <div className="relative">
@@ -44,7 +80,7 @@ const HeroSection = () => {
                 justify-center text-center max-w-2xl px-2 heroSectionBg2"
         >
           <h2 className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
-            {hero.batchBadge}
+            {badge}
           </h2>
           <h1 className="text-3xl md:text-5xl font-bold mb-4">
             <span className="mainColor">{hero.headlineMain} </span>

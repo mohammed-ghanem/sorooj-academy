@@ -86,7 +86,7 @@ export default function NavbarUserMenu({
 
   return (
     <>
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} dir="rtl">
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} dir={lang === "en" ? "ltr" : "rtl"}>
         <DropdownMenuTrigger
           className={cn(
             "flex max-w-[220px] items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-bold mainColor outline-none",
@@ -115,7 +115,7 @@ export default function NavbarUserMenu({
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link
-              href={`/${lang}`}
+              href={`/${lang}/profile`}
               className="flex cursor-pointer items-center gap-2"
             >
               <User className="size-4" />
@@ -124,7 +124,7 @@ export default function NavbarUserMenu({
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link
-              href={`/${lang}`}
+              href={`/${lang}/change-password`}
               className="flex cursor-pointer items-center gap-2"
             >
               <KeyRound className="size-4" />

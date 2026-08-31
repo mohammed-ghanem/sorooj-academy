@@ -33,8 +33,8 @@ const Footer = () => {
           <Image
             src={footerEffect}
             alt="footerEffect"
-            className="m-auto"
             fill
+            className="-z-10 m-auto"
           />
         </div>
 

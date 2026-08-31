@@ -15,6 +15,7 @@ import {
 } from "@/store/auth/authApi";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Cookies from "js-cookie";
 
 const RESEND_COOLDOWN_SEC = 60;
 
@@ -79,9 +80,15 @@ const VerifyCode = () => {
     formData.append("code", codeString);
 
     try {
+      const isPasswordReset =
+        Cookies.get("auth_otp_flow") === "password_reset";
       const res = await verifyOtp(formData).unwrap();
       toast.success(res?.message ?? "");
-      router.push(`/${lang}/login`);
+      router.push(
+        isPasswordReset
+          ? `/${lang}/reset-password`
+          : `/${lang}/login`,
+      );
     } catch (err: unknown) {
       const errorData = err as {
         data?: { errors?: Record<string, string[]>; message?: string };

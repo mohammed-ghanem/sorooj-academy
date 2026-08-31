@@ -3,6 +3,15 @@ import Image from "next/image";
 import arrowPlan from "@/public/assets/images/arrowPlan.svg";
 import calendar from "@/public/assets/images/calender.svg";
 import SmallHeroSection from "../smallHeroSection/SmallHeroSection";
+import {
+  formatGregorianDate,
+  formatHijriDate,
+  type StudyPlanLocale,
+} from "@/lib/studyPlan/formatStudyPlanDates";
+import type {
+  StudyPlan,
+  StudyPlanDateRange,
+} from "@/types/studyPlan";
 
 type DateEntry = {
   hijri: string;
@@ -22,70 +31,104 @@ type StudyPlanCardData = {
   columns?: TimelineColumn[];
 };
 
-const studyPlanCards: StudyPlanCardData[] = [
-  {
-    id: 1,
-    step: "٠١",
-    title: "فترة الالتحاق بالبرنامج",
-    description:
-      "ابدأ رحلتك التعليمية بإتمام التسجيل والانضمام للموسم الدراسي الجديد.",
-    columns: [
-      {
-        label: "فترة التسجيل",
-        dates: [
-          { hijri: "٢٧ ذو القعدة ١٤٤٧ هـ", gregorian: "14 مايو 2026" },
-          { hijri: "٢٩ ربيع الأول ١٤٤٨ هـ", gregorian: "10 سبتمبر 2026" },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2,
-    step: "٠٢",
-    title: "فترة التعلّم الأكاديمي",
-    description:
-      "خلال هذه المرحلة تتم دراسة المواد العلمية وحضور المحتوى التعليمي والأنشطة التفاعلية.",
-    columns: [
-      {
-        label: "العام الأول",
-        dates: [
-          { hijri: "١ ربيع الآخر ١٤٤٨ هـ", gregorian: "12 سبتمبر 2026" },
-          { hijri: "٢٥ ذو الحجة ١٤٤٨ هـ", gregorian: "31 مايو 2027" },
-        ],
-      },
-      {
-        label: "العام الثاني",
-        dates: [
-          { hijri: "١١ ربيع الآخر ١٤٤٩", gregorian: "11 سبتمبر 2027" },
-          { hijri: "٧ محرم ١٤٥٠", gregorian: "31 مايو 2028" },
-        ],
-      },
-    ],
-  },
-  {
-    id: 3,
-    step: "٠٣",
-    title: "امتحانات الدور الثاني",
-    description:
-      "فرصة نهائية تتيح للطالب إعادة الاختبار النهائي في حال عدم اجتيازه في المرة الأولى، وفق ضوابط محددة.",
-    columns: [
-      {
-        label: "العام الأول",
-        dates: [
-          { hijri: "٢٧ محرم ١٤٤٩ هـ", gregorian: "1 يوليو 2027" },
-          { hijri: "٢٧ صفر ١٤٤٩ هـ", gregorian: "31 يوليو 2027" },
-        ],
-      },
-      {
-        label: "العام الثاني",
-        dates: [
-          { hijri: "٩ صفر ١٤٥٠ هـ", gregorian: "1 يوليو 2028" },
-          { hijri: "٩ ربيع الأول ١٤٥٠ هـ", gregorian: "31 يوليو 2028" },
-        ],
-      },
-    ],
-  },
-];
+type StudyPlanLabels = {
+  heroTitle?: string;
+  heroTitleSpan?: string;
+  heading?: string;
+  headingSpan?: string;
+  intro?: string;
+  enrollmentTitle?: string;
+  enrollmentDescription?: string;
+  enrollmentLabel?: string;
+  academicTitle?: string;
+  academicDescription?: string;
+  makeupTitle?: string;
+  makeupDescription?: string;
+  yearOne?: string;
+  yearTwo?: string;
+  yearN?: string;
+};
+
+type StudyPlanDateProps = {
+  studyPlan: StudyPlan;
+  locale?: StudyPlanLocale;
+  labels?: StudyPlanLabels;
+};
+
+function rangeToDates(
+  range: StudyPlanDateRange | null | undefined,
+  locale: StudyPlanLocale,
+): DateEntry[] {
+  if (!range) return [];
+
+  const start: DateEntry = {
+    gregorian: range.startDate
+      ? formatGregorianDate(range.startDate, locale)
+      : "",
+    hijri: range.startDateHijri
+      ? formatHijriDate(range.startDateHijri, locale)
+      : "",
+  };
+  const end: DateEntry = {
+    gregorian: range.endDate ? formatGregorianDate(range.endDate, locale) : "",
+    hijri: range.endDateHijri ? formatHijriDate(range.endDateHijri, locale) : "",
+  };
+
+  return [start, end].filter((item) => item.gregorian || item.hijri);
+}
+
+function yearLabel(n: number, labels?: StudyPlanLabels): string {
+  if (n === 1) return labels?.yearOne ?? "العام الأول";
+  if (n === 2) return labels?.yearTwo ?? "العام الثاني";
+  return (labels?.yearN ?? "العام {n}").replace("{n}", String(n));
+}
+
+function buildStudyPlanCards(
+  studyPlan: StudyPlan,
+  locale: StudyPlanLocale,
+  labels?: StudyPlanLabels,
+): StudyPlanCardData[] {
+  return [
+    {
+      id: 1,
+      step: "٠١",
+      title: labels?.enrollmentTitle ?? "فترة الالتحاق بالبرنامج",
+      description:
+        labels?.enrollmentDescription ??
+        "ابدأ رحلتك التعليمية بإتمام التسجيل والانضمام للموسم الدراسي الجديد.",
+      columns: [
+        {
+          label: labels?.enrollmentLabel ?? "فترة التسجيل",
+          dates: rangeToDates(studyPlan.enrollment, locale),
+        },
+      ],
+    },
+    {
+      id: 2,
+      step: "٠٢",
+      title: labels?.academicTitle ?? "فترة التعلّم الأكاديمي",
+      description:
+        labels?.academicDescription ??
+        "خلال هذه المرحلة تتم دراسة المواد العلمية وحضور المحتوى التعليمي والأنشطة التفاعلية.",
+      columns: studyPlan.academicYears.map((year) => ({
+        label: yearLabel(year.sequence, labels),
+        dates: rangeToDates(year, locale),
+      })),
+    },
+    {
+      id: 3,
+      step: "٠٣",
+      title: labels?.makeupTitle ?? "امتحانات الدور الثاني",
+      description:
+        labels?.makeupDescription ??
+        "فرصة نهائية تتيح للطالب إعادة الاختبار النهائي في حال عدم اجتيازه في المرة الأولى، وفق ضوابط محددة.",
+      columns: studyPlan.makeupExamPeriods.map((period) => ({
+        label: yearLabel(period.programYear, labels),
+        dates: rangeToDates(period, locale),
+      })),
+    },
+  ];
+}
 
 function stepStaggerClass(index: number) {
   if (index === 1) return "xl:mt-3";
@@ -109,8 +152,11 @@ function DateTimeline({ dates }: { dates: DateEntry[] }) {
         ))}
       </div>
       <div className="flex flex-1 flex-col justify-between py-0.5 ">
-        {dates.map((date) => (
-          <div key={date.hijri} className="py-2 first:pt-0 last:pb-0">
+        {dates.map((date, index) => (
+          <div
+            key={`${date.gregorian}-${date.hijri}-${index}`}
+            className="py-2 first:pt-0 last:pb-0"
+          >
             <p className="mt-0.5 text-base font-semibold mainColor">
               {date.gregorian}
             </p>
@@ -157,7 +203,7 @@ function StudyPlanCard({ card }: { card: StudyPlanCardData }) {
         {card.description}
       </p>
 
-      {card.columns ? (
+      {card.columns && card.columns.length > 0 ? (
         <div
           className={`mt-5 grid gap-4 border-t border-[#e8e4dc]/80 pt-5 sm:gap-6 ${
             card.columns.length === 1 ? "grid-cols-1" : "grid-cols-2"
@@ -192,30 +238,42 @@ function StudyPlanStep({
   );
 }
 
-const StudyPlanDate = () => {
+const StudyPlanDate = ({
+  studyPlan,
+  locale = "ar",
+  labels,
+}: StudyPlanDateProps) => {
+  const cards = buildStudyPlanCards(studyPlan, locale, labels);
+
   return (
     <div>
       <SmallHeroSection
         title={
           <h1 className="mb-4 mt-28 text-2xl font-semibold">
-            <span className="mainColor">الخطة </span>
-            <span className="scoundColor"> الدراسية</span>
+            <span className="mainColor">{labels?.heroTitle ?? "الخطة "}</span>
+            <span className="scoundColor">
+              {labels?.heroTitleSpan ?? "الدراسية"}
+            </span>
           </h1>
         }
       />
       <div className="container mx-auto mt-5 w-[92%] max-w-7xl px-2 pt-4 pb-8 md:pt-6 md:pb-10">
         <h1 className="text-center text-2xl font-bold">
-          <span className="mainColor">رحلتك العلمية تبدأ</span>
-          <span className="scoundColor"> بخطوات واضحة </span>
+          <span className="mainColor">
+            {labels?.heading ?? "رحلتك العلمية تبدأ"}
+          </span>
+          <span className="scoundColor">
+            {labels?.headingSpan ?? " بخطوات واضحة "}
+          </span>
         </h1>
         <p className="descriptionColor mt-4 text-center text-base font-semibold">
-          برنامج أكاديمي متدرّج يمتد عبر أربعة فصول دراسية، يجمع بين التأصيل
-          الشرعي والتعلّم التفاعلي ضمن مسار واضح ومنظم.
+          {labels?.intro ??
+            "برنامج أكاديمي متدرّج يمتد عبر أربعة فصول دراسية، يجمع بين التأصيل الشرعي والتعلّم التفاعلي ضمن مسار واضح ومنظم."}
         </p>
       </div>
       <div className="container mx-auto w-[92%] max-w-7xl px-2 pb-16 md:pb-20">
         <div className="flex flex-col items-stretch gap-8 lg:flex-row lg:items-start lg:gap-5 xl:gap-6">
-          {studyPlanCards.map((card, index) => (
+          {cards.map((card, index) => (
             <StudyPlanStep key={card.id} card={card} index={index} />
           ))}
         </div>

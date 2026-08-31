@@ -9,6 +9,8 @@ import { lessonsApi } from "./lessons/lessonsApi";
 import { studentHomeApi } from "./studentHome/studentHomeApi";
 import { facultyMembersApi } from "./facultyMembers/facultyMembersApi";
 import { scientificTracksApi } from "./scientificTracks/scientificTracksApi";
+import { bookLibraryApi } from "./bookLibrary/bookLibraryApi";
+import { studyPlanApi } from "./studyPlan/studyPlanApi";
 
 import { authApi } from "./auth/authApi";
 
@@ -25,6 +27,8 @@ export const store = configureStore({
     [studentHomeApi.reducerPath]: studentHomeApi.reducer,
     [facultyMembersApi.reducerPath]: facultyMembersApi.reducer,
     [scientificTracksApi.reducerPath]: scientificTracksApi.reducer,
+    [bookLibraryApi.reducerPath]: bookLibraryApi.reducer,
+    [studyPlanApi.reducerPath]: studyPlanApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
   },
 
@@ -38,6 +42,8 @@ export const store = configureStore({
       studentHomeApi.middleware,
       facultyMembersApi.middleware,
       scientificTracksApi.middleware,
+      bookLibraryApi.middleware,
+      studyPlanApi.middleware,
       authApi.middleware,
     ),
    

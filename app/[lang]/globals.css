@@ -1,12 +1,12 @@
 /* Font imports */
 @import url("https://fonts.googleapis.com/css2?family=Amiri&family=Almarai&family=Aref+Ruqaa&family=El+Messiri&family=Reem+Kufi&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap");
 /* Tailwind imports */
 @import "tailwindcss";
 
 /* Base styles */
 :root {
-  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  font-family: "IBM Plex Sans Arabic", sans-serif;
 
   /* Light theme variables */
   --background: 0 0% 100%;
@@ -96,7 +96,7 @@ svg {
 
 /* Your custom styles */
 
- .heroSectionBg {
+.heroSectionBg {
   background: radial-gradient(
     ellipse at center,
     rgba(251, 250, 248, 0.98) 0%,
@@ -109,15 +109,14 @@ svg {
 }
 .heroSectionBg2 {
   background: radial-gradient(
-    at bottom, 
+    at bottom,
     rgba(145, 121, 75, 0.1) 0%,
-    rgba(145, 121, 71, .1) 0%,
-    rgba(145, 121, 71, .4) 0%,
-    rgba(145, 121, 71, 0) 70%);
+    rgba(145, 121, 71, 0.1) 0%,
+    rgba(145, 121, 71, 0.4) 0%,
+    rgba(145, 121, 71, 0) 70%
+  );
   height: 100vh;
 }
-
-
 
 .titleStyle {
   background: #ebf5ff;
@@ -151,7 +150,7 @@ svg {
   background-color: #218838;
   border-color: #1e7e34;
 }
-.createBtn{
+.createBtn {
   background: #4a46eb;
   color: #fff;
   padding: 4px 16px;
@@ -166,23 +165,23 @@ svg {
   background: rgb(243 244 246);
 }
 .mainColor {
-  color: #424C61;
+  color: #424c61;
 }
 .bkMainColor {
-  background: #424C61;
+  background: #424c61;
 }
 
-.scoundColor{
-  color: #9F854E;
+.scoundColor {
+  color: #9f854e;
 }
-.descriptionColor{
+.descriptionColor {
   color: #737373;
 }
-.smallDescriptionColor{
-  color: #cfcfcf; 
+.smallDescriptionColor {
+  color: #cfcfcf;
 }
 .bgTitleColor {
-  background-color: #F5F3ED;
+  background-color: #f5f3ed;
 }
 .bgTitleColor2 {
   background-color: #f5f3ed2e;
@@ -191,17 +190,17 @@ svg {
   background-color: #f5f3ed30;
 }
 .bgTitleColorOpacity {
-  background : #E1D9C833;
+  background: #e1d9c833;
 }
 .bgTitleColorOpacity2 {
   /* background: rgba(225, 217, 200, .7); */
   background: radial-gradient(circle, rgba(225, 217, 200, 1.5) 80%, #fff 100%);
 }
-.scoundBgColor{
-  background-color: #9F854E;
+.scoundBgColor {
+  background-color: #9f854e;
 }
 .lightBgColor {
-  background: #F5F3ED;
+  background: #f5f3ed;
 }
 .studyTermsOverlayBg {
   background: linear-gradient(1deg, #e9dcc185 0%, rgb(245 243 238 / 0%) 100%);
@@ -209,10 +208,8 @@ svg {
 
 /* Book library category card — Figma linear: #E1D9C8 (top) → #9F854E (bottom) */
 .bookLibraryCategoryCardBg {
-  background:linear-gradient(#e1d9c8 52%, #e1d9c8 0%, #9f854e 150%)
-  
+  background: linear-gradient(#e1d9c8 100%, #e1d9c8 0%, #9f854e 280%);
 }
-
 
 .fontBold {
   font-weight: bold;
@@ -222,4 +219,3 @@ svg {
 .fontCairo {
   font-family: "IBM Plex Sans Arabic", sans-serif;
 }
-
