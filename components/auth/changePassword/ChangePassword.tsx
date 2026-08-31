@@ -118,7 +118,7 @@ const ChangePassword = () => {
               <button
                 type="button"
                 onClick={field.toggle}
-                className="absolute top-1/2 end-3 -translate-y-1/2 descriptionColor"
+                className="absolute top-1/2 inset-e-3 -translate-y-1/2 descriptionColor"
                 aria-label={field.label}
               >
                 {field.show ? (

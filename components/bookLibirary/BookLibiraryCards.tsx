@@ -86,7 +86,7 @@ const BookLibiraryCards = ({ categoryId }: BookLibiraryCardsProps) => {
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={`book-card-skeleton-${i}`}
-                  className="h-[380px] animate-pulse rounded-xl bg-[#efece7]"
+                  className="h-95 animate-pulse rounded-xl bg-[#efece7]"
                 />
               ))}
             </div>
@@ -184,7 +184,7 @@ const BookLibiraryCards = ({ categoryId }: BookLibiraryCardsProps) => {
                       shadow-sm transition-shadow hover:shadow-md"
                   >
                     <Link href={detailHref} className="block">
-                      <div className="relative aspect-3/4 h-[300px] w-full overflow-hidden bg-[#efece7]">
+                      <div className="relative aspect-3/4 h-75 w-full overflow-hidden bg-[#efece7]">
                         <Image
                           src={coverSrc}
                           alt={book.title}

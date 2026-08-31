@@ -72,7 +72,7 @@ const BookLibiraryDetails = ({
             <div className="mb-6 h-4 w-28 animate-pulse rounded bg-[#9F854E]/15" />
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
               <div className="grid grid-cols-1 gap-8 p-6 md:grid-cols-2 md:gap-10 md:p-8 lg:p-10">
-                <div className="mx-auto h-[300px] w-full max-w-xs animate-pulse rounded-xl bg-[#efece7] md:mx-0 md:max-w-none" />
+                <div className="mx-auto h-75 w-full max-w-xs animate-pulse rounded-xl bg-[#efece7] md:mx-0 md:max-w-none" />
                 <div className="space-y-3">
                   <div className="h-4 w-24 animate-pulse rounded bg-[#9F854E]/15" />
                   <div className="h-7 w-3/4 animate-pulse rounded bg-[#9F854E]/15" />
@@ -127,7 +127,7 @@ const BookLibiraryDetails = ({
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
             <div className="grid grid-cols-1 gap-8 p-6 md:grid-cols-2 md:gap-10 md:p-8 lg:p-10">
               <div
-                className="relative mx-auto aspect-3/4 h-[300px] w-full max-w-xs overflow-hidden
+                className="relative mx-auto aspect-3/4 h-75 w-full max-w-xs overflow-hidden
               rounded-xl bg-[#efece7] md:mx-0 md:max-w-none"
               >
                 <Image
