@@ -107,7 +107,7 @@ export default function NavbarUserMenu({
           sideOffset={6}
         >
           <DropdownMenuLabel
-            className="max-w-[240px] font-semibold wrap-break-word"
+            className="max-w-60 font-semibold wrap-break-word"
             title={fullLabel}
           >
             {dropdownLabel}

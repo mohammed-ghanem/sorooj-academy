@@ -50,7 +50,7 @@ export default function ConfirmLogoutDialog({
         </AlertDialogTrigger>
       ) : null}
 
-      <AlertDialogContent className="max-w-[min(100%-2rem,420px)] rounded-2xl border-0 px-8 py-10 text-center shadow-xl sm:max-w-[420px]">
+      <AlertDialogContent className="max-w-[min(100%-2rem,420px)] rounded-2xl border-0 px-8 py-10 text-center shadow-xl sm:max-w-105">
         <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-red-500">
           <LogOut className="h-7 w-7 text-white" strokeWidth={2.2} aria-hidden />
         </div>
@@ -67,7 +67,7 @@ export default function ConfirmLogoutDialog({
         <AlertDialogFooter className="mt-4 flex-row! items-center justify-center! gap-3 space-x-0!">
           <AlertDialogCancel
             disabled={isLoading}
-            className="m-0 h-auto min-w-[120px] cursor-pointer rounded-lg border border-[#d7d7d7] bg-white px-6 py-2.5 text-sm font-semibold text-[#6b7280] shadow-none outline-none hover:bg-gray-50 focus-visible:ring-0"
+            className="m-0 h-auto min-w-30 cursor-pointer rounded-lg border border-[#d7d7d7] bg-white px-6 py-2.5 text-sm font-semibold text-[#6b7280] shadow-none outline-none hover:bg-gray-50 focus-visible:ring-0"
           >
             {dd?.cancelBtn}
           </AlertDialogCancel>
@@ -78,7 +78,7 @@ export default function ConfirmLogoutDialog({
               e.preventDefault();
               void onConfirm();
             }}
-            className="m-0 h-auto min-w-[120px] cursor-pointer rounded-lg bg-red-500 px-6 py-2.5 text-sm font-semibold text-white! shadow-none hover:bg-red-600 focus-visible:ring-0"
+            className="m-0 h-auto min-w-30 cursor-pointer rounded-lg bg-red-500 px-6 py-2.5 text-sm font-semibold text-white! shadow-none hover:bg-red-600 focus-visible:ring-0"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
