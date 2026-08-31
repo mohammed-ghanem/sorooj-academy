@@ -89,7 +89,7 @@ export default function NavbarUserMenu({
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} dir={lang === "en" ? "ltr" : "rtl"}>
         <DropdownMenuTrigger
           className={cn(
-            "flex max-w-[220px] items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-bold mainColor outline-none",
+            "flex max-w-55 items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-bold mainColor outline-none",
             "hover:bg-black/5  focus-visible:ring-[#9F854E]/40 outline-none ",
             " border-none focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer",
             className,

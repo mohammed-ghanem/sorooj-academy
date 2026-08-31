@@ -34,9 +34,7 @@ function batchBadgeText(
   const end = enrollment.endYear != null ? String(enrollment.endYear) : "";
   const template = hero.batchBadgeOpen ?? hero.batchBadge ?? "";
 
-  return template
-    .replace("{startYear}", start)
-    .replace("{endYear}", end);
+  return template.replace("{startYear}", start).replace("{endYear}", end);
 }
 
 const HeroSection = () => {
@@ -44,13 +42,22 @@ const HeroSection = () => {
   const translate = TranslateHook();
   const hero = translate?.home?.hero;
   const locale = lang === "en" ? "en" : "ar";
-  const { data: enrollment } = useGetEnrollmentStatusQuery({ lang: locale });
+  const {
+    data: enrollment,
+    isLoading,
+    isUninitialized,
+    isFetching,
+    isError,
+  } = useGetEnrollmentStatusQuery({ lang: locale });
 
-  if (!translate || !hero) {
-    return <HeroSectionSkeleton />;
-  }
+  const showHeroSkeleton =
+    !translate ||
+    !hero ||
+    isUninitialized ||
+    isLoading ||
+    (isFetching && !enrollment && !isError);
 
-  const badge = batchBadgeText(hero, enrollment);
+  const badge = hero ? batchBadgeText(hero, enrollment) : "";
 
   return (
     <div className="relative">
@@ -79,24 +86,32 @@ const HeroSection = () => {
           className="relative z-10 flex flex-col items-center mt-3 
                 justify-center text-center max-w-2xl px-2 heroSectionBg2"
         >
-          <h2 className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
-            {badge}
-          </h2>
-          <h1 className="text-3xl md:text-5xl font-bold mb-4">
-            <span className="mainColor">{hero.headlineMain} </span>
-            <span className="scoundColor">{hero.headlineAccent}</span>
-          </h1>
-          <p className="descriptionColor font-bold mt-2">{hero.description}</p>
+          {showHeroSkeleton ? (
+            <HeroSectionSkeleton />
+          ) : (
+            <>
+              <h2 className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
+                {badge}
+              </h2>
+              <h1 className="text-3xl md:text-5xl font-bold mb-4">
+                <span className="mainColor">{hero.headlineMain} </span>
+                <span className="scoundColor">{hero.headlineAccent}</span>
+              </h1>
+              <p className="descriptionColor font-bold mt-2">
+                {hero.description}
+              </p>
 
-          <div className="flex items-center justify-center gap-6 mt-8">
-            <HeroEnrollButton />
-            <Link
-              href={`/${lang}/study-plan`}
-              className="mainColor p-2 rounded-md font-medium border border-[#424C61]"
-            >
-              {hero.learnAboutProgram}
-            </Link>
-          </div>
+              <div className="flex items-center justify-center gap-6 mt-8">
+                <HeroEnrollButton />
+                <Link
+                  href={`/${lang}/study-plan`}
+                  className="mainColor p-2 rounded-md font-medium border border-[#424C61]"
+                >
+                  {hero.learnAboutProgram}
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
     </div>
