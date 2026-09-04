@@ -202,8 +202,8 @@ export default function ProfileShell({ active, children }: ProfileShellProps) {
                   type="button"
                   onClick={() => setLogoutDialogOpen(true)}
                   className={cn(
-                    "mt-2 flex items-center gap-3 rounded-lg px-4 py-3 text-start text-sm font-semibold text-red-500 transition-colors hover:bg-red-50",
-                    logoutDialogOpen && "bg-red-50",
+                    "mt-2 flex items-center gap-3 rounded-lg px-4 py-3 text-start text-sm font-semibold scoundColor transition-colors hover:bg-[#f5f3ed]",
+                    logoutDialogOpen && "bg-[#f5f3ed]",
                   )}
                 >
                   <LogOut className="h-4 w-4 shrink-0" aria-hidden />
