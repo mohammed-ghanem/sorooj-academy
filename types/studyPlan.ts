@@ -20,3 +20,32 @@ export type StudyPlan = {
   academicYears: StudyPlanAcademicYear[];
   makeupExamPeriods: StudyPlanMakeupPeriod[];
 };
+
+export type StudyProgramLesson = {
+  id: number;
+  title: string;
+};
+
+export type StudyProgramSubject = {
+  id: number;
+  name: string;
+  orderIndex: number;
+  lessonsCount: number;
+  videosCount: number;
+  lessons: StudyProgramLesson[];
+};
+
+export type StudyProgramTerm = {
+  id: number;
+  name: string;
+  subjectsCount: number;
+  lessonsCount: number;
+  subjects: StudyProgramSubject[];
+};
+
+export type StudyProgramYear = {
+  id: number;
+  name: string;
+  programSequence: number;
+  terms: StudyProgramTerm[];
+};

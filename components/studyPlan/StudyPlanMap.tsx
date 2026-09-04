@@ -10,111 +10,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { StudyPlanMapSkeleton } from "@/components/skeletons/StudyPlanSkeleton";
+import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
+import { useGetStudyProgramQuery } from "@/store/studyPlan/studyPlanApi";
+import type { StudyProgramTerm } from "@/types/studyPlan";
+import LangUseParams from "@/translate/LangUseParams";
+import TranslateHook from "@/translate/TranslateHook";
 
-type StudyTopic = {
-  id: number;
-  title: string;
-  lessons: number;
-  subtopics: [string, string];
-};
-
-type StudyAxis = {
-  id: number;
-  title: string;
-  materialsCount: number;
-  lessonsCount: number;
-  topics: StudyTopic[];
-};
-
-type AcademicYear = {
-  id: number;
-  label: string;
-  axes: StudyAxis[];
-};
-
-const axisTopics: StudyTopic[] = [
-  {
-    id: 1,
-    title: "العقيدة الإسلامية",
-    lessons: 2,
-    subtopics: ["مدخل إلى العقيدة", "أنواع التوحيد"],
-  },
-  {
-    id: 2,
-    title: "التفسير وعلوم القرآن",
-    lessons: 2,
-    subtopics: ["مقدمة في التفسير", "أصول التفسير"],
-  },
-  {
-    id: 3,
-    title: "السيرة النبوية",
-    lessons: 2,
-    subtopics: ["مقدمة في السيرة", "مراحل الدعوة"],
-  },
-  {
-    id: 4,
-    title: "الفقه وأصوله",
-    lessons: 2,
-    subtopics: ["مقدمة في الفقه", "أصول الفقه"],
-  },
-  {
-    id: 5,
-    title: "الحديث وعلومه",
-    lessons: 2,
-    subtopics: ["مقدمة في الحديث", "علوم الحديث"],
-  },
-  {
-    id: 6,
-    title: "اللغة العربية",
-    lessons: 2,
-    subtopics: ["النحو والصرف", "البلاغة"],
-  },
-];
-
-const academicYears: AcademicYear[] = [
-  {
-    id: 1,
-    label: "العام الدراسي الأول",
-    axes: [
-      {
-        id: 1,
-        title: "المحور الأول",
-        materialsCount: 8,
-        lessonsCount: 40,
-        topics: axisTopics,
-      },
-      {
-        id: 2,
-        title: "المحور الثاني",
-        materialsCount: 8,
-        lessonsCount: 40,
-        topics: axisTopics,
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: "العام الدراسي الثاني",
-    axes: [
-      {
-        id: 3,
-        title: "المحور الثالث",
-        materialsCount: 8,
-        lessonsCount: 40,
-        topics: axisTopics,
-      },
-      {
-        id: 4,
-        title: "المحور الرابع",
-        materialsCount: 8,
-        lessonsCount: 40,
-        topics: axisTopics,
-      },
-    ],
-  },
-];
-
-function StudyAxisCard({ axis }: { axis: StudyAxis }) {
+function StudyAxisCard({ axis }: { axis: StudyProgramTerm }) {
   return (
     <AccordionItem
       value={`axis-${axis.id}`}
@@ -123,13 +26,13 @@ function StudyAxisCard({ axis }: { axis: StudyAxis }) {
       <AccordionTrigger className="flex w-full items-start justify-between gap-3 py-0 text-start hover:no-underline [&>svg]:mt-1 [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-[#9F854E]">
         <div className="min-w-0 flex-1 text-start">
           <h3 className="text-xl font-bold mainColor">
-            {axis.id}. {axis.title}
+            {axis.id}. {axis.name}
           </h3>
           <div className="mt-3 flex flex-wrap items-center justify-start gap-4">
             <div className="flex items-center gap-1.5">
               <Image src={bookPlan} width={20} height={20} alt="" />
               <span className="text-sm font-semibold scoundColor">
-                {axis.materialsCount} مواد
+                {axis.subjectsCount} مواد
               </span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -145,26 +48,26 @@ function StudyAxisCard({ axis }: { axis: StudyAxis }) {
       <AccordionContent className="pt-0 pb-0">
         <hr className="my-5 border-[#efefef]" />
         <div className="divide-y divide-[#f0f0f0]">
-          {axis.topics.map((topic) => (
+          {axis.subjects.map((topic) => (
             <div
               key={topic.id}
               className="flex items-start justify-between gap-3 py-4 first:pt-0 last:pb-0"
             >
               <div className="min-w-0 flex-1 text-start">
                 <p className="text-sm font-bold sm:text-base">
-                  {topic.id} . {topic.title}
+                  {topic.orderIndex} . {topic.name}
                 </p>
-                <ul className="mt-2 grid grid-cols-2 w-[50%] gap-y-1 text-start">
-                  {topic.subtopics.map((sub) => (
+                <ul className="mt-2 grid grid-cols-2 w-[80%] gap-y-1 text-start">
+                  {topic.lessons.map((lesson) => (
                     <li
-                      key={sub}
+                      key={lesson.id}
                       className="text-xs font-semibold descriptionColor before:ms-1 before:text-[#d4d4d4]"
                     >
                       <span className="text-xs font-semibold scoundColor before:ms-1 before:text-[#d4d4d4]">
                         •{" "}
                       </span>
                       <span className="text-xs font-semibold descriptionColor">
-                        {sub}{" "}
+                        {lesson.title}{" "}
                       </span>
                     </li>
                   ))}
@@ -174,7 +77,7 @@ function StudyAxisCard({ axis }: { axis: StudyAxis }) {
                 className="shrink-0 rounded-full bgTitleColor px-3 py-1.5 text-[11px]
                font-semibold scoundColor"
               >
-                {topic.lessons} درس
+                {topic.lessonsCount} درس
               </span>
             </div>
           ))}
@@ -185,6 +88,46 @@ function StudyAxisCard({ axis }: { axis: StudyAxis }) {
 }
 
 const StudyPlanMap = () => {
+  const lang = LangUseParams();
+  const translate = TranslateHook();
+  const locale = lang === "en" ? "en" : "ar";
+  const dir = locale === "en" ? "ltr" : "rtl";
+  const labels = translate?.pages?.studyPlanPage;
+
+  const {
+    data: academicYears = [],
+    isLoading,
+    isUninitialized,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useGetStudyProgramQuery({ lang: locale });
+
+  const showSkeleton =
+    isUninitialized || isLoading || (isFetching && academicYears.length === 0);
+
+  if (showSkeleton) {
+    return <StudyPlanMapSkeleton dir={dir} />;
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-[#F6F6F6] px-4 py-16 text-center">
+        <p className="mb-4 text-lg font-medium mainColor">
+          {extractApiErrorMessage(error, labels?.loadFailed ?? "")}
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="scoundBgColor rounded-lg px-4 py-2 text-sm text-white"
+        >
+          {labels?.retry ?? "Try again"}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#F6F6F6] pb-16 pt-8 md:pb-24 md:pt-12">
       {/* study plan map title */}
@@ -205,7 +148,7 @@ const StudyPlanMap = () => {
       >
         <Accordion
           type="multiple"
-          defaultValue={["year-1", "year-2"]}
+          defaultValue={academicYears.map((year) => `year-${year.id}`)}
           className="space-y-6"
         >
           {academicYears.map((year) => (
@@ -220,16 +163,16 @@ const StudyPlanMap = () => {
               >
                 <span>
                   <span className="text-xl scoundColor"> • </span>
-                  <span className="text-xl"> {year.label} </span>
+                  <span className="text-xl"> {year.name} </span>
                 </span>
               </AccordionTrigger>
               <AccordionContent className="pt-4 pb-2">
                 <Accordion
                   type="multiple"
-                  defaultValue={year.axes.map((axis) => `axis-${axis.id}`)}
+                  defaultValue={year.terms.map((axis) => `axis-${axis.id}`)}
                   className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8"
                 >
-                  {year.axes.map((axis) => (
+                  {year.terms.map((axis) => (
                     <StudyAxisCard key={axis.id} axis={axis} />
                   ))}
                 </Accordion>

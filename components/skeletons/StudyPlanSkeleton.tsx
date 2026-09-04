@@ -91,9 +91,39 @@ export function StudyPlanHeroTitleSkeleton() {
   );
 }
 
-export default function StudyPlanSkeleton({ dir = "rtl" }: StudyPlanSkeletonProps) {
+export function StudyPlanMapSkeleton({ dir = "rtl" }: StudyPlanSkeletonProps) {
   const isRtl = dir === "rtl";
 
+  return (
+    <div className="bg-[#F6F6F6] pb-16 pt-8 md:pb-24 md:pt-12" aria-busy="true">
+      <div className="container mx-auto w-[92%] max-w-7xl px-2 pt-2">
+        <Skeleton className="mx-auto h-9 w-72 max-w-full rounded-md scoundBgColor opacity-15" />
+        <Skeleton className="mx-auto mt-4 h-4 w-[min(100%,560px)] rounded-md scoundBgColor opacity-15" />
+        <Skeleton className="mx-auto mt-2 h-4 w-[min(100%,480px)] rounded-md scoundBgColor opacity-15" />
+      </div>
+
+      <div
+        dir={dir}
+        className={cn(
+          "container mx-auto mt-10 w-[92%] max-w-7xl space-y-6 px-2 md:mt-14",
+          isRtl ? "text-right" : "text-left",
+        )}
+      >
+        {[0, 1].map((year) => (
+          <div key={year} className="space-y-4">
+            <Skeleton className="mx-auto h-7 w-48 rounded-md scoundBgColor opacity-15" />
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
+              <StudyPlanAxisCardSkeleton />
+              <StudyPlanAxisCardSkeleton />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function StudyPlanSkeleton({ dir = "rtl" }: StudyPlanSkeletonProps) {
   return (
     <div aria-busy="true" aria-label="Loading study plan">
       <div>
@@ -116,31 +146,7 @@ export default function StudyPlanSkeleton({ dir = "rtl" }: StudyPlanSkeletonProp
         </div>
       </div>
 
-      <div className="bg-[#F6F6F6] pb-16 pt-8 md:pb-24 md:pt-12">
-        <div className="container mx-auto w-[92%] max-w-7xl px-2 pt-2">
-          <Skeleton className="mx-auto h-9 w-72 max-w-full rounded-md scoundBgColor opacity-15" />
-          <Skeleton className="mx-auto mt-4 h-4 w-[min(100%,560px)] rounded-md scoundBgColor opacity-15" />
-          <Skeleton className="mx-auto mt-2 h-4 w-[min(100%,480px)] rounded-md scoundBgColor opacity-15" />
-        </div>
-
-        <div
-          dir={dir}
-          className={cn(
-            "container mx-auto mt-10 w-[92%] max-w-7xl space-y-6 px-2 md:mt-14",
-            isRtl ? "text-right" : "text-left",
-          )}
-        >
-          {[0, 1].map((year) => (
-            <div key={year} className="space-y-4">
-              <Skeleton className="mx-auto h-7 w-48 rounded-md scoundBgColor opacity-15" />
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
-                <StudyPlanAxisCardSkeleton />
-                <StudyPlanAxisCardSkeleton />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <StudyPlanMapSkeleton dir={dir} />
 
       <section className="m-3 bgTitleColor px-4 py-14 sm:py-16 lg:py-20 md:m-0">
         <div className="container mx-auto">

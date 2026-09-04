@@ -4,7 +4,7 @@ import StudyPlanDate from "./StudyPlanDate";
 import StudyPlanMap from "./StudyPlanMap";
 import StudyCertificate from "./StudyCertificate";
 import StudyPlanSkeleton from "@/components/skeletons/StudyPlanSkeleton";
-import { useGetStudyPlanQuery } from "@/store/studyPlan/studyPlanApi";
+import { useGetStudyPlanQuery, useGetStudyProgramQuery } from "@/store/studyPlan/studyPlanApi";
 import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
@@ -29,11 +29,25 @@ const StudyPlan = () => {
     { refetchOnMountOrArgChange: true },
   );
 
+  const {
+    data: studyProgram,
+    isLoading: isProgramLoading,
+    isFetching: isProgramFetching,
+    isUninitialized: isProgramUninitialized,
+    isError: isProgramError,
+  } = useGetStudyProgramQuery(
+    { lang: locale },
+    { refetchOnMountOrArgChange: true },
+  );
+
   const showSkeleton =
     !translate ||
     isUninitialized ||
     isLoading ||
-    (isFetching && !studyPlan);
+    (isFetching && !studyPlan) ||
+    isProgramUninitialized ||
+    isProgramLoading ||
+    (isProgramFetching && !studyProgram && !isProgramError);
 
   if (showSkeleton) {
     return (

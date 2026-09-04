@@ -41,7 +41,7 @@ const SelectAuth = () => {
 
   const [role, setRole] = useState<AuthRole>("student");
 
-  const trainerLoginUrl = "https://dashboard-academy.sorooj.org/login";
+  const trainerLoginUrl = "https://doctor-academy.sorooj.org/login";
   const studentLoginPath = `/${lang}/login`;
 
   const nextButtonClass =
