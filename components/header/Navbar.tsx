@@ -12,6 +12,37 @@ import LangUseParams from "@/translate/LangUseParams";
 import { LoginButtonSkeleton } from "@/components/skeletons/LoginButtonSkeleton";
 import NavbarUserMenu from "./NavbarUserMenu";
 
+const NAV_FALLBACK = {
+  ar: {
+    home: "الرئيسية",
+    studyPlan: "الخطة الدراسية",
+    teachingStaff: "هيئة التدريس",
+    StudyTopics: "المحاور الدراسية",
+    independentScientificPaths: "مسارات علمية مستقلة",
+    library: "المكتبة العلمية",
+    contactUs: "تواصل معنا",
+    login: "تسجيل الدخول",
+    student: "طالب",
+    openMenu: "فتح القائمة",
+    closeMenu: "إغلاق القائمة",
+    logo: "أكاديمية سرج",
+  },
+  en: {
+    home: "Home",
+    studyPlan: "Study Plan",
+    teachingStaff: "Teaching Staff",
+    StudyTopics: "Study Topics",
+    independentScientificPaths: "Independent Scientific Paths",
+    library: "Library",
+    contactUs: "Contact Us",
+    login: "Login",
+    student: "Student",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    logo: "Sorooj Academy",
+  },
+} as const;
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -22,8 +53,11 @@ const Navbar = () => {
 
   const lang = LangUseParams();
   const translate = TranslateHook();
-  const loginLabel = translate?.home?.navbar?.login;
-  const studentFallback = translate?.home?.navbar?.student;
+  const locale = lang === "en" ? "en" : "ar";
+  const fallback = NAV_FALLBACK[locale];
+  const nav = translate?.home?.navbar;
+  const loginLabel = nav?.login ?? fallback.login;
+  const studentFallback = nav?.student ?? fallback.student;
 
   useEffect(() => {
     const syncAuthFromCookies = () => {
@@ -54,13 +88,13 @@ const Navbar = () => {
   }, [pathname]);
 
   const navLinks = [
-    { label: translate?.home?.navbar?.home, href: `/${lang}` },
-    { label: translate?.home?.navbar?.studyPlan, href: `/${lang}/study-plan` },
-    { label: translate?.home?.navbar?.teachingStaff, href: `/${lang}/faculty-members`},
-    { label: translate?.home?.navbar?.StudyTopics, href: `/${lang}/study-terms` },
-    { label: translate?.home?.navbar?.independentScientificPaths, href: `/${lang}/single-learning-pathes` }, 
-    { label: translate?.home?.navbar?.library, href: `/${lang}/book-library` },
-    { label: translate?.home?.navbar?.contactUs, href: `/${lang}/contact-us` },
+    { label: nav?.home ?? fallback.home, href: `/${lang}` },
+    { label: nav?.studyPlan ?? fallback.studyPlan, href: `/${lang}/study-plan` },
+    { label: nav?.teachingStaff ?? fallback.teachingStaff, href: `/${lang}/faculty-members` },
+    { label: nav?.StudyTopics ?? fallback.StudyTopics, href: `/${lang}/study-terms` },
+    { label: nav?.independentScientificPaths ?? fallback.independentScientificPaths, href: `/${lang}/single-learning-pathes` },
+    { label: nav?.library ?? fallback.library, href: `/${lang}/book-library` },
+    { label: nav?.contactUs ?? fallback.contactUs, href: `/${lang}/contact-us` },
   ];
 
   return (
@@ -71,9 +105,8 @@ const Navbar = () => {
           <Link href={`/${lang}`}>
             <Image
               src={logo}
-              alt=""
+              alt={fallback.logo}
               width={100}
-             
             />
           </Link>
 
@@ -96,7 +129,7 @@ const Navbar = () => {
               <GlobeBtn />
             </div>
 
-            {loginLabel ? (
+            {translate ? (
               auth.in ? (
                 <NavbarUserMenu
                   displayName={auth.displayName}
@@ -118,12 +151,15 @@ const Navbar = () => {
  
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setIsOpen(!isOpen)}
             className="lg:hidden flex flex-col gap-1"
+            aria-expanded={isOpen}
+            aria-label={isOpen ? fallback.closeMenu : fallback.openMenu}
           >
-            <span className="w-6 h-0.5 scoundBgColor"></span>
-            <span className="w-6 h-0.5 scoundBgColor"></span>
-            <span className="w-6 h-0.5 scoundBgColor"></span>
+            <span className="w-6 h-0.5 scoundBgColor" aria-hidden />
+            <span className="w-6 h-0.5 scoundBgColor" aria-hidden />
+            <span className="w-6 h-0.5 scoundBgColor" aria-hidden />
           </button>
 
           {/* Mobile Dropdown */}
@@ -146,7 +182,7 @@ const Navbar = () => {
                   <GlobeBtn />
                 </div>
 
-                {loginLabel ? (
+                {translate ? (
                   auth.in ? (
                     <NavbarUserMenu
                       displayName={auth.displayName}

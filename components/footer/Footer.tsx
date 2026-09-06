@@ -32,7 +32,7 @@ const Footer = () => {
         <div className="hidden md:block">
           <Image
             src={footerEffect}
-            alt="footerEffect"
+            alt=""
             fill
             className="-z-10 m-auto"
           />
@@ -42,7 +42,7 @@ const Footer = () => {
         <div className="mb-6">
           <Image
             src={footerlogo}
-            alt="footerLogo"
+            alt="أكاديمية سرج"
             className="m-auto"
             width={150}
             height={150}

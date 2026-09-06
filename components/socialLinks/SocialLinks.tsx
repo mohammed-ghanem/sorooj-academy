@@ -20,11 +20,11 @@ const SocialLinks = ({
   const { data: contacts } = useGetAppContactsQuery({ lang: locale });
 
   const socialLinks = [
-    { icon: telegram, href: contacts?.telegram || "#" },
-    { icon: instagram, href: contacts?.instagram || "#" },
-    { icon: twitter, href: contacts?.x || "#" },
-    { icon: facebook, href: contacts?.facebook || "#" },
-    { icon: youtube, href: contacts?.youtube || "#" },
+    { icon: telegram, href: contacts?.telegram || "#", label: "Telegram" },
+    { icon: instagram, href: contacts?.instagram || "#", label: "Instagram" },
+    { icon: twitter, href: contacts?.x || "#", label: "X" },
+    { icon: facebook, href: contacts?.facebook || "#", label: "Facebook" },
+    { icon: youtube, href: contacts?.youtube || "#", label: "YouTube" },
   ];
 
   return (
@@ -36,6 +36,7 @@ const SocialLinks = ({
           <Link
             key={index}
             href={item.href}
+            aria-label={item.label}
             className={`w-10 h-10 border flex items-center justify-center ${className}`}
             {...(isExternal
               ? { target: "_blank", rel: "noopener noreferrer" }
@@ -43,9 +44,10 @@ const SocialLinks = ({
           >
             <Image
               src={item.icon}
-              alt="icon"
+              alt=""
               width={item.icon === facebook ? 10 : 20}
               height={item.icon === facebook ? 10 : 20}
+              aria-hidden
             />
           </Link>
         );

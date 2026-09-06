@@ -31,7 +31,7 @@ const GlobeBtn = () => {
             onClick={toggleLanguage}
             aria-label={lang === "en" ? "Switch to Arabic" : "Switch to English"}
         >
-            <Globe className="h-5 w-5" />
+            <Globe className="h-5 w-5" aria-hidden />
         </button>
     );
 };
