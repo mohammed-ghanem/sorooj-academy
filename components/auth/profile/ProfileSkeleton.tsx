@@ -20,25 +20,25 @@ function CertificateCardSkeleton() {
       />
       <span
         aria-hidden
-        className="absolute start-5 top-4 h-3.5 w-3.5 border-s-2 border-t-2 border-emerald-800/35"
+        className="absolute inset-s-5 top-4 h-3.5 w-3.5 border-s-2 border-t-2 border-emerald-800/35"
       />
       <span
         aria-hidden
-        className="absolute end-4 top-4 h-3.5 w-3.5 border-e-2 border-t-2 border-emerald-800/35"
+        className="absolute inset-e-4 top-4 h-3.5 w-3.5 border-e-2 border-t-2 border-emerald-800/35"
       />
       <span
         aria-hidden
-        className="absolute start-5 bottom-4 h-3.5 w-3.5 border-s-2 border-b-2 border-emerald-800/35"
+        className="absolute inset-s-5 bottom-4 h-3.5 w-3.5 border-s-2 border-b-2 border-emerald-800/35"
       />
       <span
         aria-hidden
-        className="absolute end-4 bottom-4 h-3.5 w-3.5 border-e-2 border-b-2 border-emerald-800/35"
+        className="absolute inset-e-4 bottom-4 h-3.5 w-3.5 border-e-2 border-b-2 border-emerald-800/35"
       />
 
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-        <div className="relative mx-auto h-[5.25rem] w-[7.25rem] shrink-0 sm:mx-0">
+        <div className="relative mx-auto h-21 w-29 shrink-0 sm:mx-0">
           <Skeleton className="h-full w-full rounded-xl rotate-[-4deg] scoundBgColor opacity-15" />
-          <Skeleton className="absolute -bottom-2 -end-2 h-9 w-9 rounded-full scoundBgColor opacity-20" />
+          <Skeleton className="absolute -bottom-2 -inset-e-2 h-9 w-9 rounded-full scoundBgColor opacity-20" />
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <Skeleton className="h-3 w-28 rounded-md scoundBgColor opacity-15" />

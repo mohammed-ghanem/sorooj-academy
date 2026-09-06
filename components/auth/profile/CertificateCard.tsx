@@ -62,28 +62,28 @@ export default function CertificateCard({
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -end-10 -top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(180,148,74,0.22),transparent_68%)]"
+          className="pointer-events-none absolute -inset-e-10 -top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(180,148,74,0.22),transparent_68%)]"
         />
 
         <span
           aria-hidden
-          className="absolute start-5 top-4 h-3.5 w-3.5 border-s-2 border-t-2 border-emerald-800/35"
+          className="absolute inset-s-5 top-4 h-3.5 w-3.5 border-s-2 border-t-2 border-emerald-800/35"
         />
         <span
           aria-hidden
-          className="absolute end-4 top-4 h-3.5 w-3.5 border-e-2 border-t-2 border-emerald-800/35"
+          className="absolute inset-e-4 top-4 h-3.5 w-3.5 border-e-2 border-t-2 border-emerald-800/35"
         />
         <span
           aria-hidden
-          className="absolute start-5 bottom-4 h-3.5 w-3.5 border-s-2 border-b-2 border-emerald-800/35"
+          className="absolute inset-s-5 bottom-4 h-3.5 w-3.5 border-s-2 border-b-2 border-emerald-800/35"
         />
         <span
           aria-hidden
-          className="absolute end-4 bottom-4 h-3.5 w-3.5 border-e-2 border-b-2 border-emerald-800/35"
+          className="absolute inset-e-4 bottom-4 h-3.5 w-3.5 border-e-2 border-b-2 border-emerald-800/35"
         />
 
         <div className="relative flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:gap-6 sm:px-8 sm:py-6">
-          <div className="relative mx-auto h-[5.25rem] w-[7.25rem] shrink-0 sm:mx-0">
+          <div className="relative mx-auto h-21 w-29 shrink-0 sm:mx-0">
             <div
               aria-hidden
               className="absolute inset-0 translate-x-1 translate-y-1 rotate-[-8deg] rounded-xl bg-emerald-950/10"
@@ -105,7 +105,7 @@ export default function CertificateCard({
                 </div>
               )}
             </div>
-            <div className="absolute -bottom-2 -end-2 flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(145deg,#f6d365_0%,#b45309_100%)] shadow-md ring-2 ring-[#f7f4ec]">
+            <div className="absolute -bottom-2 -inset-e-2 flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(145deg,#f6d365_0%,#b45309_100%)] shadow-md ring-2 ring-[#f7f4ec]">
               <Award className="h-4 w-4 text-white" strokeWidth={2.2} />
             </div>
           </div>
