@@ -4,18 +4,27 @@ import { Providers } from "../../providers/Providers";
 import { ReactNode } from "react";
 import Header from "@/components/header/Header";
 import Footer from "@/components/footer/Footer";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 export const metadata: Metadata = {
-  title: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة ",
+  title: "اكاديمية سُرُجْ للدرسات والابحاث الفكرية المعاصرة ",
   description:
     "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
   keywords: [
-    "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-    "sorooj academy for contemporary intellectual studies and research",
-    "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-    "sorooj academy for contemporary intellectual studies and research",
-    "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-    "sorooj academy for contemporary intellectual studies and research",
+    "اكاديمية سرج",
+    "درسات فكرية",
+    "ابحاث فكرية",
+    "مذاهب فكرية",
+    "دينية",
+    "فلسفية",
+    "سياسية",
+    "تعليم",
+    "تعليم متخصص",
+    "تعليم متخصص في الدينية",
+    "تعليم متخصص في الفلسفية",
+    "تعليم متخصص في السياسية",
+    "تعليم متخصص في الدينية والفلسفية والسياسية",
+    "تعليم متخصص في الدينية والفلسفية والسياسية والتعليم المتخصص",
   ],
   authors: [
     {
@@ -71,6 +80,7 @@ export default async function RootLayout({
   return (
     <html lang={lang} dir={dir}>
       <body className="overflow-x-hidden">
+        <GoogleAnalytics />
         <Providers>
           <div className="">
             <div>

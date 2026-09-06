@@ -40,6 +40,7 @@ export type HomeStatistic = {
   key: string;
   value: number;
   label: string;
+  orderIndex: number;
 };
 
 function toNumericValue(value: unknown): number {
@@ -55,7 +56,7 @@ function asNonEmptyString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function mapStatistic(raw: any): HomeStatistic | null {
+function mapStatistic(raw: any, index: number): HomeStatistic | null {
   const key = asNonEmptyString(raw?.key);
   const label = asNonEmptyString(raw?.label);
   if (!key && !label) return null;
@@ -63,6 +64,7 @@ function mapStatistic(raw: any): HomeStatistic | null {
     key: key || label,
     value: toNumericValue(raw?.value),
     label: label || key,
+    orderIndex: readOrderIndex(raw, index),
   };
 }
 
@@ -72,11 +74,13 @@ function extractStatistics(payload: unknown): HomeStatistic[] {
   if (!Array.isArray(raw)) return [];
   return raw
     .map(mapStatistic)
-    .filter((item: HomeStatistic | null): item is HomeStatistic => item !== null);
+    .filter((item: HomeStatistic | null): item is HomeStatistic => item !== null)
+    .sort(byOrderIndex);
 }
 
 export type HomeFeature = {
   id: number;
+  orderIndex: number;
   title: string;
   description: string;
   icon: string;
@@ -91,13 +95,29 @@ function toNumericId(value: unknown): number | undefined {
   return undefined;
 }
 
-function mapHomeFeature(raw: any): HomeFeature | null {
+/** Dashboard order, then API array position — never sort homepage items by id. */
+function readOrderIndex(raw: any, fallbackIndex: number): number {
+  return (
+    toNumericId(raw?.order_index) ??
+    toNumericId(raw?.order) ??
+    toNumericId(raw?.sort_order) ??
+    toNumericId(raw?.sequence) ??
+    fallbackIndex
+  );
+}
+
+function byOrderIndex<T extends { orderIndex: number }>(a: T, b: T): number {
+  return a.orderIndex - b.orderIndex;
+}
+
+function mapHomeFeature(raw: any, index: number): HomeFeature | null {
   const id = toNumericId(raw?.id);
   const title = asNonEmptyString(raw?.title);
   if (id === undefined || !title) return null;
 
   return {
     id,
+    orderIndex: readOrderIndex(raw, index),
     title,
     description: asNonEmptyString(raw?.description),
     icon: asNonEmptyString(raw?.icon),
@@ -111,24 +131,26 @@ function extractHomeFeatures(payload: unknown): HomeFeature[] {
   return raw
     .map(mapHomeFeature)
     .filter((item: HomeFeature | null): item is HomeFeature => item !== null)
-    .sort((a: HomeFeature, b: HomeFeature) => a.id - b.id);
+    .sort(byOrderIndex);
 }
 
 export type HomeGoal = {
   id: number;
+  orderIndex: number;
   title: string;
   description: string;
   image: string;
   icon: string;
 };
 
-function mapHomeGoal(raw: any): HomeGoal | null {
+function mapHomeGoal(raw: any, index: number): HomeGoal | null {
   const id = toNumericId(raw?.id);
   const title = asNonEmptyString(raw?.title);
   if (id === undefined || !title) return null;
 
   return {
     id,
+    orderIndex: readOrderIndex(raw, index),
     title,
     description: asNonEmptyString(raw?.description),
     image: asNonEmptyString(raw?.image),
@@ -143,23 +165,25 @@ function extractHomeGoals(payload: unknown): HomeGoal[] {
   return raw
     .map(mapHomeGoal)
     .filter((item: HomeGoal | null): item is HomeGoal => item !== null)
-    .sort((a: HomeGoal, b: HomeGoal) => a.id - b.id);
+    .sort(byOrderIndex);
 }
 
 export type HomeMethodology = {
   id: number;
+  orderIndex: number;
   title: string;
   description: string;
   icon: string;
 };
 
-function mapHomeMethodology(raw: any): HomeMethodology | null {
+function mapHomeMethodology(raw: any, index: number): HomeMethodology | null {
   const id = toNumericId(raw?.id);
   const title = asNonEmptyString(raw?.title);
   if (id === undefined || !title) return null;
 
   return {
     id,
+    orderIndex: readOrderIndex(raw, index),
     title,
     description: asNonEmptyString(raw?.description),
     icon: asNonEmptyString(raw?.icon),
@@ -178,7 +202,7 @@ function extractHomeMethodologies(payload: unknown): HomeMethodology[] {
     .filter(
       (item: HomeMethodology | null): item is HomeMethodology => item !== null,
     )
-    .sort((a: HomeMethodology, b: HomeMethodology) => a.id - b.id);
+    .sort(byOrderIndex);
 }
 
 export type HomeStudyLevel = {
@@ -196,7 +220,7 @@ function mapHomeStudyLevel(raw: any): HomeStudyLevel | null {
 
   return {
     id,
-    orderIndex: toNumericId(raw?.order_index) ?? id,
+    orderIndex: readOrderIndex(raw, id),
     title,
     description: asNonEmptyString(raw?.description),
     image: asNonEmptyString(raw?.image),
@@ -254,6 +278,8 @@ function extractHomeStudyLevels(payload: unknown): HomeStudyLevel[] {
 export const studentHomeApi = createApi({
   reducerPath: "studentHomeApi",
   baseQuery: axiosBaseQuery(),
+  refetchOnFocus: true,
+  refetchOnMountOrArgChange: true,
   tagTypes: [
     "StudentHome",
     "HomeStatistics",

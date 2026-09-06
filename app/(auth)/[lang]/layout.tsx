@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import '../../../app/[lang]/globals.css'
 import { Providers } from "@/providers/Providers";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 export default async function AuthLayout({
     children,
@@ -15,6 +16,7 @@ export default async function AuthLayout({
     return (
         <html lang={lang} dir={dir}>
             <body>
+                <GoogleAnalytics />
                 <Providers>
                     <div>
                         {children}
