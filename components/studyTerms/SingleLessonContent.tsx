@@ -1218,7 +1218,7 @@ const SingleLessonContent = () => {
                 </div>
 
                 {hasVideos ? (
-                <div className="max-h-[560px] overflow-x-hidden overflow-y-auto">
+                <div className="max-h-140 overflow-x-hidden overflow-y-auto">
                   {videos.map((video, index) => {
                       const videoKey = String(video.id);
                       const unlocked = isVideoUnlocked(video);
@@ -1287,7 +1287,7 @@ const SingleLessonContent = () => {
                             <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-start">
                               {video.youtubeId ? (
                                 <Image
-                                  className="w-full shrink-0 lg:w-[150px] xl:w-[90px]"
+                                  className="w-full shrink-0 lg:w-37.5 xl:w-22.5"
                                   width={90}
                                   height={50}
                                   src={`https://img.youtube.com/vi/${stripYoutubeVideoId(video.youtubeId)}/mqdefault.jpg`}
