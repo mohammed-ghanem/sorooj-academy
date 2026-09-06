@@ -1,73 +1,40 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import { Providers } from "../../providers/Providers";
 import { ReactNode } from "react";
+import { Providers } from "../../providers/Providers";
 import Header from "@/components/header/Header";
 import Footer from "@/components/footer/Footer";
-import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import HtmlLang from "@/components/i18n/HtmlLang";
+import {
+  SITE_DESCRIPTION,
+  SITE_DESCRIPTION_EN,
+  SITE_TITLE,
+  SITE_TITLE_EN,
+} from "@/lib/siteMetadata";
+import { getSiteUrl } from "@/lib/siteUrl";
 
-export const metadata: Metadata = {
-  title: "اكاديمية سُرُجْ للدرسات والابحاث الفكرية المعاصرة ",
-  description:
-    "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
-  keywords: [
-    "اكاديمية سرج",
-    "درسات فكرية",
-    "ابحاث فكرية",
-    "مذاهب فكرية",
-    "دينية",
-    "فلسفية",
-    "سياسية",
-    "تعليم",
-    "تعليم متخصص",
-    "تعليم متخصص في الدينية",
-    "تعليم متخصص في الفلسفية",
-    "تعليم متخصص في السياسية",
-    "تعليم متخصص في الدينية والفلسفية والسياسية",
-    "تعليم متخصص في الدينية والفلسفية والسياسية والتعليم المتخصص",
-  ],
-  authors: [
-    {
-      name: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-      url: "https://academy.sorooj.org",
+const site = getSiteUrl();
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  const isEn = lang === "en";
+
+  return {
+    title: isEn ? SITE_TITLE_EN : SITE_TITLE,
+    description: isEn ? SITE_DESCRIPTION_EN : SITE_DESCRIPTION,
+    openGraph: {
+      title: isEn ? SITE_TITLE_EN : SITE_TITLE,
+      description: isEn ? SITE_DESCRIPTION_EN : SITE_DESCRIPTION,
+      url: site,
+      locale: isEn ? "en" : "ar",
     },
-  ],
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-  },
-  openGraph: {
-    title: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-    description:
-      "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
-    url: "https://academy.sorooj.org",
-    siteName: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-    locale: "ar",
-    type: "website",
-    images: [
-      {
-        url: "https://academy.sorooj.org/assets/images/meta.png",
-        alt: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-        width: 1200,
-        height: 630,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-    description:
-      "اكاديمية سُرُجْ - منارة للبحث العلمى والتعليم المتخصص فى استكشاف وفهم المذاهب الفكرية المعاصرة , بما فى ذلك الدينية والفلسفية والسياسية من اجل تمكين المتعلمين فى اتخاذ قرارات مستنيرة فى ظل التنوع الفكرى المتزايد",
-    images: [
-      {
-        url: "https://academy.sorooj.org/assets/images/meta.png",
-        alt: "اكاديمية سرج للدرسات والابحاث الفكرية المعاصرة",
-      },
-    ],
-  },
-};
+  };
+}
 
-export default async function RootLayout({
+export default async function LangLayout({
   children,
   params,
 }: {
@@ -78,25 +45,19 @@ export default async function RootLayout({
   const dir = lang === "ar" ? "rtl" : "ltr";
 
   return (
-    <html lang={lang} dir={dir}>
-      <body className="overflow-x-hidden">
-        <GoogleAnalytics />
-        <Providers>
-          <div className="">
-            <div>
-              <header className="absolute top-0 left-0 w-full z-50 bg-transparent">
-                <Header />
-              </header>
+    <Providers>
+      <HtmlLang lang={lang} dir={dir} />
+      <div>
+        <header className="absolute top-0 left-0 w-full z-50 bg-transparent">
+          <Header />
+        </header>
 
-              <main className="">
-                <div className="mx-auto">{children}</div>
-              </main>
+        <main>
+          <div className="mx-auto">{children}</div>
+        </main>
 
-              <Footer />
-            </div>
-          </div>
-        </Providers>
-      </body>
-    </html>
+        <Footer />
+      </div>
+    </Providers>
   );
 }

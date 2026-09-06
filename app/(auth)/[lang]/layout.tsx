@@ -1,29 +1,21 @@
 import { ReactNode } from "react";
-import '../../../app/[lang]/globals.css'
 import { Providers } from "@/providers/Providers";
-import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import HtmlLang from "@/components/i18n/HtmlLang";
 
 export default async function AuthLayout({
-    children,
-    params,
+  children,
+  params,
 }: {
-    children: ReactNode;
-    params: Promise<{ lang: string }>; // 👈 params is a Promise now
+  children: ReactNode;
+  params: Promise<{ lang: string }>;
 }) {
+  const { lang } = await params;
+  const dir = lang === "ar" ? "rtl" : "ltr";
 
-    const { lang } = await params; // 👈 await it
-    const dir = lang === "ar" ? "rtl" : "ltr";
-    return (
-        <html lang={lang} dir={dir}>
-            <body>
-                <GoogleAnalytics />
-                <Providers>
-                    <div>
-                        {children}
-                    </div>
-                </Providers>
-
-            </body>
-        </html>
-    );
+  return (
+    <Providers>
+      <HtmlLang lang={lang} dir={dir} />
+      <div>{children}</div>
+    </Providers>
+  );
 }
