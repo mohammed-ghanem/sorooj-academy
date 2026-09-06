@@ -1,37 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import { Download, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import CertificateCard from "@/components/auth/profile/CertificateCard";
 import ProfileShell from "@/components/auth/profile/ProfileShell";
 import { unwrapProfileUser } from "@/components/auth/profile/profileUser";
 import {
-  isLikelyImageUrl,
   mapCertificateTabs,
-  mergeCertificate,
   saveBlobFile,
-  type StudentCertificate,
 } from "@/lib/profile/certificates";
 import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
 import { formatGregorianDate } from "@/lib/studyPlan/formatStudyPlanDates";
 import {
   useDownloadCertificateMutation,
   useGetProfileQuery,
-  useLazyGetCertificateQuery,
 } from "@/store/auth/authApi";
 import { cn } from "@/lib/utils";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import certificateIcon from "@/public/assets/images/certificate.svg";
+import type { StudentCertificate } from "@/lib/profile/certificates";
 
 export default function ProfileCertificates() {
   const lang = LangUseParams();
@@ -49,9 +36,6 @@ export default function ProfileCertificates() {
   );
 
   const [activeTab, setActiveTab] = useState("");
-  const [selected, setSelected] = useState<StudentCertificate | null>(null);
-  const [fetchCertificate, { isFetching: loadingDetails }] =
-    useLazyGetCertificateQuery();
   const [downloadCertificate, { isLoading: downloading }] =
     useDownloadCertificateMutation();
 
@@ -66,31 +50,17 @@ export default function ProfileCertificates() {
     tabs.find((tab) => tab.key === activeTab) ?? tabs[0] ?? null;
   const certificates = currentTab?.certificates ?? [];
 
-  const formatIssuedAt = (value: string) => {
+  const formatIssuedAt = (certificate: StudentCertificate) => {
+    if (certificate.issuedAtLabel) return certificate.issuedAtLabel;
+    const value = certificate.issuedAt;
     if (!value) return "";
     const dateOnly = value.trim().split(/[T\s]/)[0] ?? value;
     const formatted = formatGregorianDate(dateOnly, locale);
     return formatted && formatted !== dateOnly ? formatted : dateOnly;
   };
 
-  const handleView = async (certificate: StudentCertificate) => {
-    setSelected(certificate);
-    try {
-      const details = await fetchCertificate(certificate.id).unwrap();
-      setSelected((current) =>
-        current?.id === certificate.id
-          ? mergeCertificate(current, details)
-          : current,
-      );
-    } catch (err) {
-      toast.error(
-        extractApiErrorMessage(err, p?.certificateLoadError ?? ""),
-      );
-    }
-  };
-
   const handleDownload = async (certificate: StudentCertificate) => {
-    if (!certificate.hasFiles) {
+    if (!certificate.hasFiles && !certificate.pdfUrl && !certificate.downloadUrl) {
       toast.info(p?.certificateNotReady ?? "");
       return;
     }
@@ -106,6 +76,14 @@ export default function ProfileCertificates() {
         file.filename || `certificate-${certificate.id}.pdf`,
       );
     } catch (err) {
+      if (certificate.pdfUrl || certificate.downloadUrl) {
+        window.open(
+          certificate.pdfUrl || certificate.downloadUrl,
+          "_blank",
+          "noopener,noreferrer",
+        );
+        return;
+      }
       toast.error(
         extractApiErrorMessage(err, p?.certificateDownloadError ?? ""),
       );
@@ -122,7 +100,9 @@ export default function ProfileCertificates() {
         <div className="mb-5 overflow-hidden rounded-xl border border-[#efe7d8]">
           <div
             className="grid"
-            style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+            style={{
+              gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
+            }}
           >
             {tabs.map((tab) => {
               const isActive = tab.key === currentTab?.key;
@@ -154,108 +134,27 @@ export default function ProfileCertificates() {
           {p?.emptyCertificates}
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {certificates.map((certificate) => (
             <CertificateCard
               key={certificate.id}
-              title={certificate.title || (p?.certificateUntitled ?? "")}
-              issuedAt={formatIssuedAt(certificate.issuedAt)}
-              imageUrl={certificate.imageUrl}
-              imageAlt={certificate.title || (p?.certificates ?? "")}
-              viewLabel={p?.viewCertificate ?? ""}
-              downloadLabel={p?.downloadPdf ?? ""}
-              showDownload={certificate.hasFiles}
+              cert={certificate}
+              issuedLabel={formatIssuedAt(certificate)}
+              dir={lang === "en" ? "ltr" : "rtl"}
               downloading={downloading}
-              onView={() => void handleView(certificate)}
               onDownload={() => void handleDownload(certificate)}
+              labels={{
+                type: p?.certificateType,
+                serial: p?.serialNumber,
+                issued: p?.issuedAt,
+                viewImage: p?.viewImage ?? p?.viewCertificate,
+                downloadPdf: p?.downloadPdf,
+                close: p?.closeCertificate,
+              }}
             />
           ))}
         </div>
       )}
-
-      <Dialog
-        open={selected !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelected(null);
-        }}
-      >
-        <DialogContent
-          showCloseButton={false}
-          dir={lang === "en" ? "ltr" : "rtl"}
-          className="max-h-[min(90vh,calc(100%-2rem))] max-w-[calc(100%-2rem)] gap-4 overflow-y-auto rounded-2xl border border-[#E8E0D4]/60 bg-white p-5 sm:max-w-2xl sm:p-6"
-        >
-          {selected ? (
-            <>
-              <DialogTitle className="text-center text-lg font-semibold mainColor">
-                {selected.title || p?.certificateUntitled}
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                {p?.viewCertificate}
-              </DialogDescription>
-
-              <div className="flex min-h-48 items-center justify-center overflow-hidden rounded-xl bg-[#faf7f1]">
-                {loadingDetails ? (
-                  <Loader2
-                    className="h-8 w-8 animate-spin scoundColor"
-                    aria-hidden
-                  />
-                ) : selected.imageUrl &&
-                  isLikelyImageUrl(selected.imageUrl) ? (
-                  <Image
-                    src={selected.imageUrl}
-                    alt={selected.title || (p?.certificates ?? "")}
-                    width={900}
-                    height={640}
-                    className="max-h-[65vh] w-auto object-contain"
-                    unoptimized
-                  />
-                ) : (
-                  <Image
-                    src={certificateIcon}
-                    alt=""
-                    width={80}
-                    height={80}
-                  />
-                )}
-              </div>
-
-              {selected.issuedAt ? (
-                <p className="text-center text-sm descriptionColor">
-                  {formatIssuedAt(selected.issuedAt)}
-                </p>
-              ) : null}
-
-              {selected.hasFiles ? (
-                <div className="flex justify-center">
-                  <button
-                    type="button"
-                    disabled={downloading}
-                    onClick={() => void handleDownload(selected)}
-                    className="inline-flex items-center gap-1.5 rounded-md bkMainColor px-4 py-2 text-sm font-semibold text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {downloading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    ) : (
-                      <Download className="h-4 w-4" aria-hidden />
-                    )}
-                    {p?.downloadPdf}
-                  </button>
-                </div>
-              ) : null}
-            </>
-          ) : null}
-
-          <DialogClose asChild>
-            <button
-              type="button"
-              className="absolute top-4 right-4 rounded-full border p-0.5 transition hover:bg-gray-200 rtl:right-auto rtl:left-4"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">{p?.closeCertificate}</span>
-            </button>
-          </DialogClose>
-        </DialogContent>
-      </Dialog>
     </ProfileShell>
   );
 }

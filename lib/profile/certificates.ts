@@ -1,10 +1,16 @@
 export type StudentCertificate = {
   id: number;
   title: string;
+  displayTitle: string;
   imageUrl: string;
   issuedAt: string;
+  issuedAtLabel: string;
   hasFiles: boolean;
   type: string;
+  typeLabel: string;
+  serialNumber: string;
+  pdfUrl: string;
+  downloadUrl: string;
 };
 
 export type StudentCertificateTab = {
@@ -63,9 +69,16 @@ export function mapStudentCertificate(
   const year = asRecord(obj.academic_year);
   const term = asRecord(obj.study_term);
   const subject = asRecord(obj.subject);
+  const track =
+    asRecord(obj.scientific_track) ||
+    asRecord(obj.track) ||
+    asRecord(obj.path);
+  const category =
+    asRecord(obj.scientific_track_category) || asRecord(obj.category);
 
   const title =
     pickString(obj, [
+      "display_title",
       "title",
       "name",
       "_title",
@@ -73,6 +86,8 @@ export function mapStudentCertificate(
       "label",
     ]) ||
     pickString(subject, ["name", "title"]) ||
+    pickString(track, ["name", "title"]) ||
+    pickString(category, ["name", "title"]) ||
     pickString(term, ["name", "title"]) ||
     pickString(year, ["name", "title"]);
 
@@ -101,10 +116,22 @@ export function mapStudentCertificate(
   return {
     id,
     title,
+    displayTitle: pickString(obj, ["display_title"]) || title,
     imageUrl,
     issuedAt,
+    issuedAtLabel: pickString(obj, ["_issued_at", "issued_at_label"]),
     hasFiles,
-    type: pickString(obj, ["type", "key", "source"]),
+    type: pickString(obj, ["type", "key", "source", "group"]),
+    typeLabel: pickString(obj, [
+      "_type",
+      "type_label",
+      "_group",
+      "group_label",
+      "type",
+    ]),
+    serialNumber: pickString(obj, ["serial_number", "serial"]),
+    pdfUrl: pickString(obj, ["pdf_url"]),
+    downloadUrl: pickString(obj, ["download_url"]),
   };
 }
 
@@ -163,10 +190,16 @@ export function mergeCertificate(
   return {
     id: incoming.id || current.id,
     title: incoming.title || current.title,
+    displayTitle: incoming.displayTitle || current.displayTitle,
     imageUrl: incoming.imageUrl || current.imageUrl,
     issuedAt: incoming.issuedAt || current.issuedAt,
+    issuedAtLabel: incoming.issuedAtLabel || current.issuedAtLabel,
     hasFiles: incoming.hasFiles,
     type: incoming.type || current.type,
+    typeLabel: incoming.typeLabel || current.typeLabel,
+    serialNumber: incoming.serialNumber || current.serialNumber,
+    pdfUrl: incoming.pdfUrl || current.pdfUrl,
+    downloadUrl: incoming.downloadUrl || current.downloadUrl,
   };
 }
 

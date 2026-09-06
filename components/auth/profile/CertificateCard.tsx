@@ -1,86 +1,245 @@
 "use client";
 
-import Image from "next/image";
-import { Download, Eye, Loader2 } from "lucide-react";
-import { isLikelyImageUrl } from "@/lib/profile/certificates";
-import certificateIcon from "@/public/assets/images/certificate.svg";
+import { useState } from "react";
+import { Award, Calendar, Download, Eye, Hash, Loader2, X } from "lucide-react";
+import {
+  isLikelyImageUrl,
+  type StudentCertificate,
+} from "@/lib/profile/certificates";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type CertificateCardProps = {
-  title: string;
-  issuedAt?: string;
-  imageUrl?: string;
-  imageAlt?: string;
-  viewLabel: string;
-  downloadLabel: string;
-  showDownload?: boolean;
+  cert: StudentCertificate;
+  issuedLabel?: string;
+  labels: {
+    type?: string;
+    serial?: string;
+    issued?: string;
+    viewImage?: string;
+    downloadPdf?: string;
+    close?: string;
+  };
+  dir?: "ltr" | "rtl";
   downloading?: boolean;
-  onView: () => void;
   onDownload?: () => void;
 };
 
 export default function CertificateCard({
-  title,
-  issuedAt,
-  imageUrl,
-  imageAlt,
-  viewLabel,
-  downloadLabel,
-  showDownload = false,
+  cert,
+  issuedLabel,
+  labels,
+  dir,
   downloading = false,
-  onView,
   onDownload,
 }: CertificateCardProps) {
+  const [open, setOpen] = useState(false);
+  const imageHref = cert.imageUrl;
+  const title = cert.displayTitle || cert.title || "—";
+  const issued = issuedLabel || cert.issuedAtLabel || cert.issuedAt;
+  const type = cert.typeLabel || cert.type;
+  const showImage = Boolean(imageHref && isLikelyImageUrl(imageHref));
+  const canDownload = Boolean(
+    cert.hasFiles || cert.pdfUrl || cert.downloadUrl,
+  );
+
   return (
-    <article className="flex items-center justify-between gap-3 rounded-2xl px-4 py-4 sm:gap-4 sm:px-6 bg-[linear-gradient(90deg,#e3d6c4_0%,#f6f3ec_52%,#eee6d8_100%)]">
-      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-        <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-white">
-          {imageUrl && isLikelyImageUrl(imageUrl) ? (
-            <Image
-              src={imageUrl}
-              alt={imageAlt || title}
-              fill
-              className="object-cover"
-              unoptimized
+    <>
+      <article className="group relative overflow-hidden rounded-[1.6rem] bg-[#f7f4ec] shadow-[0_12px_28px_-18px_rgba(66,76,97,0.18)] ring-1 ring-black/5 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_-16px_rgba(66,76,97,0.22)]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-35"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, rgba(6,78,59,0.14) 1px, transparent 0)",
+            backgroundSize: "18px 18px",
+          }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -end-10 -top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(180,148,74,0.22),transparent_68%)]"
+        />
+
+        <span
+          aria-hidden
+          className="absolute start-5 top-4 h-3.5 w-3.5 border-s-2 border-t-2 border-emerald-800/35"
+        />
+        <span
+          aria-hidden
+          className="absolute end-4 top-4 h-3.5 w-3.5 border-e-2 border-t-2 border-emerald-800/35"
+        />
+        <span
+          aria-hidden
+          className="absolute start-5 bottom-4 h-3.5 w-3.5 border-s-2 border-b-2 border-emerald-800/35"
+        />
+        <span
+          aria-hidden
+          className="absolute end-4 bottom-4 h-3.5 w-3.5 border-e-2 border-b-2 border-emerald-800/35"
+        />
+
+        <div className="relative flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:gap-6 sm:px-8 sm:py-6">
+          <div className="relative mx-auto h-[5.25rem] w-[7.25rem] shrink-0 sm:mx-0">
+            <div
+              aria-hidden
+              className="absolute inset-0 translate-x-1 translate-y-1 rotate-[-8deg] rounded-xl bg-emerald-950/10"
             />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <Image src={certificateIcon} alt="" width={36} height={36} />
+            <div className="relative h-full w-full overflow-hidden rounded-xl bg-white shadow-md ring-2 ring-white rotate-[-4deg] transition duration-300 group-hover:rotate-[-7deg]">
+              {showImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imageHref}
+                  alt={title}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(160deg,#ecfdf5_0%,#f8fafc_55%,#fefce8_100%)]">
+                  <Award
+                    className="h-9 w-9 text-emerald-800"
+                    strokeWidth={1.4}
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <div className="min-w-0 text-start">
-          <h3 className="text-sm font-bold leading-snug text-black">{title}</h3>
-          {issuedAt ? (
-            <p className="mt-1 text-xs descriptionColor">{issuedAt}</p>
+            <div className="absolute -bottom-2 -end-2 flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(145deg,#f6d365_0%,#b45309_100%)] shadow-md ring-2 ring-[#f7f4ec]">
+              <Award className="h-4 w-4 text-white" strokeWidth={2.2} />
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1 text-start">
+            {type ? (
+              <p
+                className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-800"
+                title={labels.type}
+              >
+                {type}
+              </p>
+            ) : null}
+            <h3 className="text-base font-bold leading-snug text-slate-900 sm:text-lg">
+              {title}
+            </h3>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {cert.serialNumber ? (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-emerald-800/30 bg-white/70 px-2.5 py-1 font-mono text-[11px] tracking-wider text-emerald-950"
+                  dir="ltr"
+                  title={labels.serial}
+                >
+                  <Hash className="h-3 w-3 shrink-0 text-amber-700" />
+                  {cert.serialNumber}
+                </span>
+              ) : null}
+              {issued ? (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-md bg-emerald-950/5 px-2.5 py-1 text-[11px] font-medium text-slate-600"
+                  title={labels.issued}
+                >
+                  <Calendar className="h-3 w-3 shrink-0 text-emerald-800" />
+                  {issued}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {imageHref || canDownload ? (
+            <div className="flex shrink-0 items-center justify-end gap-2 sm:flex-col sm:items-stretch">
+              {imageHref ? (
+                <button
+                  type="button"
+                  onClick={() => setOpen(true)}
+                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-emerald-800/20 bg-white/80 px-3 text-xs font-semibold text-emerald-950 cursor-pointer transition hover:bg-white sm:flex-none"
+                >
+                  <Eye className="h-3.5 w-3.5" aria-hidden />
+                  {labels.viewImage}
+                </button>
+              ) : null}
+              {canDownload ? (
+                <button
+                  type="button"
+                  disabled={downloading}
+                  onClick={onDownload}
+                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[linear-gradient(135deg,#0f766e_0%,#065f46_100%)] px-3 text-xs font-semibold text-white shadow-sm shadow-emerald-950/20 cursor-pointer transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                >
+                  {downloading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                  ) : (
+                    <Download className="h-3.5 w-3.5" aria-hidden />
+                  )}
+                  {labels.downloadPdf}
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
-      </div>
+      </article>
 
-      <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={onView}
-          aria-label={viewLabel}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#9F854E] bg-white text-[#9F854E] cursor-pointer transition hover:bg-[#faf7f1]"
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          showCloseButton={false}
+          dir={dir}
+          className="max-h-[min(90vh,calc(100%-2rem))] max-w-[calc(100%-2rem)] gap-4 overflow-y-auto rounded-3xl border-emerald-900/10 bg-[#f7f4ec] p-5 sm:max-w-2xl sm:p-6"
         >
-          <Eye className="h-4 w-4" aria-hidden />
-        </button>
-        {showDownload ? (
-          <button
-            type="button"
-            disabled={downloading}
-            onClick={onDownload}
-            aria-label={downloadLabel}
-            className="flex h-10 w-10 items-center justify-center rounded-full scoundBgColor text-white cursor-pointer transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {downloading ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+          <DialogTitle className="text-center text-lg font-semibold text-slate-900">
+            {title}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            {labels.viewImage}
+          </DialogDescription>
+
+          <div className="flex min-h-48 items-center justify-center overflow-hidden rounded-2xl bg-white ring-1 ring-emerald-950/10">
+            {showImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageHref}
+                alt={title}
+                className="max-h-[65vh] w-auto object-contain"
+              />
             ) : (
-              <Download className="h-4 w-4" aria-hidden />
+              <Award
+                className="h-16 w-16 text-emerald-800"
+                strokeWidth={1.25}
+              />
             )}
-          </button>
-        ) : null}
-      </div>
-    </article>
+          </div>
+
+          {issued ? (
+            <p className="text-center text-sm text-slate-500">{issued}</p>
+          ) : null}
+
+          {canDownload ? (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                disabled={downloading}
+                onClick={onDownload}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(135deg,#0f766e_0%,#065f46_100%)] px-4 py-2 text-sm font-semibold text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {downloading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Download className="h-4 w-4" aria-hidden />
+                )}
+                {labels.downloadPdf}
+              </button>
+            </div>
+          ) : null}
+
+          <DialogClose asChild>
+            <button
+              type="button"
+              className="absolute top-4 right-4 rounded-full border border-emerald-900/15 bg-white p-1 transition hover:bg-emerald-50 rtl:right-auto rtl:left-4"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">{labels.close}</span>
+            </button>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

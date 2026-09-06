@@ -8,17 +8,50 @@ type ProfileSkeletonActive =
 
 function CertificateCardSkeleton() {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl px-4 py-4 sm:gap-4 sm:px-6 bg-[linear-gradient(90deg,#e3d6c4_0%,#f6f3ec_52%,#eee6d8_100%)]">
-      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-        <Skeleton className="h-16 w-24 shrink-0 rounded-lg scoundBgColor opacity-15" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <Skeleton className="h-4 w-40 max-w-full rounded-md scoundBgColor opacity-15" />
-          <Skeleton className="h-3 w-24 rounded-md scoundBgColor opacity-15" />
+    <div className="relative overflow-hidden rounded-[1.6rem] bg-[#f7f4ec] px-6 py-5 shadow-[0_12px_28px_-18px_rgba(66,76,97,0.18)] ring-1 ring-black/5 sm:px-8 sm:py-6">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-35"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(6,78,59,0.14) 1px, transparent 0)",
+          backgroundSize: "18px 18px",
+        }}
+      />
+      <span
+        aria-hidden
+        className="absolute start-5 top-4 h-3.5 w-3.5 border-s-2 border-t-2 border-emerald-800/35"
+      />
+      <span
+        aria-hidden
+        className="absolute end-4 top-4 h-3.5 w-3.5 border-e-2 border-t-2 border-emerald-800/35"
+      />
+      <span
+        aria-hidden
+        className="absolute start-5 bottom-4 h-3.5 w-3.5 border-s-2 border-b-2 border-emerald-800/35"
+      />
+      <span
+        aria-hidden
+        className="absolute end-4 bottom-4 h-3.5 w-3.5 border-e-2 border-b-2 border-emerald-800/35"
+      />
+
+      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+        <div className="relative mx-auto h-[5.25rem] w-[7.25rem] shrink-0 sm:mx-0">
+          <Skeleton className="h-full w-full rounded-xl rotate-[-4deg] scoundBgColor opacity-15" />
+          <Skeleton className="absolute -bottom-2 -end-2 h-9 w-9 rounded-full scoundBgColor opacity-20" />
         </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <Skeleton className="h-10 w-10 rounded-full scoundBgColor opacity-15" />
-        <Skeleton className="h-10 w-10 rounded-full scoundBgColor opacity-15" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-3 w-28 rounded-md scoundBgColor opacity-15" />
+          <Skeleton className="h-5 w-48 max-w-full rounded-md scoundBgColor opacity-15" />
+          <div className="flex gap-2 pt-1">
+            <Skeleton className="h-6 w-28 rounded-md scoundBgColor opacity-15" />
+            <Skeleton className="h-6 w-24 rounded-md scoundBgColor opacity-15" />
+          </div>
+        </div>
+        <div className="flex shrink-0 gap-2 sm:flex-col">
+          <Skeleton className="h-10 w-28 rounded-full scoundBgColor opacity-15" />
+          <Skeleton className="h-10 w-28 rounded-full scoundBgColor opacity-15" />
+        </div>
       </div>
     </div>
   );
@@ -34,8 +67,7 @@ function CertificatesSkeletonBody() {
           <Skeleton className="h-12 w-full rounded-none scoundBgColor opacity-10" />
         </div>
       </div>
-      <div className="flex flex-col gap-3">
-        <CertificateCardSkeleton />
+      <div className="flex flex-col gap-4">
         <CertificateCardSkeleton />
         <CertificateCardSkeleton />
       </div>
