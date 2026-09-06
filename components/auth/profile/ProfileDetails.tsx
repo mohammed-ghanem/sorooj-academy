@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { CalendarDays, Mail, MapPin, Pencil, UserRound } from "lucide-react";
 import ProfileShell from "@/components/auth/profile/ProfileShell";
 import {
   asProfileText,
@@ -36,11 +36,36 @@ function ProfileDetails() {
   const country = profilePlaceName(user?.country);
 
   const infoRows = [
-    { label: p?.name, value: name },
-    { label: p?.email, value: asProfileText(user?.email) },
-    { label: p?.dateOfBirth, value: birthDate },
-    { label: p?.country, value: country },
-    { label: p?.gender, value: genderLabel },
+    {
+      label: p?.name,
+      value: name,
+      icon: UserRound,
+      tone: "bg-[#e8edf4] text-[#424C61]",
+    },
+    {
+      label: p?.email,
+      value: asProfileText(user?.email),
+      icon: Mail,
+      tone: "bg-[#e9eef6] text-[#5A6B8A]",
+    },
+    {
+      label: p?.dateOfBirth,
+      value: birthDate,
+      icon: CalendarDays,
+      tone: "bg-[#f3ead6] text-[#9F854E]",
+    },
+    {
+      label: p?.country,
+      value: country,
+      icon: MapPin,
+      tone: "bg-[#e5f0ea] text-[#4F7A62]",
+    },
+    {
+      label: p?.gender,
+      value: genderLabel,
+      icon: UserRound,
+      tone: "bg-[#f3ead6] text-[#9F854E]",
+    },
   ];
 
   return (
@@ -58,15 +83,30 @@ function ProfileDetails() {
         </Link>
       </div>
 
-      <div className="flex flex-col gap-5">
-        {infoRows.map((row) => (
-          <div key={row.label} className="text-start">
-            <p className="mb-1 text-xs font-semibold descriptionColor">
-              {row.label}
-            </p>
-            <p className="text-sm font-bold mainColor">{row.value || dash}</p>
-          </div>
-        ))}
+      <div className="flex flex-col gap-3">
+        {infoRows.map((row) => {
+          const Icon = row.icon;
+          return (
+            <div
+              key={row.label}
+              className="flex items-center gap-3 rounded-xl bg-[#f8f5ef] px-3 py-3"
+            >
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${row.tone}`}
+              >
+                <Icon className="h-4 w-4" aria-hidden />
+              </span>
+              <div className="min-w-0 text-start">
+                <p className="mb-0.5 text-xs font-semibold descriptionColor">
+                  {row.label}
+                </p>
+                <p className="text-sm font-bold mainColor">
+                  {row.value || dash}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </ProfileShell>
   );

@@ -153,7 +153,7 @@
       "retry": "Try again",
       "startStudy": "Start studying",
       "continueStudy": "Continue studying",
-      "reviewStudy": "Review lesson",
+      "reviewStudy": "Review subject",
       "lessonUnit": "lessons",
       "emptySubjects": "No materials are available in this term yet.",
       "subjectLockedTitle": "Subject unavailable",
@@ -345,7 +345,14 @@
       "achievementRate": "Achievement rate",
       "emptyValue": "—",
       "emptyCertificates": "No certificates yet.",
-      "emptyJourney": "No academic journey data yet."
+      "emptyJourney": "No academic journey data yet.",
+      "viewCertificate": "View certificate",
+      "downloadPdf": "Download PDF",
+      "certificateUntitled": "Certificate",
+      "certificateNotReady": "The certificate file is not available yet.",
+      "certificateLoadError": "Could not load the certificate.",
+      "certificateDownloadError": "Could not download the certificate.",
+      "closeCertificate": "Close"
     },
     "userDropDown": {
       "profile": "Profile",
@@ -553,7 +560,7 @@
       "progress": "Progress",
       "startStudy": "Start studying",
       "continueStudy": "Continue studying",
-      "reviewStudy": "Review lesson",
+      "reviewStudy": "Review subject",
       "backToSubjects": "Back to path subjects",
       "subjectNotFound": "This subject is not available",
       "subjectHeroLabel": "Subject content",

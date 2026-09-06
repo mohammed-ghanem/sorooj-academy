@@ -149,7 +149,7 @@
       "retry": "إعادة المحاولة",
       "startStudy": "ابدأ الدراسة",
       "continueStudy": "متابعة الدراسة",
-      "reviewStudy": "مراجعة الدرس",
+      "reviewStudy": "مراجعة المادة",
       "lessonUnit": "درس",
       "emptySubjects": "لا توجد مواد متاحة في هذا المحور حالياً.",
       "subjectLockedTitle": "المادة غير متاحة",
@@ -343,7 +343,14 @@
       "achievementRate": "نسبة الإنجاز",
       "emptyValue": "—",
       "emptyCertificates": "لا توجد شهادات حالياً.",
-      "emptyJourney": "لا توجد بيانات للرحلة العلمية حالياً."
+      "emptyJourney": "لا توجد بيانات للرحلة العلمية حالياً.",
+      "viewCertificate": "عرض الشهادة",
+      "downloadPdf": "تحميل PDF",
+      "certificateUntitled": "شهادة",
+      "certificateNotReady": "ملف الشهادة غير متاح حالياً.",
+      "certificateLoadError": "تعذر عرض الشهادة.",
+      "certificateDownloadError": "تعذر تحميل الشهادة.",
+      "closeCertificate": "إغلاق"
     },
     "userDropDown": {
       "profile": "الملف الشخصى",
@@ -552,7 +559,7 @@
       "progress": "نسبة الإنجاز",
       "startStudy": "ابدأ الدراسة",
       "continueStudy": "متابعة الدراسة",
-      "reviewStudy": "مراجعة الدرس",
+      "reviewStudy": "مراجعة المادة",
       "backToSubjects": "رجوع لمواد المسار",
       "subjectNotFound": "هذه المادة غير متوفرة",
       "subjectHeroLabel": "محتوى المادة",

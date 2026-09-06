@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createApi } from "@reduxjs/toolkit/query/react";
+import type { AxiosError } from "axios";
 import Cookies from "js-cookie";
 import { axiosBaseQuery } from "@/store/base/axiosBaseQuery";
+import api from "@/services/api";
+import {
+  filenameFromContentDisposition,
+  mapStudentCertificate,
+  unwrapCertificatePayload,
+  type StudentCertificate,
+} from "@/lib/profile/certificates";
 
 export type Country = {
   id: number;
@@ -358,6 +366,102 @@ export const authApi = createApi({
       providesTags: ["Profile"],
     }),
 
+    // ---------------- SHOW CERTIFICATE ----------------
+    getCertificate: builder.query<StudentCertificate | null, number>({
+      query: (id) => ({
+        url: `/auth/certificates/${id}`,
+        method: "GET",
+        auth: true,
+      }),
+      transformResponse: (response: unknown) =>
+        mapStudentCertificate(unwrapCertificatePayload(response)),
+    }),
+
+    // ---------------- DOWNLOAD CERTIFICATE PDF ----------------
+    downloadCertificate: builder.mutation<
+      { blob: Blob; filename: string; url?: string },
+      number
+    >({
+      async queryFn(id) {
+        try {
+          const token = Cookies.get("access_token");
+          const result = await api.get(`/auth/certificates/${id}/download`, {
+            responseType: "blob",
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          });
+
+          const blob = result.data as Blob;
+          if (blob?.type?.includes("json")) {
+            const text = await blob.text();
+            let payload: unknown = text;
+            try {
+              payload = JSON.parse(text);
+            } catch {
+              /* keep raw text */
+            }
+            const fileUrl = (() => {
+              const root = payload as {
+                data?: { url?: string; file_url?: string; download_url?: string };
+                url?: string;
+              };
+              return (
+                root?.data?.url ||
+                root?.data?.file_url ||
+                root?.data?.download_url ||
+                root?.url ||
+                ""
+              );
+            })();
+            if (fileUrl) {
+              return {
+                data: {
+                  blob: new Blob(),
+                  filename:
+                    filenameFromContentDisposition(
+                      result.headers["content-disposition"],
+                    ) || `certificate-${id}.pdf`,
+                  url: fileUrl,
+                },
+              };
+            }
+            return {
+              error: {
+                status: result.status,
+                data: payload,
+              },
+            };
+          }
+
+          return {
+            data: {
+              blob,
+              filename:
+                filenameFromContentDisposition(
+                  result.headers["content-disposition"],
+                ) || `certificate-${id}.pdf`,
+            },
+          };
+        } catch (axiosError) {
+          const err = axiosError as AxiosError;
+          let data: unknown = err.response?.data ?? err.message;
+          if (data instanceof Blob) {
+            try {
+              const text = await data.text();
+              data = JSON.parse(text);
+            } catch {
+              /* keep blob / text */
+            }
+          }
+          return {
+            error: {
+              status: err.response?.status,
+              data,
+            },
+          };
+        }
+      },
+    }),
+
     // ---------------- UPDATE PROFILE ----------------
     updateProfile: builder.mutation<any, FormData>({
       query: (body) => ({
@@ -381,6 +485,9 @@ export const {
   useChangePasswordMutation,
   useGetProfileQuery,
   useLazyGetProfileQuery,
+  useGetCertificateQuery,
+  useLazyGetCertificateQuery,
+  useDownloadCertificateMutation,
   useUpdateProfileMutation,
   useResendOtpMutation,
   useGetCountriesQuery,

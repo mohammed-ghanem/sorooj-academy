@@ -9,6 +9,11 @@ export type ProfileUser = {
   _gender?: string;
   date_of_birth?: string;
   country?: { id?: number; name?: string } | string;
+  certificates_count?: number;
+  academy_count?: number;
+  independent_count?: number;
+  tabs?: unknown[];
+  certificates?: unknown[];
 };
 
 export function unwrapProfileUser(payload: unknown): ProfileUser | null {

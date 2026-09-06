@@ -353,11 +353,12 @@ const SingleLessonContent = () => {
 
   const lessonFinalExamUi = useMemo(() => {
     if (!lesson) return null;
+    const noVideos = (lesson.videos?.length ?? 0) === 0;
     return resolveLessonFinalExamUiState({
       hasActiveLessonExam: lesson.hasActiveLessonExam,
       lessonExamAttemptStatus: lesson.lessonExamAttemptStatus,
       studentHasPassedLessonExam: lesson.studentHasPassedLessonExam,
-      canAccessLessonExam: lesson.canAccessLessonExam,
+      canAccessLessonExam: noVideos ? true : lesson.canAccessLessonExam,
       canStartNewLessonExam: lesson.canStartNewLessonExam,
       canRetakeLessonExam: lesson.canRetakeLessonExam,
     });
@@ -458,6 +459,7 @@ const SingleLessonContent = () => {
     });
   }, [lesson]);
   const videos = lesson?.videos ?? [];
+  const hasVideos = videos.length > 0;
   const attachments = lesson?.attachments ?? [];
   const activeVideo =
     videos.find((video) => String(video.id) === activeVideoId) ?? videos[0];
@@ -912,6 +914,97 @@ const SingleLessonContent = () => {
   const lessonDescription =
     lesson?.content?.trim() || lesson?.briefContent?.trim() || "";
 
+  const renderLessonMetaTabs = () => (
+    <>
+      <div className="mb-4 border-b border-[#efe7d8]">
+        <div className="items-center grid grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setActiveLessonTab("description")}
+            className={`pb-2 text-md font-semibold transition-colors px-4 py-4 cursor-pointer ${
+              activeLessonTab === "description"
+                ? "scoundColor border-b-2 border-[#9F854E] lightBgColor"
+                : "text-black bg-white"
+            }`}
+          >
+            {t?.descriptionTab}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveLessonTab("files")}
+            className={`pb-2 text-md font-semibold transition-colors px-4 py-4 cursor-pointer ${
+              activeLessonTab === "files"
+                ? "scoundColor border-b-2 border-[#9F854E] lightBgColor"
+                : "text-black bg-white"
+            }`}
+          >
+            {t?.filesTab}
+          </button>
+        </div>
+      </div>
+
+      <div>
+        {activeLessonTab === "description" ? (
+          <p className="py-4 px-4 bg-white rounded-lg">
+            {lessonDescription || t?.noDescription}
+          </p>
+        ) : attachments.length === 0 ? (
+          <p className="py-4 px-4 bg-white rounded-lg text-sm text-gray-600">
+            {t?.noFiles}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {attachments.map((resource) => (
+              <div
+                key={resource.id}
+                className="flex items-center justify-between rounded-lg bg-white shadow-r-sm px-3 py-3"
+              >
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/assets/images/pdf.svg"
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="lightBgColor rounded-md p-1.5"
+                  />
+                  <span className="text-sm">{resource.title}</span>
+                </div>
+
+                {resource.url ? (
+                  <a
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cursor-pointer"
+                    download
+                  >
+                    <Image
+                      src="/assets/images/download.svg"
+                      alt=""
+                      width={35}
+                      height={35}
+                      className="rounded-md p-1.5 border border-gray-200"
+                    />
+                  </a>
+                ) : (
+                  <span className="cursor-default opacity-50">
+                    <Image
+                      src="/assets/images/download.svg"
+                      alt=""
+                      width={35}
+                      height={35}
+                      className="rounded-md p-1.5 border border-gray-200"
+                    />
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   const heroTitle =
     lesson?.lessonNumber && lesson?.title
       ? `${lesson.lessonNumber}: ${lesson.title}`
@@ -1049,29 +1142,32 @@ const SingleLessonContent = () => {
                     <div className="flex items-center justify-between mb-4 w-full">
                       <h2 className="text-lg font-semibold">{lesson.title}</h2>
 
-                      {/* watch complete + final lesson exam */}
-                      {activeVideo && activePlayback ? (
+                      {hasVideos &&
+                      activeVideo &&
+                      activePlayback &&
+                      !activeVideoWatchCompleted ? (
                         <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-                          {!activeVideoWatchCompleted ? (
-                            <button
-                              type="button"
-                              disabled={completingWatch}
-                              onClick={() => void handleWatchComplete()}
-                              className="text-[13px] text-white bkMainColor px-4 py-2 mt-2.5 rounded-md
+                          <button
+                            type="button"
+                            disabled={completingWatch}
+                            onClick={() => void handleWatchComplete()}
+                            className="text-[13px] text-white bkMainColor px-4 py-2 mt-2.5 rounded-md
                              font-medium flex items-center gap-1 cursor-pointer disabled:opacity-60"
-                            >
-                              <span>{t?.watchComplete}</span>
-                              <Check size={16} />
-                            </button>
-                          ) : null}
-                          {/* Final lesson exam — extra classes: LESSON_FINAL_EXAM_BUTTON_CLASS (~line 137) */}
+                          >
+                            <span>{t?.watchComplete}</span>
+                            <Check size={16} />
+                          </button>
                           {renderLessonFinalExamButton()}
                         </div>
-                      ) : null}
+                      ) : (
+                        renderLessonFinalExamButton({
+                          className: "mt-4",
+                        })
+                      )}
                     </div>
                   </div>
 
-                  {activePlayback ? (
+                  {hasVideos && activePlayback ? (
                     <div className="relative w-full overflow-hidden rounded-xl bg-black">
                       {activePlayback.kind === "youtube" ? (
                         <iframe
@@ -1094,11 +1190,11 @@ const SingleLessonContent = () => {
                         />
                       )}
                     </div>
-                  ) : (
-                    <p className="text-center text-sm text-gray-600 py-12">
-                      {t?.noVideos}
-                    </p>
-                  )}
+                  ) : null}
+
+                  {!hasVideos ? (
+                    <div className="mt-2">{renderLessonMetaTabs()}</div>
+                  ) : null}
                 </div>
               </div>
 
@@ -1121,13 +1217,9 @@ const SingleLessonContent = () => {
                   </div>
                 </div>
 
+                {hasVideos ? (
                 <div className="max-h-[560px] overflow-x-hidden overflow-y-auto">
-                  {videos.length === 0 ? (
-                    <p className="px-4 py-6 text-center text-sm text-gray-600">
-                      {t?.noVideos}
-                    </p>
-                  ) : (
-                    videos.map((video, index) => {
+                  {videos.map((video, index) => {
                       const videoKey = String(video.id);
                       const unlocked = isVideoUnlocked(video);
                       const isActive = activeVideoId === videoKey;
@@ -1230,8 +1322,9 @@ const SingleLessonContent = () => {
                         </div>
                       );
                     })
-                  )}
+                  }
                 </div>
+                ) : null}
 
                 {nextLesson && nextLessonIndex >= 0 ? (
                   <div className="border-t border-[#efe7d8] mt-8 bg-white px-4 py-4">
@@ -1382,95 +1475,11 @@ const SingleLessonContent = () => {
                 ) : null}
               </div>
 
-              {/* Description / attachments tabs */}
-              <div className="order-3 lg:order-0 lg:col-span-8 lg:row-start-2 rounded-2xl shadow-r-sm">
-                <div className="mb-4 border-b border-[#efe7d8]">
-                  <div className="items-center grid grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => setActiveLessonTab("description")}
-                      className={`pb-2 text-md font-semibold transition-colors px-4 py-4 cursor-pointer ${
-                        activeLessonTab === "description"
-                          ? "scoundColor border-b-2 border-[#9F854E] lightBgColor"
-                          : "text-black bg-white"
-                      }`}
-                    >
-                      {t?.descriptionTab}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveLessonTab("files")}
-                      className={`pb-2 text-md font-semibold transition-colors px-4 py-4 cursor-pointer ${
-                        activeLessonTab === "files"
-                          ? "scoundColor border-b-2 border-[#9F854E] lightBgColor"
-                          : "text-black bg-white"
-                      }`}
-                    >
-                      {t?.filesTab}
-                    </button>
-                  </div>
+              {hasVideos ? (
+                <div className="order-3 lg:order-0 lg:col-span-8 lg:row-start-2 rounded-2xl shadow-r-sm">
+                  {renderLessonMetaTabs()}
                 </div>
-
-                <div>
-                  {activeLessonTab === "description" ? (
-                    <p className="py-4 px-4 bg-white rounded-lg">
-                      {lessonDescription || t?.noDescription}
-                    </p>
-                  ) : attachments.length === 0 ? (
-                    <p className="py-4 px-4 bg-white rounded-lg text-sm text-gray-600">
-                      {t?.noFiles}
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {attachments.map((resource) => (
-                        <div
-                          key={resource.id}
-                          className="flex items-center justify-between rounded-lg bg-white shadow-r-sm px-3 py-3"
-                        >
-                          <div className="flex items-center gap-1">
-                            <Image
-                              src="/assets/images/pdf.svg"
-                              alt=""
-                              width={40}
-                              height={40}
-                              className="lightBgColor rounded-md p-1.5"
-                            />
-                            <span className="text-sm">{resource.title}</span>
-                          </div>
-
-                          {resource.url ? (
-                            <a
-                              href={resource.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="cursor-pointer"
-                              download
-                            >
-                              <Image
-                                src="/assets/images/download.svg"
-                                alt=""
-                                width={35}
-                                height={35}
-                                className="rounded-md p-1.5 border border-gray-200"
-                              />
-                            </a>
-                          ) : (
-                            <span className="cursor-default opacity-50">
-                              <Image
-                                src="/assets/images/download.svg"
-                                alt=""
-                                width={35}
-                                height={35}
-                                className="rounded-md p-1.5 border border-gray-200"
-                              />
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              ) : null}
             </div>
           </div>
 

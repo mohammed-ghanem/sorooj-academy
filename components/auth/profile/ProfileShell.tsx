@@ -31,6 +31,33 @@ export type ProfileNavId =
   | "journey"
   | "settings";
 
+const NAV_ICON_TONE: Record<
+  ProfileNavId,
+  { wrap: string; icon: string }
+> = {
+  personal: {
+    wrap: "bg-[#e8edf4] text-[#424C61]",
+    icon: "text-[#424C61]",
+  },
+  certificates: {
+    wrap: "bg-[#f3ead6] text-[#9F854E]",
+    icon: "text-[#9F854E]",
+  },
+  journey: {
+    wrap: "bg-[#e5f0ea] text-[#4F7A62]",
+    icon: "text-[#4F7A62]",
+  },
+  settings: {
+    wrap: "bg-[#e9eef6] text-[#5A6B8A]",
+    icon: "text-[#5A6B8A]",
+  },
+};
+
+const PAGE_BG =
+  "min-h-screen bg-[linear-gradient(180deg,#ffffff_0%,#fdfcfa_100%)]";
+const MAIN_CARD =
+  "overflow-hidden rounded-3xl border border-[#eadfcf] bg-[#fffdf9] shadow-[0_18px_40px_rgba(66,76,97,0.08)]";
+
 type ProfileShellProps = {
   active: ProfileNavId;
   children: ReactNode;
@@ -92,16 +119,16 @@ export default function ProfileShell({ active, children }: ProfileShellProps) {
 
   if (!translate || isUninitialized || isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className={PAGE_BG}>
         {hero}
-        <ProfileSkeleton />
+        <ProfileSkeleton active={active} />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className={PAGE_BG}>
         {hero}
         <p className="py-20 mb-3.5 text-center text-lg font-medium mainColor">
           {p?.noData}
@@ -143,18 +170,18 @@ export default function ProfileShell({ active, children }: ProfileShellProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={PAGE_BG}>
       {hero}
 
       <div
         className="container mx-auto mt-11! w-[92%] max-w-6xl px-2 pb-16 pt-2 md:pb-24"
         dir={lang === "ar" ? "rtl" : "ltr"}
       >
-        <div className="overflow-hidden rounded-2xl border border-[#d7e4ee] bg-white shadow-sm">
+        <div className={MAIN_CARD}>
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr]">
-            <aside className="border-b border-[#edf1f5] lg:border-b-0 lg:border-e">
-              <div className="flex flex-col items-center px-6 py-8 text-center bgTitleColor">
-                <div className="mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bkMainColor text-2xl font-bold text-white">
+            <aside className="border-b border-[#eadfcf] bg-[#fffdf9] lg:border-b-0 lg:border-e">
+              <div className="flex flex-col items-center px-6 py-8 text-center bg-[linear-gradient(180deg,#f7f5f2_0%,#e7dfd5_100%)]">
+                <div className="mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bkMainColor text-2xl font-bold text-white ring-2 ring-white">
                   {avatarSrc ? (
                     <Image
                       src={avatarSrc}
@@ -181,18 +208,26 @@ export default function ProfileShell({ active, children }: ProfileShellProps) {
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = item.id === active;
+                  const tone = NAV_ICON_TONE[item.id];
                   return (
                     <Link
                       key={item.id}
                       href={item.href}
                       className={cn(
-                        "mb-1 flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-colors",
+                        "mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
                         isActive
-                          ? "bg-[#f3f5f7] mainColor border-s-4 border-[#7eb8d6]"
-                          : "descriptionColor hover:bg-[#f7f7f7]",
+                          ? "bg-[#f7f4ee] mainColor"
+                          : "descriptionColor hover:bg-[#f8f5ef]",
                       )}
                     >
-                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                      <span
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                          tone.wrap,
+                        )}
+                      >
+                        <Icon className={cn("h-4 w-4", tone.icon)} aria-hidden />
+                      </span>
                       {item.label}
                     </Link>
                   );
@@ -202,17 +237,19 @@ export default function ProfileShell({ active, children }: ProfileShellProps) {
                   type="button"
                   onClick={() => setLogoutDialogOpen(true)}
                   className={cn(
-                    "mt-2 flex items-center gap-3 rounded-lg px-4 py-3 text-start text-sm font-semibold scoundColor transition-colors hover:bg-[#f5f3ed]",
-                    logoutDialogOpen && "bg-[#f5f3ed]",
+                    "mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-start text-sm font-semibold scoundColor transition-colors hover:bg-[#f7f4ee]",
+                    logoutDialogOpen && "bg-[#f7f4ee]",
                   )}
                 >
-                  <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f3ead6] text-[#9F854E]">
+                    <LogOut className="h-4 w-4" aria-hidden />
+                  </span>
                   {dd?.logout}
                 </button>
               </nav>
             </aside>
 
-            <div className="p-5 sm:p-8 lg:p-10">{children}</div>
+            <div className="bg-white p-5 sm:p-8 lg:p-10">{children}</div>
           </div>
         </div>
       </div>
