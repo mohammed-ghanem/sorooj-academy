@@ -67,6 +67,9 @@ const HeroSection = () => {
             src="/assets/images/frame2.png"
             alt=""
             fill
+            priority
+            sizes="(max-width: 768px) 40vw, 400px"
+            quality={70}
             className="object-cover object-left opacity-100"
           />
         </div>
@@ -76,6 +79,9 @@ const HeroSection = () => {
             src="/assets/images/frame1.png"
             alt=""
             fill
+            priority
+            sizes="(max-width: 768px) 40vw, 400px"
+            quality={70}
             className="object-cover object-right opacity-100 "
           />
         </div>

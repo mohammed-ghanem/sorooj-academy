@@ -34,6 +34,7 @@ const Footer = () => {
             src={footerEffect}
             alt=""
             fill
+            sizes="100vw"
             className="-z-10 m-auto"
           />
         </div>

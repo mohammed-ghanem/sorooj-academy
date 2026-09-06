@@ -42,6 +42,7 @@ const StudyMethod = () => {
               src={studyMethod}
               alt="studyMethod"
               fill
+              sizes="(max-width: 640px) 100vw, 50vw"
               className="relative z-0 mx-auto max-h-107.5 object-cover"
             />
           </div>

@@ -107,6 +107,8 @@ const Navbar = () => {
               src={logo}
               alt={fallback.logo}
               width={100}
+              height={75}
+              priority
             />
           </Link>
 
