@@ -67,7 +67,6 @@ const HeroSection = () => {
             src="/assets/images/frame2.png"
             alt=""
             fill
-            priority
             sizes="(max-width: 768px) 40vw, 400px"
             quality={70}
             className="object-cover object-left opacity-100"
@@ -79,7 +78,6 @@ const HeroSection = () => {
             src="/assets/images/frame1.png"
             alt=""
             fill
-            priority
             sizes="(max-width: 768px) 40vw, 400px"
             quality={70}
             className="object-cover object-right opacity-100 "
@@ -96,9 +94,9 @@ const HeroSection = () => {
             <HeroSectionSkeleton />
           ) : (
             <>
-              <h2 className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
+              <p className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
                 {badge}
-              </h2>
+              </p>
               <h1 className="text-3xl md:text-5xl font-bold mb-4">
                 <span className="mainColor">{hero.headlineMain} </span>
                 <span className="scoundColor">{hero.headlineAccent}</span>

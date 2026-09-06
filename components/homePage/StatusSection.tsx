@@ -78,9 +78,9 @@ const StatusSection = () => {
                 </div>
 
                 <div className="text-start">
-                  <h3 className="text-2xl font-bold mainColor">
+                  <p className="text-2xl font-bold mainColor">
                     {formatStatValue(stat.value)}
-                  </h3>
+                  </p>
                   <p className="text-sm mt-1 descriptionColor font-bold">
                     {stat.label}
                   </p>

@@ -82,9 +82,9 @@ const StudyTerms = () => {
                 >
                   <div className="md:w-1/2 p-4 m-auto w-fit flex justify-center">
                     <div className="">
-                      <h5 className="bg-[#dfd8c5] rounded-full mb-2 w-fit px-2 py-1 scoundColor">
+                      <p className="bg-[#dfd8c5] rounded-full mb-2 w-fit px-2 py-1 scoundColor">
                         {formatLevelBadge(term.orderIndex)}
-                      </h5>
+                      </p>
                       <h3 className="text-md font-bold scoundColor mb-2">
                         {term.title}
                       </h3>
