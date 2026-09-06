@@ -23,21 +23,28 @@ function asContactUrl(value: unknown): string {
 function mapAppContacts(payload: unknown): AppContacts {
   const r = payload as { data?: Record<string, unknown> };
   const raw = r?.data && typeof r.data === "object" ? r.data : {};
-  const phonesRaw = raw.phones;
+  const social =
+    raw.social && typeof raw.social === "object"
+      ? (raw.social as Record<string, unknown>)
+      : {};
+  const phonesRaw = raw.phones ?? raw.mobile;
+
+  const readSocial = (key: string): string =>
+    asContactUrl(social[key]) || asContactUrl(raw[key]);
 
   return {
-    x: asContactUrl(raw.x),
+    x: readSocial("x") || readSocial("twitter"),
     email: asContactUrl(raw.email),
     phones: Array.isArray(phonesRaw)
       ? phonesRaw.filter((item): item is string => typeof item === "string")
       : [],
-    tiktok: asContactUrl(raw.tiktok),
-    facebook: asContactUrl(raw.facebook),
-    snapchat: asContactUrl(raw.snapchat),
+    tiktok: readSocial("tiktok"),
+    facebook: readSocial("facebook"),
+    snapchat: readSocial("snapchat"),
     whatsapp: asContactUrl(raw.whatsapp),
-    instagram: asContactUrl(raw.instagram),
-    telegram: asContactUrl(raw.telegram),
-    youtube: asContactUrl(raw.youtube),
+    instagram: readSocial("instagram"),
+    telegram: readSocial("telegram"),
+    youtube: readSocial("youtube"),
   };
 }
 

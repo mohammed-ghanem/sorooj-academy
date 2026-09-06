@@ -108,7 +108,7 @@ const Navbar = () => {
               alt={fallback.logo}
               width={logo.width}
               height={logo.height}
-              className="h-auto w-[100px]"
+              className="h-auto w-25"
               priority
             />
           </Link>

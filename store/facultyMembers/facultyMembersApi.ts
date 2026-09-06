@@ -52,6 +52,30 @@ function mapDoctorToCard(user: DoctorUser): FacultyMemberCard {
     };
 }
 
+function isExplicitlyInactive(value: unknown): boolean {
+    if (value === false || value === 0 || value === "0") return true;
+    if (typeof value !== "string") return false;
+    const normalized = value.trim().toLowerCase();
+    return (
+        normalized === "false" ||
+        normalized === "inactive" ||
+        normalized === "disabled" ||
+        normalized === "غير نشط"
+    );
+}
+
+function isDoctorActive(item: any, user: any): boolean {
+    const flags = [
+        item?.is_active,
+        item?.isActive,
+        item?.status,
+        user?.is_active,
+        user?.isActive,
+        user?.status,
+    ];
+    return !flags.some(isExplicitlyInactive);
+}
+
 function extractDoctorsPayload(payload: unknown): DoctorUser[] {
     const p = payload as any;
     const raw = p?.data?.Doctors ?? p?.data?.doctors;
@@ -60,6 +84,7 @@ function extractDoctorsPayload(payload: unknown): DoctorUser[] {
     for (const item of raw) {
         const u = item?.user;
         if (u && typeof u === "object" && typeof u.id === "number") {
+            if (!isDoctorActive(item, u)) continue;
             users.push(u as DoctorUser);
         }
     }

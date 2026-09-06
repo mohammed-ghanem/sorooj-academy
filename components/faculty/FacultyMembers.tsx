@@ -28,6 +28,7 @@ const FacultyMembers = () => {
 
   const { data: doctors = [], isLoading, isError, refetch } = useGetDoctorsQuery(
     { lang: lang ?? "ar" },
+    { refetchOnMountOrArgChange: true },
   );
 
   const [selected, setSelected] = useState<FacultyMemberCard | null>(null);
