@@ -2,6 +2,19 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import Cookies from "js-cookie";
 import { axiosBaseQuery } from "@/store/base/axiosBaseQuery";
+import {
+  extractSubjectExamAttempt,
+  normalizeExamAttemptStatus,
+  resolveSubjectExamUiState,
+  resolveSubjectFinalExamUiState,
+} from "@/lib/studyLesson/lessonExamState";
+import { readCanStartNewExamFlag } from "@/lib/studyLesson/examAccessNotice";
+import {
+  buildExamSubmitFormData,
+  mapPayloadToVideoExam,
+  unwrapExamResponse,
+  unwrapSubmitExamResult,
+} from "@/store/lessons/lessonsApi";
 import type {
   ScientificTrackCategory,
   ScientificTrackCategorySubjects,
@@ -9,6 +22,11 @@ import type {
   ScientificTrackSubject,
   ScientificTrackSubjectDetail,
 } from "@/types/scientificTrack";
+import type {
+  VideoExam,
+  VideoExamAnswerPayload,
+  VideoExamSubmitResult,
+} from "@/types/studyVideoExam";
 
 const CATEGORIES_PATH = "scientific-track-categories";
 const SUBJECTS_PATH = "scientific-track-subjects";
@@ -93,6 +111,10 @@ type SubjectApiPayload = {
   all_lessons_completed?: boolean | number;
   can_access_subject_exam?: boolean | number;
   student_has_passed_subject_exam?: boolean | number;
+  can_retake_subject_exam?: boolean | number;
+  can_start_new_subject_exam?: boolean | number;
+  subject_exam_attempt_status?: string | null;
+  subject_exam_message?: string;
   lessons?: LessonApiPayload[];
 };
 
@@ -215,6 +237,7 @@ function mapSubject(raw: SubjectApiPayload): ScientificTrackSubject | null {
 
 function mapSubjectDetail(
   raw: SubjectApiPayload,
+  fullResponse?: unknown,
 ): ScientificTrackSubjectDetail | null {
   const id = toNumericId(raw.id);
   if (id === undefined) return null;
@@ -227,6 +250,45 @@ function mapSubjectDetail(
       .filter((item): item is ScientificTrackLesson => item !== null),
   );
   const lessonsProgress = resolveLessonsProgress(raw, lessons.length);
+
+  const attempt = extractSubjectExamAttempt(
+    fullResponse ? { ...raw, ...(fullResponse as object) } : raw,
+  );
+  const examState = resolveSubjectExamUiState(attempt, {
+    apiPassed: asBoolean(raw.student_has_passed_subject_exam),
+    canAccessFromApi: asBoolean(raw.can_access_subject_exam),
+    canRetakeFromApi: asBoolean(raw.can_retake_subject_exam),
+  });
+
+  const hasExplicitAttemptStatus = Object.prototype.hasOwnProperty.call(
+    raw,
+    "subject_exam_attempt_status",
+  );
+  const subjectExamAttemptStatus = hasExplicitAttemptStatus
+    ? normalizeExamAttemptStatus(
+        typeof raw.subject_exam_attempt_status === "string"
+          ? raw.subject_exam_attempt_status
+          : null,
+      )
+    : normalizeExamAttemptStatus(examState.status);
+
+  const canStartNewSubjectExam = readCanStartNewExamFlag(
+    raw.can_start_new_subject_exam,
+  );
+
+  const finalExamUi = resolveSubjectFinalExamUiState({
+    hasActiveLessonExam: asBoolean(raw.has_active_subject_exam),
+    lessonExamAttemptStatus: subjectExamAttemptStatus,
+    studentHasPassedLessonExam: asBoolean(raw.student_has_passed_subject_exam),
+    canAccessLessonExam: asBoolean(raw.can_access_subject_exam),
+    canStartNewLessonExam: canStartNewSubjectExam,
+    canRetakeLessonExam: asBoolean(raw.can_retake_subject_exam),
+  });
+
+  const subjectExamBackendMessage =
+    (typeof raw.subject_exam_message === "string" &&
+      raw.subject_exam_message.trim()) ||
+    undefined;
 
   return {
     id,
@@ -242,7 +304,13 @@ function mapSubjectDetail(
     canAccessSubject: asBoolean(raw.can_access_subject),
     hasActiveSubjectExam: asBoolean(raw.has_active_subject_exam),
     canAccessSubjectExam: asBoolean(raw.can_access_subject_exam),
-    studentHasPassedSubjectExam: asBoolean(raw.student_has_passed_subject_exam),
+    studentHasPassedSubjectExam: finalExamUi.phase === "passed",
+    subjectExamAttemptStatus,
+    canStartNewSubjectExam,
+    subjectExamBackendMessage,
+    isSubjectExamUnderReview: finalExamUi.phase === "under_review",
+    canRetakeSubjectExam: finalExamUi.phase === "retake",
+    canOpenSubjectExam: finalExamUi.canOpenExam,
     allLessonsCompleted: asBoolean(raw.all_lessons_completed),
     categoryId: toNumericId(raw.category?.id),
     categoryName: asNonEmptyString(raw.category?.name) || undefined,
@@ -368,13 +436,57 @@ export const scientificTracksApi = createApi({
       }),
       transformResponse: (response: unknown): ScientificTrackSubjectDetail => {
         const raw = unwrapSubjectDetail(response);
-        const mapped = raw ? mapSubjectDetail(raw) : null;
+        const mapped = raw ? mapSubjectDetail(raw, response) : null;
         if (!mapped) {
           throw new Error("Invalid scientific track subject payload");
         }
         return mapped;
       },
       providesTags: (_result, _error, arg) => [
+        { type: "ScientificTrackSubjectDetail", id: String(arg.subjectId) },
+      ],
+    }),
+
+    /** GET `/scientific-track-subjects/{id}/exam`. */
+    getScientificSubjectExam: builder.query<
+      VideoExam,
+      { subjectId: string | number; lang: string }
+    >({
+      query: ({ subjectId, lang }) => ({
+        url: `/${SUBJECTS_PATH}/${subjectId}/exam`,
+        method: "GET",
+        headers: {
+          "Accept-Language": resolveAcceptLanguage(lang),
+        },
+      }),
+      transformResponse: (response: unknown) => {
+        const raw = unwrapExamResponse(response);
+        if (!raw) throw new Error("Invalid scientific subject exam response");
+        return mapPayloadToVideoExam(raw);
+      },
+    }),
+
+    /** POST `/scientific-track-subjects/{id}/submit-exam`. */
+    submitScientificSubjectExam: builder.mutation<
+      VideoExamSubmitResult,
+      {
+        subjectId: string | number;
+        lang: string;
+        answers: VideoExamAnswerPayload[];
+      }
+    >({
+      query: ({ subjectId, lang, answers }) => ({
+        url: `/${SUBJECTS_PATH}/${subjectId}/submit-exam`,
+        method: "POST",
+        data: buildExamSubmitFormData(answers),
+        withCsrf: true,
+        headers: {
+          "Accept-Language": resolveAcceptLanguage(lang),
+        },
+      }),
+      transformResponse: (response: unknown) =>
+        unwrapSubmitExamResult(response),
+      invalidatesTags: (_result, _err, arg) => [
         { type: "ScientificTrackSubjectDetail", id: String(arg.subjectId) },
       ],
     }),
@@ -385,4 +497,6 @@ export const {
   useGetScientificTrackCategoriesQuery,
   useGetScientificSubjectsByCategoryQuery,
   useGetScientificSubjectDetailQuery,
+  useLazyGetScientificSubjectExamQuery,
+  useSubmitScientificSubjectExamMutation,
 } = scientificTracksApi;

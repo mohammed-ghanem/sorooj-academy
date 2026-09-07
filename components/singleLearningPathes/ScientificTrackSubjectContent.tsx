@@ -9,24 +9,42 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import SmallHeroSection from "@/components/smallHeroSection/SmallHeroSection";
 import SubjectContentSkeleton, {
   SubjectContentHeroTitleSkeleton,
 } from "@/components/skeletons/SubjectContentSkeleton";
+import ExamModal from "@/components/modals/ExamModal";
+import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamModal";
 import InfoModal from "@/components/modals/InfoModal";
-import { useGetScientificSubjectDetailQuery } from "@/store/scientificTracks/scientificTracksApi";
+import {
+  useGetScientificSubjectDetailQuery,
+  useLazyGetScientificSubjectExamQuery,
+  useSubmitScientificSubjectExamMutation,
+} from "@/store/scientificTracks/scientificTracksApi";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
 import { hasAccessToken } from "@/lib/auth/studentGate";
 import {
   extractApiErrorMessage,
   readRtkQueryHttpStatus,
 } from "@/lib/studentProgram/programErrors";
-import type { ScientificTrackLesson } from "@/types/scientificTrack";
+import {
+  buildExamAccessBlockedDescription,
+  fetchExamBlockedBackendMessage,
+} from "@/lib/studyLesson/examAccessNotice";
+import {
+  isExamLoadUnderReviewError,
+  resolveSubjectFinalExamUiState,
+  type LessonFinalExamPhase,
+} from "@/lib/studyLesson/lessonExamState";
+import type { ScientificTrackLesson, ScientificTrackSubjectDetail } from "@/types/scientificTrack";
+import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
 import { cn } from "@/lib/utils";
 import card from "@/public/assets/images/card.jpg";
 import exams from "@/public/assets/images/exam.svg";
+import subjectExam from "@/public/assets/images/subjectExam.svg";
 import level from "@/public/assets/images/level.svg";
 import lessonsIcon from "@/public/assets/images/lessons.svg";
 
@@ -86,10 +104,77 @@ function handleLessonCardKeyDown(
   }
 }
 
+function getExamButtonClassName(
+  enabled: boolean,
+  passed = false,
+  options?: {
+    successWhenEnabled?: boolean;
+    underReview?: boolean;
+    className?: string;
+  },
+) {
+  const base =
+    "w-full mt-4 rounded-md py-2 px-4 font-medium flex items-center justify-center gap-2";
+
+  if (passed || (options?.successWhenEnabled && enabled)) {
+    return cn(
+      base,
+      "bg-emerald-600 text-white cursor-pointer hover:bg-emerald-700",
+      options?.className,
+    );
+  }
+
+  if (options?.underReview) {
+    return cn(
+      base,
+      "bg-gray-400 text-white cursor-pointer hover:bg-gray-500 opacity-90",
+      options?.className,
+    );
+  }
+
+  return cn(
+    base,
+    enabled
+      ? "bkMainColor text-white cursor-pointer"
+      : "bg-gray-300 text-gray-500 cursor-pointer hover:opacity-90 opacity-70",
+    options?.className,
+  );
+}
+
+function getSubjectExamButtonLabel(
+  phase: LessonFinalExamPhase,
+  labels: {
+    subjectExam?: string;
+    subjectExamPassed?: string;
+    examRetake?: string;
+    subjectExamUnderReview?: string;
+  },
+): string {
+  switch (phase) {
+    case "passed":
+      return labels.subjectExamPassed ?? labels.subjectExam ?? "";
+    case "retake":
+      return labels.examRetake ?? labels.subjectExam ?? "";
+    case "under_review":
+      return labels.subjectExamUnderReview ?? "";
+    case "not_started":
+    default:
+      return labels.subjectExam ?? "";
+  }
+}
+
+function subjectExamStatusToastMessage(
+  subject: ScientificTrackSubjectDetail,
+  fallback: string,
+): string {
+  return subject.subjectExamBackendMessage?.trim() || fallback;
+}
+
 const ScientificTrackSubjectContent = () => {
   const translate = TranslateHook();
   const t = translate?.pages?.singleLearningPaths;
   const subjectT = translate?.pages?.subjectDetail;
+  const lessonT = translate?.pages?.lessonDetail;
   const router = useRouter();
   const lang = LangUseParams() ?? "ar";
   const dir = lang === "en" ? "ltr" : "rtl";
@@ -126,6 +211,19 @@ const ScientificTrackSubjectContent = () => {
   );
 
   const [lessonLockedOpen, setLessonLockedOpen] = useState(false);
+  const [examOpen, setExamOpen] = useState(false);
+  const [examData, setExamData] = useState<VideoExam | null>(null);
+  const [examResult, setExamResult] = useState<ExamModalResult | null>(null);
+  const [examAccessBlockedOpen, setExamAccessBlockedOpen] = useState(false);
+  const [examAccessBlockedDescription, setExamAccessBlockedDescription] =
+    useState("");
+  const [examAccessBlockedShowContact, setExamAccessBlockedShowContact] =
+    useState(false);
+
+  const [fetchSubjectExam, { isFetching: loadingSubjectExam }] =
+    useLazyGetScientificSubjectExamQuery();
+  const [submitSubjectExam, { isLoading: submittingSubjectExam }] =
+    useSubmitScientificSubjectExamMutation();
 
   const showSkeleton =
     !invalidId && (!apiReady || isLoading || (isFetching && !subject));
@@ -145,6 +243,237 @@ const ScientificTrackSubjectContent = () => {
   const subjectLessons = subject?.lessons ?? [];
   const progressPercent =
     subject?.lessonsProgress.percentage ?? subject?.progress ?? 0;
+  const contactUsHref = `/${lang}/contact-us`;
+  const contactUsLabel = translate?.home?.navbar?.contactUs ?? "";
+
+  const subjectFinalExamUi = useMemo(() => {
+    if (!subject) return null;
+    return resolveSubjectFinalExamUiState({
+      hasActiveLessonExam: subject.hasActiveSubjectExam,
+      lessonExamAttemptStatus: subject.subjectExamAttemptStatus,
+      studentHasPassedLessonExam: subject.studentHasPassedSubjectExam,
+      canAccessLessonExam: subject.canAccessSubjectExam,
+      canStartNewLessonExam: subject.canStartNewSubjectExam,
+      canRetakeLessonExam: subject.canRetakeSubjectExam,
+    });
+  }, [subject]);
+
+  const resetExamState = () => {
+    setExamOpen(false);
+    setExamData(null);
+    setExamResult(null);
+  };
+
+  const showSubjectExamStatusToast = () => {
+    if (!subject || !subjectFinalExamUi?.showToastOnClick) return;
+
+    if (subjectFinalExamUi.toastVariant === "success") {
+      toast.success(
+        subjectExamStatusToastMessage(
+          subject,
+          subjectT?.subjectExamAlreadyPassed ?? "",
+        ),
+      );
+      return;
+    }
+
+    toast.info(
+      subjectExamStatusToastMessage(
+        subject,
+        subjectT?.subjectExamUnderReviewToast ?? "",
+      ),
+    );
+  };
+
+  const showSubjectExamAccessBlockedNotice = async (
+    attemptsExhausted: boolean,
+  ) => {
+    if (!subject) return;
+
+    const message = await fetchExamBlockedBackendMessage(
+      () =>
+        fetchSubjectExam({
+          subjectId: idNum,
+          lang,
+        }).unwrap(),
+      {
+        cachedMessage: subject.subjectExamBackendMessage,
+        fallbackMessage: subjectT?.subjectExamLoadError ?? "",
+      },
+    );
+
+    if (attemptsExhausted) {
+      setExamAccessBlockedDescription(
+        buildExamAccessBlockedDescription(
+          message,
+          lessonT?.examAttemptsBlockedContactHint,
+        ),
+      );
+      setExamAccessBlockedShowContact(true);
+      setExamAccessBlockedOpen(true);
+      return;
+    }
+
+    toast.info(message);
+  };
+
+  const handleOpenSubjectExam = async () => {
+    if (!hasAccessToken()) {
+      router.push(loginHref);
+      return;
+    }
+
+    if (!subject || !subjectFinalExamUi) return;
+
+    if (subjectFinalExamUi.showToastOnClick) {
+      showSubjectExamStatusToast();
+      return;
+    }
+
+    setExamData(null);
+    setExamResult(null);
+
+    if (!subjectFinalExamUi.canOpenExam) {
+      await showSubjectExamAccessBlockedNotice(
+        subjectFinalExamUi.attemptsExhausted,
+      );
+      return;
+    }
+
+    setExamOpen(true);
+
+    try {
+      const exam = await fetchSubjectExam({
+        subjectId: idNum,
+        lang,
+      }).unwrap();
+      setExamData(exam);
+    } catch (err) {
+      resetExamState();
+      if (isExamLoadUnderReviewError(err)) {
+        void refetch();
+        toast.info(
+          extractApiErrorMessage(err, subjectT?.subjectExamUnderReviewToast ?? ""),
+        );
+        return;
+      }
+      const message = extractApiErrorMessage(
+        err,
+        subjectT?.subjectExamLoadError ?? "",
+      );
+      if (readRtkQueryHttpStatus(err) === 403) {
+        toast.info(message);
+        return;
+      }
+      toast.error(message);
+    }
+  };
+
+  const handleSubmitSubjectExam = async (answers: VideoExamAnswerPayload[]) => {
+    try {
+      const apiResult = await submitSubjectExam({
+        subjectId: idNum,
+        lang,
+        answers,
+      }).unwrap();
+
+      const { data: refreshedSubject } = await refetch();
+
+      if (
+        apiResult.pendingReview ||
+        refreshedSubject?.isSubjectExamUnderReview
+      ) {
+        setExamResult({
+          passed: false,
+          pendingReview: true,
+          message:
+            apiResult.message ||
+            (lessonT?.lessonExamUnderReviewDescription ?? ""),
+        });
+        return;
+      }
+
+      const passed =
+        apiResult.passed ||
+        refreshedSubject?.studentHasPassedSubjectExam === true;
+
+      setExamResult({
+        passed,
+        score: apiResult.score,
+        message: passed
+          ? apiResult.message || (subjectT?.subjectExamPassed ?? "")
+          : apiResult.message,
+      });
+    } catch (err) {
+      toast.error(
+        extractApiErrorMessage(err, subjectT?.subjectExamSubmitError ?? ""),
+      );
+    }
+  };
+
+  const handleRetakeSubjectExam = async () => {
+    setExamResult(null);
+    setExamData(null);
+
+    try {
+      const exam = await fetchSubjectExam({
+        subjectId: idNum,
+        lang,
+      }).unwrap();
+      setExamData(exam);
+    } catch (err) {
+      if (isExamLoadUnderReviewError(err)) {
+        void refetch();
+        toast.info(
+          extractApiErrorMessage(err, subjectT?.subjectExamUnderReviewToast ?? ""),
+        );
+        return;
+      }
+      const message = extractApiErrorMessage(
+        err,
+        subjectT?.subjectExamLoadError ?? "",
+      );
+      if (readRtkQueryHttpStatus(err) === 403) {
+        toast.info(message);
+        return;
+      }
+      toast.error(message);
+    }
+  };
+
+  const examModalLabels = useMemo<ExamModalLabels>(
+    () => ({
+      loading: lessonT?.videoExamLoading ?? "",
+      noQuestions: lessonT?.videoExamNoQuestions ?? "",
+      trueAnswer: lessonT?.examTrueAnswer ?? "",
+      falseAnswer: lessonT?.examFalseAnswer ?? "",
+      questionOf: lessonT?.examQuestionOf ?? "",
+      multipleChoice: lessonT?.examMultipleChoice ?? "",
+      trueFalseType: lessonT?.examTrueFalseType ?? "",
+      articleType: lessonT?.examArticleType ?? "",
+      articlePlaceholder: lessonT?.examArticlePlaceholder ?? "",
+      previous: lessonT?.examPrevious ?? "",
+      next: lessonT?.examNext ?? "",
+      finish: lessonT?.examFinish ?? "",
+      confirmTitle: lessonT?.examConfirmTitle ?? "",
+      confirmDescription: lessonT?.examConfirmDescription ?? "",
+      totalQuestions: lessonT?.examTotalQuestions ?? "",
+      answeredQuestions: lessonT?.examAnsweredQuestions ?? "",
+      remainingQuestions: lessonT?.examRemainingQuestions ?? "",
+      confirmSubmit: lessonT?.examConfirmSubmit ?? "",
+      backToReview: lessonT?.examBackToReview ?? "",
+      passedTitle: subjectT?.subjectExamPassed ?? "",
+      failedTitle: subjectT?.subjectExamFailed ?? "",
+      failedDescription: lessonT?.examFailDescription ?? "",
+      pendingReviewTitle: lessonT?.lessonExamUnderReviewTitle ?? "",
+      pendingReviewDescription: lessonT?.lessonExamUnderReviewDescription ?? "",
+      retake: lessonT?.examRetake ?? "",
+      backToLesson: subjectT?.subjectExamBack ?? "",
+      close: lessonT?.videoExamClose ?? "",
+      cancel: lessonT?.videoExamCancel ?? "",
+    }),
+    [lessonT, subjectT],
+  );
 
   const handleLessonStart = useCallback(
     (lesson: ScientificTrackLesson) => {
@@ -490,6 +819,50 @@ const ScientificTrackSubjectContent = () => {
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
+
+              {subject.hasActiveSubjectExam && subjectFinalExamUi ? (
+                <button
+                  type="button"
+                  disabled={loadingSubjectExam}
+                  onClick={() => void handleOpenSubjectExam()}
+                  className={getExamButtonClassName(
+                    subjectFinalExamUi.canOpenExam ||
+                      subjectFinalExamUi.showToastOnClick ||
+                      subjectFinalExamUi.attemptsExhausted ||
+                      !subject.canAccessSubjectExam,
+                    subjectFinalExamUi.phase === "passed",
+                    {
+                      successWhenEnabled:
+                        subjectFinalExamUi.phase === "not_started" ||
+                        subjectFinalExamUi.phase === "passed",
+                      underReview:
+                        subjectFinalExamUi.phase === "under_review",
+                    },
+                  )}
+                >
+                  <Image
+                    src={subjectExam.src}
+                    width={18}
+                    height={18}
+                    alt=""
+                    className={cn(
+                      "shrink-0",
+                      (subjectFinalExamUi.phase === "passed" ||
+                        subjectFinalExamUi.phase === "under_review" ||
+                        subjectFinalExamUi.canOpenExam) &&
+                        "brightness-0 invert",
+                    )}
+                  />
+                  <span className="ms-2 text-lg">
+                    {getSubjectExamButtonLabel(subjectFinalExamUi.phase, {
+                      subjectExam: subjectT?.subjectExam,
+                      subjectExamPassed: subjectT?.subjectExamPassed,
+                      examRetake: lessonT?.examRetake,
+                      subjectExamUnderReview: subjectT?.subjectExamUnderReview,
+                    })}
+                  </span>
+                </button>
+              ) : null}
             </div>
           </div>
         )}
@@ -503,6 +876,50 @@ const ScientificTrackSubjectContent = () => {
           primaryLabel={subjectT?.close ?? t?.gateClose ?? ""}
           onPrimaryClick={() => setLessonLockedOpen(false)}
           dir={dir}
+        />
+
+        <InfoModal
+          open={examAccessBlockedOpen}
+          onOpenChange={setExamAccessBlockedOpen}
+          variant="info"
+          title=""
+          description={examAccessBlockedDescription}
+          primaryLabel={
+            examAccessBlockedShowContact
+              ? contactUsLabel
+              : (subjectT?.close ?? t?.gateClose ?? "")
+          }
+          primaryHref={
+            examAccessBlockedShowContact ? contactUsHref : undefined
+          }
+          onPrimaryClick={
+            examAccessBlockedShowContact
+              ? undefined
+              : () => setExamAccessBlockedOpen(false)
+          }
+          secondaryLabel={
+            examAccessBlockedShowContact
+              ? (subjectT?.close ?? t?.gateClose ?? "")
+              : ""
+          }
+          dir={dir}
+        />
+
+        <ExamModal
+          open={examOpen}
+          onOpenChange={(open) => {
+            if (!open) resetExamState();
+            else setExamOpen(true);
+          }}
+          exam={examData}
+          loading={loadingSubjectExam}
+          submitting={submittingSubjectExam}
+          result={examResult}
+          dir={dir}
+          labels={examModalLabels}
+          onSubmit={handleSubmitSubjectExam}
+          onRetake={handleRetakeSubjectExam}
+          onCloseResult={resetExamState}
         />
       </div>
     </div>

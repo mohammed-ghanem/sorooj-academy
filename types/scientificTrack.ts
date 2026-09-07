@@ -79,6 +79,12 @@ export type ScientificTrackSubjectDetail = {
   hasActiveSubjectExam: boolean;
   canAccessSubjectExam: boolean;
   studentHasPassedSubjectExam: boolean;
+  subjectExamAttemptStatus: string | null;
+  canStartNewSubjectExam: boolean;
+  subjectExamBackendMessage?: string;
+  isSubjectExamUnderReview: boolean;
+  canRetakeSubjectExam: boolean;
+  canOpenSubjectExam: boolean;
   allLessonsCompleted: boolean;
   categoryId?: number;
   categoryName?: string;
