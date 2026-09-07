@@ -65,10 +65,6 @@ function truncateWithEllipsis(text: string, maxLength: number): string {
   return `${trimmed.slice(0, maxLength).trimEnd()} ...`;
 }
 
-function isLessonAccessible(lesson: NextLessonCardSource): boolean {
-  return lesson.canAccessLesson && !lesson.isLocked;
-}
-
 function isLessonFullyCompleted(lesson: NextLessonCardSource): boolean {
   return (
     lesson.isCompleted ||
@@ -341,15 +337,17 @@ const SingleLessonContent = () => {
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
 
-  const { data: studySubject } = useGetSubjectDetailQuery(
-    { id: contentId ?? "", lang: lang ?? "ar" },
-    { skip: skipStudySubjectQuery, refetchOnMountOrArgChange: true },
-  );
+  const { data: studySubject, refetch: refetchStudySubject } =
+    useGetSubjectDetailQuery(
+      { id: contentId ?? "", lang: lang ?? "ar" },
+      { skip: skipStudySubjectQuery, refetchOnMountOrArgChange: true },
+    );
 
-  const { data: scientificSubject } = useGetScientificSubjectDetailQuery(
-    { subjectId: subjectId ?? "", lang: lang ?? "ar" },
-    { skip: skipScientificSubjectQuery, refetchOnMountOrArgChange: true },
-  );
+  const { data: scientificSubject, refetch: refetchScientificSubject } =
+    useGetScientificSubjectDetailQuery(
+      { subjectId: subjectId ?? "", lang: lang ?? "ar" },
+      { skip: skipScientificSubjectQuery, refetchOnMountOrArgChange: true },
+    );
 
   const lessonFinalExamUi = useMemo(() => {
     if (!lesson) return null;
@@ -393,7 +391,6 @@ const SingleLessonContent = () => {
 
   const [accessDeniedOpen, setAccessDeniedOpen] = useState(false);
   const [nextLessonBlockedOpen, setNextLessonBlockedOpen] = useState(false);
-  const [nextLessonLockedOpen, setNextLessonLockedOpen] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState("");
   const [activeLessonTab, setActiveLessonTab] = useState<
     "description" | "files"
@@ -486,16 +483,34 @@ const SingleLessonContent = () => {
     currentLessonIndex >= 0 ? currentLessonIndex + 1 : -1;
   const canOpenNextLesson = Boolean(lesson?.studentHasPassedLessonExam);
 
+  const refreshSubjectLessons = useCallback(async () => {
+    try {
+      if (isScientificTrack) {
+        if (!skipScientificSubjectQuery) {
+          await refetchScientificSubject();
+        }
+        return;
+      }
+
+      if (!skipStudySubjectQuery) {
+        await refetchStudySubject();
+      }
+    } catch {
+      // Next-lesson navigation uses the current lesson exam pass flag.
+    }
+  }, [
+    isScientificTrack,
+    refetchScientificSubject,
+    refetchStudySubject,
+    skipScientificSubjectQuery,
+    skipStudySubjectQuery,
+  ]);
+
   const handleNextLessonActivate = useCallback(() => {
     if (!nextLesson) return;
 
     if (!canOpenNextLesson) {
       setNextLessonBlockedOpen(true);
-      return;
-    }
-
-    if (!isLessonAccessible(nextLesson)) {
-      setNextLessonLockedOpen(true);
       return;
     }
 
@@ -740,6 +755,10 @@ const SingleLessonContent = () => {
           ? apiResult.message || (t?.lessonFinalExamPassed ?? "")
           : apiResult.message,
       });
+
+      if (passed) {
+        await refreshSubjectLessons();
+      }
     } catch (err) {
       toast.error(
         getApiErrorMessage(
@@ -1491,17 +1510,6 @@ const SingleLessonContent = () => {
             description={t?.nextLessonLockedMessage}
             primaryLabel={subjectT?.close ?? ""}
             onPrimaryClick={() => setNextLessonBlockedOpen(false)}
-            dir={dir}
-          />
-
-          <InfoModal
-            open={nextLessonLockedOpen}
-            onOpenChange={setNextLessonLockedOpen}
-            variant="info"
-            title={subjectT?.lessonLockedTitle ?? ""}
-            description={subjectT?.lessonLockedMessage}
-            primaryLabel={subjectT?.close ?? ""}
-            onPrimaryClick={() => setNextLessonLockedOpen(false)}
             dir={dir}
           />
 

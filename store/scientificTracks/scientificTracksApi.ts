@@ -30,6 +30,7 @@ import type {
 
 const CATEGORIES_PATH = "scientific-track-categories";
 const SUBJECTS_PATH = "scientific-track-subjects";
+const SUBJECT_EXAM_PATH = "subjects";
 
 function resolveAcceptLanguage(lang?: string): string {
   const fromArg =
@@ -447,13 +448,13 @@ export const scientificTracksApi = createApi({
       ],
     }),
 
-    /** GET `/scientific-track-subjects/{id}/exam`. */
+    /** GET `/subjects/{id}/exam`. */
     getScientificSubjectExam: builder.query<
       VideoExam,
       { subjectId: string | number; lang: string }
     >({
       query: ({ subjectId, lang }) => ({
-        url: `/${SUBJECTS_PATH}/${subjectId}/exam`,
+        url: `/${SUBJECT_EXAM_PATH}/${subjectId}/exam`,
         method: "GET",
         headers: {
           "Accept-Language": resolveAcceptLanguage(lang),
@@ -466,7 +467,7 @@ export const scientificTracksApi = createApi({
       },
     }),
 
-    /** POST `/scientific-track-subjects/{id}/submit-exam`. */
+    /** POST `/subjects/{id}/submit-exam`. */
     submitScientificSubjectExam: builder.mutation<
       VideoExamSubmitResult,
       {
@@ -476,7 +477,7 @@ export const scientificTracksApi = createApi({
       }
     >({
       query: ({ subjectId, lang, answers }) => ({
-        url: `/${SUBJECTS_PATH}/${subjectId}/submit-exam`,
+        url: `/${SUBJECT_EXAM_PATH}/${subjectId}/submit-exam`,
         method: "POST",
         data: buildExamSubmitFormData(answers),
         withCsrf: true,
