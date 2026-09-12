@@ -1098,21 +1098,21 @@ const SingleLessonContent = () => {
               <p className="text-lg mainColor font-medium mb-4">
                 {t?.notFound}
               </p>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="scoundBgColor rounded-lg px-4 py-2 text-sm text-white"
-                >
-                  {t?.retry}
-                </button>
-                <Link
-                  href={subjectContentHref}
-                  className="text-sm scoundColor hover:underline self-center"
-                >
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="scoundBgColor rounded-lg px-4 py-2 text-sm text-white"
+            >
+              {t?.retry}
+            </button>
+            <Link
+              href={subjectContentHref}
+              className="text-sm scoundColor hover:underline self-center"
+            >
                   {backLabel}
-                </Link>
-              </div>
+            </Link>
+          </div>
             </>
           )}
         </div>
@@ -1328,7 +1328,7 @@ const SingleLessonContent = () => {
                                 >
                                   {listTitle}
                                 </p>
-                                {/* if there video test */}
+                                  {/* if there video test */}
                                 <div className="flex items-center justify-between gap-2">
                                   {renderVideoExamButton(video, {
                                     stopPropagation: true,
@@ -1408,8 +1408,8 @@ const SingleLessonContent = () => {
                                   className="h-full w-full"
                                 />
                               </div>
-                            </div>
-                          </div>
+                  </div>
+                </div>
 
                           <div className="mt-5">
                             <div className="flex justify-between items-center mb-2">
@@ -1450,21 +1450,21 @@ const SingleLessonContent = () => {
                                 {actionLabel}
                               </span>
                               <span>
-                                <Image
+                            <Image
                                   src="/assets/images/arrow-left.svg"
                                   width={20}
                                   height={20}
-                                  alt=""
-                                />
+                              alt=""
+                            />
                               </span>
-                            </div>
+                          </div>
                             <div className="flex flex-wrap justify-center sm:justify-start gap-1">
                               <div className="flex items-center">
-                                <Image
+                              <Image
                                   src="/assets/images/video-circle.svg"
                                   width={16}
                                   height={16}
-                                  alt=""
+                                alt=""
                                 />
                                 <p className="mx-1 descriptionColor">
                                   <span className="me-0.5">
@@ -1473,26 +1473,26 @@ const SingleLessonContent = () => {
                                 </p>
                               </div>
                               <div className="flex items-center">
-                                <Image
+                              <Image
                                   src="/assets/images/doc.svg"
                                   width={16}
                                   height={16}
-                                  alt=""
-                                />
+                                alt=""
+                              />
                                 <p className="mx-1 descriptionColor">
                                   <span className="me-0.5">
                                     {nextLesson.attachmentsCount}
-                                  </span>
+                            </span>
                                 </p>
-                              </div>
-                            </div>
-                          </div>
                         </div>
+                    </div>
+                </div>
+              </div>
                       );
                     })()}
-                  </div>
+            </div>
                 ) : null}
-              </div>
+          </div>
 
               {hasVideos ? (
                 <div className="order-3 lg:order-0 lg:col-span-8 lg:row-start-2 rounded-2xl shadow-r-sm">
