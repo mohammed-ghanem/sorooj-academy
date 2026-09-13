@@ -36,70 +36,77 @@ export const axiosBaseQuery =
     unknown,
     unknown
   > =>
-  async ({
-    url,
-    method = "get",
-    data,
-    params,
-    headers = {},
-    withCsrf = false,
-    auth = false,
-  }) => {
-    try {
-      if (!headers["Accept-Language"]) {
-        headers["Accept-Language"] = Cookies.get("lang") || "ar";
-      }
-
-      // if the request need CSRF token
-      if (
-        withCsrf &&
-        ["post", "put", "patch", "delete"].includes(
-          (method || "get").toLowerCase(),
-        )
-      ) {
-        const csrfToken = await ensureCSRFToken();
-        if (csrfToken) {
-          headers["X-XSRF-TOKEN"] = csrfToken;
+    async ({
+      url,
+      method = "get",
+      data,
+      params,
+      headers = {},
+      withCsrf = false,
+      auth = false,
+    }) => {
+      try {
+        if (!headers["Accept-Language"]) {
+          headers["Accept-Language"] = Cookies.get("lang") || "ar";
         }
+
+        // if the request need CSRF token
+        if (
+          withCsrf &&
+          ["post", "put", "patch", "delete"].includes(
+            (method || "get").toLowerCase(),
+          )
+        ) {
+          const csrfToken = await ensureCSRFToken();
+          if (csrfToken) {
+            headers["X-XSRF-TOKEN"] = csrfToken;
+          }
+        }
+
+        // Bearer token from cookies (student endpoints expect this on refresh)
+        const accessToken = Cookies.get("access_token");
+        if (accessToken && !headers["Authorization"]) {
+          headers["Authorization"] = `Bearer ${accessToken}`;
+        }
+
+        // add reset_token if there is no access_token
+        if (!headers["Authorization"] && Cookies.get("reset_token")) {
+          const resetToken = Cookies.get("reset_token");
+          headers["Authorization"] = `Bearer ${resetToken}`;
+        }
+
+        // console.log("🎯 Final headers:", headers);
+
+        const result = await api({
+          url,
+          method,
+          data,
+          params,
+          headers,
+        });
+
+        // console.log("✅ Response success:", result.status, result.data);
+        return { data: result.data };
+      } catch (axiosError) {
+        const err = axiosError as AxiosError;
+
+        if (err.response?.status === 401 && Cookies.get("access_token")) {
+          Cookies.remove("access_token", { path: "/" });
+          Cookies.remove("reset_token", { path: "/" });
+          Cookies.remove("user", { path: "/" });
+          window.dispatchEvent(new Event("sorooj-session-expired"));
+        }
+
+        // try another one if the error is 419 (CSRF token mismatch)
+        if (err.response?.status === 419) {
+          Cookies.remove("XSRF-TOKEN");
+        }
+
+        return {
+          error: {
+            status: err.response?.status,
+            data: err.response?.data || err.message,
+          },
+        };
       }
-
-      // Bearer token from cookies (student endpoints expect this on refresh)
-      const accessToken = Cookies.get("access_token");
-      if (accessToken && !headers["Authorization"]) {
-        headers["Authorization"] = `Bearer ${accessToken}`;
-      }
-
-      // add reset_token if there is no access_token
-      if (!headers["Authorization"] && Cookies.get("reset_token")) {
-        const resetToken = Cookies.get("reset_token");
-        headers["Authorization"] = `Bearer ${resetToken}`;
-      }
-
-      // console.log("🎯 Final headers:", headers);
-
-      const result = await api({
-        url,
-        method,
-        data,
-        params,
-        headers,
-      });
-
-      // console.log("✅ Response success:", result.status, result.data);
-      return { data: result.data };
-    } catch (axiosError) {
-      const err = axiosError as AxiosError;
-
-      // try another one if the error is 419 (CSRF token mismatch)
-      if (err.response?.status === 419) {
-        Cookies.remove("XSRF-TOKEN");
-      }
-
-      return {
-        error: {
-          status: err.response?.status,
-          data: err.response?.data || err.message,
-        },
-      };
-    }
-  };
+    };

@@ -30,7 +30,7 @@ type EnrollModal =
   | null;
 
 const authCookieOptions = {
-  expires: 7,
+  expires: 3,
   secure: process.env.NODE_ENV === "production",
   path: "/",
 } as const;
@@ -88,8 +88,9 @@ export default function HeroEnrollButton() {
   useEffect(() => {
     syncEnrollmentState();
     window.addEventListener("sorooj-auth-session", syncEnrollmentState);
-    return () =>
+    return () => {
       window.removeEventListener("sorooj-auth-session", syncEnrollmentState);
+    };
   }, [syncEnrollmentState]);
 
   const closeModal = () => {
