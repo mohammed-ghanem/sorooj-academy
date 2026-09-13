@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import HeroEnrollButton from "@/components/homePage/HeroEnrollButton";
 import HeroSectionSkeleton from "@/components/skeletons/HeroSectionSkeleton";
+import { isStudentEnrolledFromCookie } from "@/lib/auth/studentGate";
 import { useGetEnrollmentStatusQuery } from "@/store/studentHome/studentHomeApi";
 import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
@@ -16,10 +18,10 @@ function batchBadgeText(
   },
   enrollment:
     | {
-        isEnrollmentOpen: boolean;
-        startYear: number | null;
-        endYear: number | null;
-      }
+      isEnrollmentOpen: boolean;
+      startYear: number | null;
+      endYear: number | null;
+    }
     | undefined,
 ): string {
   if (!enrollment) {
@@ -41,6 +43,7 @@ const HeroSection = () => {
   const lang = LangUseParams();
   const translate = TranslateHook();
   const hero = translate?.home?.hero;
+  const [enrolled, setEnrolled] = useState(false);
   const locale = lang === "en" ? "en" : "ar";
   const {
     data: enrollment,
@@ -58,6 +61,18 @@ const HeroSection = () => {
     (isFetching && !enrollment && !isError);
 
   const badge = hero ? batchBadgeText(hero, enrollment) : "";
+
+  useEffect(() => {
+    const syncEnrollmentState = () => {
+      setEnrolled(isStudentEnrolledFromCookie());
+    };
+
+    syncEnrollmentState();
+    window.addEventListener("sorooj-auth-session", syncEnrollmentState);
+
+    return () =>
+      window.removeEventListener("sorooj-auth-session", syncEnrollmentState);
+  }, []);
 
   return (
     <div className="relative">
@@ -94,9 +109,11 @@ const HeroSection = () => {
             <HeroSectionSkeleton />
           ) : (
             <>
-              <p className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
-                {badge}
-              </p>
+              {!enrolled && (
+                <p className="scoundColor bgTitleColor mb-8 p-3 rounded-3xl font-normal">
+                  {badge}
+                </p>
+              )}
               <h1 className="text-3xl md:text-5xl font-bold mb-4">
                 <span className="mainColor">{hero.headlineMain} </span>
                 <span className="scoundColor">{hero.headlineAccent}</span>
