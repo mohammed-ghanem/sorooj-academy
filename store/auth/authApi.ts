@@ -10,6 +10,7 @@ import {
   unwrapCertificatePayload,
   type StudentCertificate,
 } from "@/lib/profile/certificates";
+import { persistAuthUserCookie } from "@/lib/auth/studentGate";
 
 export type Country = {
   id: number;
@@ -39,15 +40,7 @@ const authCookieOptions = {
 } as const;
 
 const persistUserProfileCookie = (payload: unknown) => {
-  const d = payload as { data?: { user?: { user?: unknown } } };
-  const profile = d?.data?.user?.user;
-  if (profile && typeof profile === "object") {
-    try {
-      Cookies.set("user", JSON.stringify(profile), authCookieOptions);
-    } catch {
-      /* ignore JSON / storage errors */
-    }
-  }
+  persistAuthUserCookie(payload, true);
 };
 
 /**
@@ -362,6 +355,14 @@ export const authApi = createApi({
         }
         if (response?.data) return response.data;
         return response;
+      },
+      async onQueryStarted(_, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          persistAuthUserCookie(data, true);
+        } catch {
+          /* ignore */
+        }
       },
       providesTags: ["Profile"],
     }),

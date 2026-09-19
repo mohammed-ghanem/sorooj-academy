@@ -8,7 +8,6 @@ import book from "@/public/assets/images/book.svg";
 import lessons from "@/public/assets/images/lessons.svg";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import Cookies from "js-cookie";
 import { toast } from "sonner";
 import {
   useGetPublicStudyTermsQuery,
@@ -20,6 +19,7 @@ import InfoModal from "@/components/modals/InfoModal";
 import {
   hasAccessToken,
   isStudentEnrolledFromCookie,
+  persistAuthUserCookie,
   shouldUseStudentStudyTermsApi,
   studiesHaveStartedFromCookie,
 } from "@/lib/auth/studentGate";
@@ -53,22 +53,8 @@ type Gate =
   | "studyNotStarted"
   | null;
 
-const authCookieOptions = {
-  expires: 7,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-} as const;
-
 function persistProfileToCookie(profile: unknown) {
-  const p = profile as { data?: unknown; user?: unknown };
-  const user = p?.data ?? p?.user ?? profile;
-  if (user && typeof user === "object") {
-    try {
-      Cookies.set("user", JSON.stringify(user), authCookieOptions);
-    } catch {
-      /* ignore */
-    }
-  }
+  persistAuthUserCookie(profile, true);
 }
 
 const StudyTerms = () => {

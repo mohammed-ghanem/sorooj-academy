@@ -11,6 +11,12 @@ import TranslateHook from "@/translate/TranslateHook";
 import LangUseParams from "@/translate/LangUseParams";
 import { LoginButtonSkeleton } from "@/components/skeletons/LoginButtonSkeleton";
 import NavbarUserMenu from "./NavbarUserMenu";
+import {
+  displayNameFromCookie,
+  displayNameFromUser,
+  persistAuthUserCookie,
+} from "@/lib/auth/studentGate";
+import { useLazyGetProfileQuery } from "@/store/auth/authApi";
 
 const NAV_FALLBACK = {
   ar: {
@@ -50,6 +56,7 @@ const Navbar = () => {
     in: boolean;
     displayName: string | null;
   }>({ in: false, displayName: null });
+  const [triggerGetProfile] = useLazyGetProfileQuery();
 
   const lang = LangUseParams();
   const translate = TranslateHook();
@@ -60,39 +67,76 @@ const Navbar = () => {
   const studentFallback = nav?.student ?? fallback.student;
 
   useEffect(() => {
+    let cancelled = false;
+
     const syncAuthFromCookies = () => {
       const token = Cookies.get("access_token");
       if (!token) {
         setAuth({ in: false, displayName: null });
         return;
       }
-      const raw = Cookies.get("user");
-      if (!raw) {
-        setAuth({ in: true, displayName: null });
+      setAuth({
+        in: true,
+        displayName: displayNameFromCookie(),
+      });
+    };
+
+    const ensureDisplayName = async () => {
+      const token = Cookies.get("access_token");
+      if (!token) {
+        setAuth({ in: false, displayName: null });
         return;
       }
+
+      // Show whatever we already have, then refresh from profile (source of truth).
+      setAuth({
+        in: true,
+        displayName: displayNameFromCookie(),
+      });
+
       try {
-        const u = JSON.parse(raw) as { name?: string; email?: string };
-        const displayName =
-          u.name?.trim() || u.email?.split("@")[0]?.trim() || null;
-        setAuth({ in: true, displayName });
+        const profile = await triggerGetProfile(undefined, false).unwrap();
+        if (cancelled) return;
+        const saved = persistAuthUserCookie(profile, true);
+        const fromProfile =
+          displayNameFromUser(saved) ||
+          displayNameFromUser(
+            (profile as { user?: Record<string, unknown> })?.user ?? null,
+          ) ||
+          displayNameFromCookie();
+        setAuth({
+          in: true,
+          displayName: fromProfile,
+        });
       } catch {
-        setAuth({ in: true, displayName: null });
+        syncAuthFromCookies();
       }
     };
 
-    syncAuthFromCookies();
+    void ensureDisplayName();
     window.addEventListener("sorooj-auth-session", syncAuthFromCookies);
-    return () =>
+    return () => {
+      cancelled = true;
       window.removeEventListener("sorooj-auth-session", syncAuthFromCookies);
-  }, [pathname]);
+    };
+  }, [pathname, triggerGetProfile]);
 
   const navLinks = [
     { label: nav?.home ?? fallback.home, href: `/${lang}` },
     { label: nav?.studyPlan ?? fallback.studyPlan, href: `/${lang}/study-plan` },
-    { label: nav?.teachingStaff ?? fallback.teachingStaff, href: `/${lang}/faculty-members` },
-    { label: nav?.StudyTopics ?? fallback.StudyTopics, href: `/${lang}/study-terms` },
-    { label: nav?.independentScientificPaths ?? fallback.independentScientificPaths, href: `/${lang}/single-learning-pathes` },
+    {
+      label: nav?.teachingStaff ?? fallback.teachingStaff,
+      href: `/${lang}/faculty-members`,
+    },
+    {
+      label: nav?.StudyTopics ?? fallback.StudyTopics,
+      href: `/${lang}/study-terms`,
+    },
+    {
+      label:
+        nav?.independentScientificPaths ?? fallback.independentScientificPaths,
+      href: `/${lang}/single-learning-pathes`,
+    },
     { label: nav?.library ?? fallback.library, href: `/${lang}/book-library` },
     { label: nav?.contactUs ?? fallback.contactUs, href: `/${lang}/contact-us` },
   ];
@@ -101,7 +145,6 @@ const Navbar = () => {
     <div className="absolute top-0 left-0 w-full z-50">
       <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="relative flex items-center justify-between mt-4 rounded-xl px-6 py-2 bgTitleColorOpacity shadow-sm">
-          {/* logo */}
           <Link href={`/${lang}`}>
             <Image
               src={logo}
@@ -113,7 +156,6 @@ const Navbar = () => {
             />
           </Link>
 
-          {/* Desktop Links */}
           <nav
             className="hidden lg:flex items-center gap-4 md:gap-5 text-sm lg:text-base"
             aria-label={locale === "en" ? "Main" : "القائمة الرئيسية"}
@@ -129,7 +171,6 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* Actions */}
           <div className="hidden lg:flex items-center gap-3">
             <div className="w-9 h-9 rounded-full  flex items-center justify-center text-sm">
               <GlobeBtn />
@@ -154,8 +195,7 @@ const Navbar = () => {
               <LoginButtonSkeleton />
             )}
           </div>
- 
-          {/* Mobile Menu Button */}
+
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
@@ -168,7 +208,6 @@ const Navbar = () => {
             <span className="w-6 h-0.5 scoundBgColor" aria-hidden />
           </button>
 
-          {/* Mobile Dropdown */}
           {isOpen && (
             <div className="absolute top-full left-0 w-full bg-white shadow-md rounded-lg mt-3 p-4 flex flex-col gap-4 lg:hidden">
               {navLinks.map((link, index) => (
@@ -182,7 +221,6 @@ const Navbar = () => {
                 </Link>
               ))}
 
-              {/* Actions inside mobile */}
               <div className="flex items-center gap-3 pt-3 border-t">
                 <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm">
                   <GlobeBtn />

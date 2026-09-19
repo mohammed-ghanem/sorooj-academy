@@ -13,20 +13,9 @@ import { setSessionReady } from "@/store/app/appSlice";
 import { useLazyGetProfileQuery } from "@/store/auth/authApi";
 import LangUseParams from "@/translate/LangUseParams";
 import { useRouter } from "next/navigation";
+import { persistAuthUserCookie } from "@/lib/auth/studentGate";
 
 const PROFILE_CHECK_INTERVAL = 60 * 60 * 1000;
-
-function persistProfileToCookie(profile: unknown) {
-  const payload = profile as { data?: unknown; user?: unknown };
-  const user = payload?.data ?? payload?.user ?? profile;
-  if (user && typeof user === "object") {
-    Cookies.set("user", JSON.stringify(user), {
-      expires: 7,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-    });
-  }
-}
 
 function SessionMonitor() {
   const lang = LangUseParams() ?? "ar";
@@ -51,8 +40,7 @@ function SessionMonitor() {
       try {
         const profile = await triggerGetProfile(undefined, false).unwrap();
         if (active) {
-          persistProfileToCookie(profile);
-          window.dispatchEvent(new Event("sorooj-auth-session"));
+          persistAuthUserCookie(profile, true);
         }
       } catch {
         // A 401 is handled centrally by axiosBaseQuery.

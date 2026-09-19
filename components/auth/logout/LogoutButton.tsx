@@ -15,8 +15,6 @@ interface LogoutButtonProps {
 }
 
 export default function LogoutButton({
-
-  
   onSuccess,
   onDialogOpen,
   onDialogClose,
@@ -38,13 +36,9 @@ export default function LogoutButton({
       toast.success(result?.message);
       onSuccess?.();
 
-
       router.refresh();
-
     } catch (err: any) {
-      toast.error(
-        err?.data?.message
-      );
+      toast.error(err?.data?.message);
 
       Cookies.remove("access_token", { path: "/" });
       Cookies.remove("user", { path: "/" });

@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Cookies from "js-cookie";
 import InfoModal from "@/components/modals/InfoModal";
 import {
   hasAccessToken,
   isStudentEnrolledFromCookie,
+  persistAuthUserCookie,
 } from "@/lib/auth/studentGate";
 import {
   extractApiErrorMessage,
@@ -29,22 +29,8 @@ type EnrollModal =
   | "error"
   | null;
 
-const authCookieOptions = {
-  expires: 3,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-} as const;
-
 function persistProfileToCookie(profile: unknown) {
-  const p = profile as { data?: unknown; user?: unknown };
-  const user = p?.data ?? p?.user ?? profile;
-  if (user && typeof user === "object") {
-    try {
-      Cookies.set("user", JSON.stringify(user), authCookieOptions);
-    } catch {
-      /* ignore */
-    }
-  }
+  persistAuthUserCookie(profile, true);
 }
 
 function buildModalDescription(

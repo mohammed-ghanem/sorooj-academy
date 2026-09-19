@@ -59,6 +59,7 @@ const Login = () => {
         return;
       }
       toast.success(res?.message ?? "");
+      window.dispatchEvent(new Event("sorooj-auth-session"));
       router.push(`/${lang}`);
     } catch (err: unknown) {
       const errorData = err as {

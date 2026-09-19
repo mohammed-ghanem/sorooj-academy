@@ -20,11 +20,21 @@ export function unwrapProfileUser(payload: unknown): ProfileUser | null {
   const p = payload as {
     user?: ProfileUser;
     data?: { user?: ProfileUser };
+    student?: ProfileUser;
   };
   if (p?.user && typeof p.user === "object") return p.user;
   if (p?.data?.user && typeof p.data.user === "object") return p.data.user;
-  if (payload && typeof payload === "object" && "email" in payload) {
-    return payload as ProfileUser;
+  if (p?.student && typeof p.student === "object") return p.student;
+  if (
+    payload &&
+    typeof payload === "object" &&
+    ("email" in payload || "name" in payload || "full_name" in payload)
+  ) {
+    const raw = payload as ProfileUser & { full_name?: string };
+    if (!raw.name && raw.full_name) {
+      return { ...raw, name: raw.full_name };
+    }
+    return raw as ProfileUser;
   }
   return null;
 }
