@@ -21,6 +21,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import "./style.css";
 import SignUpSkeleton from "@/components/skeletons/SignUpSkeleton";
+import BirthDatePicker from "./BirthDatePicker";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
@@ -163,12 +164,6 @@ const SignUp = () => {
   const selectValueClass = (value: string) =>
     cn(
       "appearance-none mt-1 w-full p-2 border border-gray-300 rounded-md focus-visible:ring-0! focus-visible:ring-offset-0! focus-visible:outline-none!",
-      value ? "scoundColor font-semibold text-sm" : "text-gray-400",
-    );
-
-  const dateInputClass = (value: string) =>
-    cn(
-      "mt-1 w-full p-2 border border-gray-300 rounded-md focus-visible:ring-0! focus-visible:ring-offset-0! focus-visible:outline-none!",
       value ? "scoundColor font-semibold text-sm" : "text-gray-400",
     );
 
@@ -673,16 +668,17 @@ const SignUp = () => {
 
                   <div className="mb-4">
                     <label
-                      className={`block text-[13px] font-semibold text-gray-400 ${lang === "ar" ? "text-right!" : "text-left"}`}
+                      className={`block text-[13px] font-semibold ${lang === "ar" ? "text-right!" : "text-left"}`}
                     >
                       {translate?.pages?.signUp?.birthDate}
                     </label>
-                    <input
-                      type="date"
+                    <BirthDatePicker
                       value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
-                      className={dateInputClass(birthDate)}
-                      dir="ltr"
+                      onChange={setBirthDate}
+                      isArabic={isArabic}
+                      placeholder={t?.datePlaceholder ?? t?.birthDate}
+                      cancelLabel={t?.dateCancel ?? "Cancel"}
+                      okLabel={t?.dateOk ?? "OK"}
                     />
                   </div>
 

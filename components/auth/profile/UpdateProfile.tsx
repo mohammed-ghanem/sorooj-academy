@@ -155,9 +155,9 @@ function UpdateProfile() {
             id="name"
             name="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={fieldClass}
-            required
+            readOnly
+            disabled
+            className={`${fieldClass} bg-gray-50`}
           />
         </div>
 

@@ -1,6 +1,6 @@
 import "./styles.css";
 import certificateIcon from "@/public/assets/images/certificate.svg";
-import certificateImage from "@/public/assets/images/cetificate.jpeg";
+import certificateImage from "@/public/assets/images/cetificate.jpg";
 import Image from "next/image";
 
 const StudyCertificate = () => {

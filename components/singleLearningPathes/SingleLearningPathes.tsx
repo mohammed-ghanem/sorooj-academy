@@ -109,7 +109,7 @@ const SingleLearningPathes = () => {
 
           {!isLoading && !isError && categories.length > 0 && (
             <div className="grid grid-cols-1 gap-x-10 gap-y-20 sm:grid-cols-2 md:gap-y-16 lg:grid-cols-4 lg:gap-y-8">
-              {categories.map((item) => {
+              {categories.map((item, index) => {
                 const href = `/${lang}/single-learning-pathes/${item.id}`;
 
                 return (
@@ -127,7 +127,7 @@ const SingleLearningPathes = () => {
                     aria-label={item.name}
                   >
                     <span className="absolute top-0 left-0 rounded-br-xl bg-[#F6F6F6] px-6 py-4 text-3xl font-bold text-[#c6a96aad]">
-                      {String(item.id).padStart(2, "0")}
+                      {String(index + 1).padStart(2, "0")}
                     </span>
 
                     <div className="mb-8 min-h-16 pe-20 md:mb-4">
