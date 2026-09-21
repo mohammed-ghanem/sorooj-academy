@@ -27,6 +27,8 @@ import {
   useLazyGetSubjectExamQuery,
   useSubmitSubjectExamMutation,
 } from "@/store/subjects/subjectsApi";
+import { studyTermsApi } from "@/store/studyTerms/studyTermsApi";
+import { store } from "@/store/store";
 import type { StudyLesson } from "@/types/studySubjectDetail";
 import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import TranslateHook from "@/translate/TranslateHook";
@@ -384,6 +386,16 @@ const SubjectContent = () => {
       }).unwrap();
 
       const { data: refreshedSubject } = await refetch();
+
+      // Keep term progress bars in sync when navigating back to المحور.
+      if (termId) {
+        store.dispatch(
+          studyTermsApi.util.invalidateTags([
+            { type: "StudyTerm", id: String(termId) },
+            { type: "StudyTerm", id: "LIST" },
+          ]),
+        );
+      }
 
       if (
         apiResult.pendingReview ||

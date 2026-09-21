@@ -82,6 +82,31 @@ const SingleTerm = () => {
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
 
+  // Soft/back navigation can restore this page without a clean remount.
+  useEffect(() => {
+    if (skipQuery) return;
+
+    const refreshTermProgress = () => {
+      void refetch();
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refreshTermProgress();
+    };
+
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) refreshTermProgress();
+    };
+
+    refreshTermProgress();
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, [refetch, skipQuery, termId]);
+
   const [fetchSubjectDetail] = useLazyGetSubjectDetailQuery();
 
   const [subjectLockedOpen, setSubjectLockedOpen] = useState(false);

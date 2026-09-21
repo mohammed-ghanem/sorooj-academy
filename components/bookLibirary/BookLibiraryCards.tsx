@@ -14,7 +14,7 @@ import TranslateHook from "@/translate/TranslateHook";
 import { ArrowUpLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const DefaultBookCover = "/assets/images/holyQ.jpg";
+const DefaultBookCover = "/assets/images/card.jpg";
 
 type BookLibiraryCardsProps = {
   categoryId: string;
@@ -181,15 +181,16 @@ const BookLibiraryCards = ({ categoryId }: BookLibiraryCardsProps) => {
                   <article
                     key={book.id}
                     className="group flex flex-col overflow-hidden rounded-xl bg-white
-                      shadow-sm transition-shadow hover:shadow-md"
+                      shadow-sm transition-shadow hover:shadow-md h-65"
                   >
                     <Link href={detailHref} className="block">
-                      <div className="relative aspect-3/4 h-75 w-full overflow-hidden bg-[#efece7]">
+                      <div className="relative aspect-3/4 w-full overflow-hidden bg-[#efece7] h-45!">
                         <Image
                           src={coverSrc}
                           alt={book.title}
                           fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                          className="object-cover transition-transform duration-300
+                           group-hover:scale-[1.02] h-45!"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                           unoptimized={Boolean(book.image)}
                         />

@@ -18,10 +18,12 @@ import ExamModal from "@/components/modals/ExamModal";
 import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamModal";
 import InfoModal from "@/components/modals/InfoModal";
 import {
+  scientificTracksApi,
   useGetScientificSubjectDetailQuery,
   useLazyGetScientificSubjectExamQuery,
   useSubmitScientificSubjectExamMutation,
 } from "@/store/scientificTracks/scientificTracksApi";
+import { store } from "@/store/store";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
 import { hasAccessToken } from "@/lib/auth/studentGate";
 import {
@@ -378,6 +380,18 @@ const ScientificTrackSubjectContent = () => {
       }).unwrap();
 
       const { data: refreshedSubject } = await refetch();
+
+      if (categoryId) {
+        store.dispatch(
+          scientificTracksApi.util.invalidateTags([
+            {
+              type: "ScientificTrackSubjects",
+              id: String(categoryId),
+            },
+            "ScientificTrackCategories",
+          ]),
+        );
+      }
 
       if (
         apiResult.pendingReview ||

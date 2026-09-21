@@ -10,7 +10,7 @@ import TranslateHook from "@/translate/TranslateHook";
 import { Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const DefaultBookCover = "/assets/images/holyQ.jpg";
+const DefaultBookCover = "/assets/images/card.jpg";
 
 type BookLibiraryDetailsProps = {
   categoryId: string;
@@ -127,14 +127,14 @@ const BookLibiraryDetails = ({
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
             <div className="grid grid-cols-1 gap-8 p-6 md:grid-cols-2 md:gap-10 md:p-8 lg:p-10">
               <div
-                className="relative mx-auto aspect-3/4 h-75 w-full max-w-xs overflow-hidden
-              rounded-xl bg-[#efece7] md:mx-0 md:max-w-none"
+                className="relative mx-auto aspect-3/4 w-full max-w-xs overflow-hidden
+              rounded-xl bg-[#efece7] md:mx-0 md:max-w-none  h-66!"
               >
                 <Image
                   src={book.image || DefaultBookCover}
                   alt={book.title}
                   fill
-                  className="object-cover"
+                  className="object-cover h-66!"
                   sizes="(max-width: 768px) 320px, 400px"
                   priority
                   unoptimized={Boolean(book.image)}

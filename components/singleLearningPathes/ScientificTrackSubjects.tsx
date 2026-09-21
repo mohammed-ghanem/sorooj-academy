@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type KeyboardEvent } from "react";
+import { useMemo, useEffect, type KeyboardEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -83,6 +83,31 @@ const ScientificTrackSubjects = () => {
     { categoryId: categoryId ?? "", lang },
     { skip: skipQuery, refetchOnMountOrArgChange: true },
   );
+
+  // Soft/back navigation can restore this page without a clean remount.
+  useEffect(() => {
+    if (skipQuery) return;
+
+    const refreshSubjectsProgress = () => {
+      void refetch();
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refreshSubjectsProgress();
+    };
+
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) refreshSubjectsProgress();
+    };
+
+    refreshSubjectsProgress();
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, [categoryId, refetch, skipQuery]);
 
   const { data: categories = [] } = useGetScientificTrackCategoriesQuery(
     { lang },

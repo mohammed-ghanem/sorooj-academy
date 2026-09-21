@@ -29,7 +29,12 @@ import {
   useSubmitVideoExamMutation,
 } from "@/store/lessons/lessonsApi";
 import { useGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
-import { useGetScientificSubjectDetailQuery } from "@/store/scientificTracks/scientificTracksApi";
+import {
+  scientificTracksApi,
+  useGetScientificSubjectDetailQuery,
+} from "@/store/scientificTracks/scientificTracksApi";
+import { studyTermsApi } from "@/store/studyTerms/studyTermsApi";
+import { store } from "@/store/store";
 import type { StudyLessonVideo } from "@/types/studyLessonDetail";
 import type { ScientificTrackLesson } from "@/types/scientificTrack";
 import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
@@ -489,21 +494,42 @@ const SingleLessonContent = () => {
         if (!skipScientificSubjectQuery) {
           await refetchScientificSubject();
         }
+        if (categoryId) {
+          store.dispatch(
+            scientificTracksApi.util.invalidateTags([
+              {
+                type: "ScientificTrackSubjects",
+                id: String(categoryId),
+              },
+              "ScientificTrackCategories",
+            ]),
+          );
+        }
         return;
       }
 
       if (!skipStudySubjectQuery) {
         await refetchStudySubject();
       }
+      if (termId) {
+        store.dispatch(
+          studyTermsApi.util.invalidateTags([
+            { type: "StudyTerm", id: String(termId) },
+            { type: "StudyTerm", id: "LIST" },
+          ]),
+        );
+      }
     } catch {
       // Next-lesson navigation uses the current lesson exam pass flag.
     }
   }, [
+    categoryId,
     isScientificTrack,
     refetchScientificSubject,
     refetchStudySubject,
     skipScientificSubjectQuery,
     skipStudySubjectQuery,
+    termId,
   ]);
 
   const handleNextLessonActivate = useCallback(() => {

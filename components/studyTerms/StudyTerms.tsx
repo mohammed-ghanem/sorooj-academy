@@ -84,7 +84,10 @@ const StudyTerms = () => {
     isError: studentError,
     error: studentStudyTermsError,
     refetch: refetchStudentTerms,
-  } = useGetStudyTermsQuery({ lang }, { skip: usePublicTermsApi });
+  } = useGetStudyTermsQuery(
+    { lang },
+    { skip: usePublicTermsApi, refetchOnMountOrArgChange: true },
+  );
 
   const studyTerms = usePublicTermsApi ? publicStudyTerms : studentStudyTerms;
   const isLoading = usePublicTermsApi ? publicLoading : studentLoading;
