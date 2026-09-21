@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type KeyboardEvent,
@@ -32,8 +33,17 @@ import {
 } from "@/lib/studentProgram/programErrors";
 import {
   buildExamAccessBlockedDescription,
+  extractApiSuccessMessage,
   fetchExamBlockedBackendMessage,
+  isExamAttemptsExhaustedError,
+  isExamAttemptsExhaustedMessage,
 } from "@/lib/studyLesson/examAccessNotice";
+import {
+  clearExamAttemptRequestPending,
+  isExamAttemptRequestAlreadyPendingError,
+  isExamAttemptRequestPending,
+  markExamAttemptRequestPending,
+} from "@/lib/studyLesson/examAttemptRequestPending";
 import {
   isExamLoadUnderReviewError,
   resolveSubjectFinalExamUiState,
@@ -49,6 +59,7 @@ import exams from "@/public/assets/images/exam.svg";
 import subjectExam from "@/public/assets/images/subjectExam.svg";
 import level from "@/public/assets/images/level.svg";
 import lessonsIcon from "@/public/assets/images/lessons.svg";
+import { useRequestSubjectExamAttemptMutation } from "@/store/subjects/subjectsApi";
 
 const LESSON_CARD_SUMMARY_MAX_LENGTH = 45;
 
@@ -219,13 +230,17 @@ const ScientificTrackSubjectContent = () => {
   const [examAccessBlockedOpen, setExamAccessBlockedOpen] = useState(false);
   const [examAccessBlockedDescription, setExamAccessBlockedDescription] =
     useState("");
-  const [examAccessBlockedShowContact, setExamAccessBlockedShowContact] =
+  const [examAccessBlockedShowRequest, setExamAccessBlockedShowRequest] =
+    useState(false);
+  const [examAttemptRequestPending, setExamAttemptRequestPending] =
     useState(false);
 
   const [fetchSubjectExam, { isFetching: loadingSubjectExam }] =
     useLazyGetScientificSubjectExamQuery();
   const [submitSubjectExam, { isLoading: submittingSubjectExam }] =
     useSubmitScientificSubjectExamMutation();
+  const [requestSubjectExamAttempt, { isLoading: requestingExamAttempt }] =
+    useRequestSubjectExamAttemptMutation();
 
   const showSkeleton =
     !invalidId && (!apiReady || isLoading || (isFetching && !subject));
@@ -245,8 +260,6 @@ const ScientificTrackSubjectContent = () => {
   const subjectLessons = subject?.lessons ?? [];
   const progressPercent =
     subject?.lessonsProgress.percentage ?? subject?.progress ?? 0;
-  const contactUsHref = `/${lang}/contact-us`;
-  const contactUsLabel = translate?.home?.navbar?.contactUs ?? "";
 
   const subjectFinalExamUi = useMemo(() => {
     if (!subject) return null;
@@ -258,6 +271,13 @@ const ScientificTrackSubjectContent = () => {
       canStartNewLessonExam: subject.canStartNewSubjectExam,
       canRetakeLessonExam: subject.canRetakeSubjectExam,
     });
+  }, [subject]);
+
+  useEffect(() => {
+    if (!subject) return;
+    if (subject.canStartNewSubjectExam) {
+      clearExamAttemptRequestPending("subject", subject.id);
+    }
   }, [subject]);
 
   const resetExamState = () => {
@@ -311,12 +331,49 @@ const ScientificTrackSubjectContent = () => {
           lessonT?.examAttemptsBlockedContactHint,
         ),
       );
-      setExamAccessBlockedShowContact(true);
+      setExamAccessBlockedShowRequest(true);
+      setExamAttemptRequestPending(
+        isExamAttemptRequestPending("subject", idNum),
+      );
       setExamAccessBlockedOpen(true);
       return;
     }
 
     toast.info(message);
+  };
+
+  const handleRequestSubjectExamAttempt = async () => {
+    if (examAttemptRequestPending) return;
+
+    try {
+      const res = await requestSubjectExamAttempt({
+        subjectId: idNum,
+        lang,
+      }).unwrap();
+      toast.success(
+        extractApiSuccessMessage(
+          res,
+          lessonT?.examAttemptRequestSuccess ?? "",
+        ),
+      );
+      markExamAttemptRequestPending("subject", idNum);
+      setExamAttemptRequestPending(true);
+    } catch (err) {
+      if (isExamAttemptRequestAlreadyPendingError(err)) {
+        markExamAttemptRequestPending("subject", idNum);
+        setExamAttemptRequestPending(true);
+        toast.info(
+          extractApiErrorMessage(
+            err,
+            lessonT?.examAttemptRequestPendingAction ?? "",
+          ),
+        );
+        return;
+      }
+      toast.error(
+        extractApiErrorMessage(err, lessonT?.examAttemptRequestError ?? ""),
+      );
+    }
   };
 
   const handleOpenSubjectExam = async () => {
@@ -357,6 +414,10 @@ const ScientificTrackSubjectContent = () => {
         toast.info(
           extractApiErrorMessage(err, subjectT?.subjectExamUnderReviewToast ?? ""),
         );
+        return;
+      }
+      if (isExamAttemptsExhaustedError(err)) {
+        await showSubjectExamAccessBlockedNotice(true);
         return;
       }
       const message = extractApiErrorMessage(
@@ -411,6 +472,25 @@ const ScientificTrackSubjectContent = () => {
         apiResult.passed ||
         refreshedSubject?.studentHasPassedSubjectExam === true;
 
+      const attemptsExhausted =
+        !passed &&
+        (refreshedSubject?.canStartNewSubjectExam === false ||
+          isExamAttemptsExhaustedMessage(apiResult.message));
+
+      if (attemptsExhausted) {
+        resetExamState();
+        setExamAccessBlockedDescription(
+          buildExamAccessBlockedDescription(
+            apiResult.message?.trim() ||
+              (subjectT?.subjectExamLoadError ?? ""),
+            lessonT?.examAttemptsBlockedContactHint,
+          ),
+        );
+        setExamAccessBlockedShowRequest(true);
+        setExamAccessBlockedOpen(true);
+        return;
+      }
+
       setExamResult({
         passed,
         score: apiResult.score,
@@ -419,6 +499,11 @@ const ScientificTrackSubjectContent = () => {
           : apiResult.message,
       });
     } catch (err) {
+      if (isExamAttemptsExhaustedError(err)) {
+        resetExamState();
+        await showSubjectExamAccessBlockedNotice(true);
+        return;
+      }
       toast.error(
         extractApiErrorMessage(err, subjectT?.subjectExamSubmitError ?? ""),
       );
@@ -441,6 +526,11 @@ const ScientificTrackSubjectContent = () => {
         toast.info(
           extractApiErrorMessage(err, subjectT?.subjectExamUnderReviewToast ?? ""),
         );
+        return;
+      }
+      if (isExamAttemptsExhaustedError(err)) {
+        resetExamState();
+        await showSubjectExamAccessBlockedNotice(true);
         return;
       }
       const message = extractApiErrorMessage(
@@ -894,25 +984,33 @@ const ScientificTrackSubjectContent = () => {
 
         <InfoModal
           open={examAccessBlockedOpen}
-          onOpenChange={setExamAccessBlockedOpen}
+          onOpenChange={(open) => {
+            setExamAccessBlockedOpen(open);
+            if (!open) setExamAttemptRequestPending(false);
+          }}
           variant="info"
           title=""
           description={examAccessBlockedDescription}
           primaryLabel={
-            examAccessBlockedShowContact
-              ? contactUsLabel
+            examAccessBlockedShowRequest
+              ? examAttemptRequestPending
+                ? (lessonT?.examAttemptRequestPendingAction ?? "")
+                : (lessonT?.examAttemptRequestAction ?? "")
               : (subjectT?.close ?? t?.gateClose ?? "")
           }
-          primaryHref={
-            examAccessBlockedShowContact ? contactUsHref : undefined
+          primaryLoading={requestingExamAttempt}
+          primaryDisabled={
+            examAccessBlockedShowRequest && examAttemptRequestPending
           }
           onPrimaryClick={
-            examAccessBlockedShowContact
-              ? undefined
+            examAccessBlockedShowRequest
+              ? examAttemptRequestPending
+                ? undefined
+                : handleRequestSubjectExamAttempt
               : () => setExamAccessBlockedOpen(false)
           }
           secondaryLabel={
-            examAccessBlockedShowContact
+            examAccessBlockedShowRequest
               ? (subjectT?.close ?? t?.gateClose ?? "")
               : ""
           }

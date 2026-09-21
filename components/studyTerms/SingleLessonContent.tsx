@@ -11,8 +11,17 @@ import { useStudentApiReady } from "@/hooks/useStudentApiReady";
 import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
 import {
   buildExamAccessBlockedDescription,
+  extractApiSuccessMessage,
   fetchExamBlockedBackendMessage,
+  isExamAttemptsExhaustedError,
+  isExamAttemptsExhaustedMessage,
 } from "@/lib/studyLesson/examAccessNotice";
+import {
+  clearExamAttemptRequestPending,
+  isExamAttemptRequestAlreadyPendingError,
+  isExamAttemptRequestPending,
+  markExamAttemptRequestPending,
+} from "@/lib/studyLesson/examAttemptRequestPending";
 import {
   isExamLoadUnderReviewError,
   resolveLessonFinalExamUiState,
@@ -25,6 +34,8 @@ import {
   useGetLessonDetailQuery,
   useLazyGetLessonExamQuery,
   useLazyGetVideoExamQuery,
+  useRequestLessonExamAttemptMutation,
+  useRequestVideoExamAttemptMutation,
   useSubmitLessonExamMutation,
   useSubmitVideoExamMutation,
 } from "@/store/lessons/lessonsApi";
@@ -407,8 +418,13 @@ const SingleLessonContent = () => {
   const [examAccessBlockedOpen, setExamAccessBlockedOpen] = useState(false);
   const [examAccessBlockedDescription, setExamAccessBlockedDescription] =
     useState("");
-  const [examAccessBlockedShowContact, setExamAccessBlockedShowContact] =
+  const [examAccessBlockedShowRequest, setExamAccessBlockedShowRequest] =
     useState(false);
+  const [examAttemptRequestPending, setExamAttemptRequestPending] =
+    useState(false);
+  const [examAttemptRequestTarget, setExamAttemptRequestTarget] = useState<
+    null | { kind: "lesson" } | { kind: "video"; videoId: number }
+  >(null);
 
   const [completeVideoWatch, { isLoading: completingWatch }] =
     useCompleteVideoWatchMutation();
@@ -420,9 +436,15 @@ const SingleLessonContent = () => {
     useSubmitVideoExamMutation();
   const [submitLessonExam, { isLoading: submittingLessonExam }] =
     useSubmitLessonExamMutation();
+  const [requestLessonExamAttempt, { isLoading: requestingLessonAttempt }] =
+    useRequestLessonExamAttemptMutation();
+  const [requestVideoExamAttempt, { isLoading: requestingVideoAttempt }] =
+    useRequestVideoExamAttemptMutation();
 
   const loadingExam = loadingVideoExam || loadingLessonExam;
   const submittingExam = submittingVideoExam || submittingLessonExam;
+  const requestingExamAttempt =
+    requestingLessonAttempt || requestingVideoAttempt;
 
   const dir = lang === "en" ? "ltr" : "rtl";
 
@@ -431,6 +453,21 @@ const SingleLessonContent = () => {
       setAccessDeniedOpen(true);
     }
   }, [showError, lessonAccessDenied]);
+
+  // Drop local pending flags once the admin reopens attempts.
+  useEffect(() => {
+    if (!lesson) return;
+
+    if (lesson.canStartNewLessonExam) {
+      clearExamAttemptRequestPending("lesson", lesson.id);
+    }
+
+    for (const video of lesson.videos) {
+      if (video.canStartNewVideoExam) {
+        clearExamAttemptRequestPending("video", video.id);
+      }
+    }
+  }, [lesson]);
 
   // Resume on the current unlocked step (not always the first video).
   useEffect(() => {
@@ -602,13 +639,144 @@ const SingleLessonContent = () => {
     }
   };
 
+  const showLessonExamAccessBlockedNotice = async (
+    attemptsExhausted: boolean,
+  ) => {
+    if (!lesson) return;
+
+    const message = await fetchExamBlockedBackendMessage(
+      () =>
+        fetchLessonExam({
+          lessonId: idNum,
+          lang: lang ?? "ar",
+        }).unwrap(),
+      {
+        cachedMessage: lesson.lessonExamBackendMessage,
+        fallbackMessage: t?.lessonExamLoadError ?? "",
+      },
+    );
+
+    const requestPending =
+      attemptsExhausted && isExamAttemptRequestPending("lesson", idNum);
+
+    setExamAccessBlockedDescription(
+      buildExamAccessBlockedDescription(
+        message,
+        attemptsExhausted ? t?.examAttemptsBlockedContactHint : undefined,
+      ),
+    );
+    setExamAttemptRequestTarget(attemptsExhausted ? { kind: "lesson" } : null);
+    setExamAccessBlockedShowRequest(attemptsExhausted);
+    setExamAttemptRequestPending(requestPending);
+    setExamAccessBlockedOpen(true);
+  };
+
+  const showVideoExamAccessBlockedNotice = async (
+    video: StudyLessonVideo,
+    attemptsExhausted: boolean,
+    err?: unknown,
+  ) => {
+    let message = t?.videoExamLoadError ?? "";
+    if (err) {
+      message = extractApiErrorMessage(err, message);
+    } else {
+      message = await fetchExamBlockedBackendMessage(
+        () =>
+          fetchVideoExam({
+            videoId: video.id,
+            lang: lang ?? "ar",
+          }).unwrap(),
+        {
+          fallbackMessage: message,
+        },
+      );
+    }
+
+    const requestPending =
+      attemptsExhausted && isExamAttemptRequestPending("video", video.id);
+
+    setExamAccessBlockedDescription(
+      buildExamAccessBlockedDescription(
+        message,
+        attemptsExhausted ? t?.examAttemptsBlockedContactHint : undefined,
+      ),
+    );
+    setExamAttemptRequestTarget(
+      attemptsExhausted ? { kind: "video", videoId: video.id } : null,
+    );
+    setExamAccessBlockedShowRequest(attemptsExhausted);
+    setExamAttemptRequestPending(requestPending);
+    setExamAccessBlockedOpen(true);
+  };
+
+  const handleRequestExamAttempt = async () => {
+    if (!examAttemptRequestTarget || examAttemptRequestPending) return;
+
+    const markPending = () => {
+      if (examAttemptRequestTarget.kind === "lesson") {
+        markExamAttemptRequestPending("lesson", idNum);
+      } else {
+        markExamAttemptRequestPending(
+          "video",
+          examAttemptRequestTarget.videoId,
+        );
+      }
+      setExamAttemptRequestPending(true);
+    };
+
+    try {
+      if (examAttemptRequestTarget.kind === "lesson") {
+        const res = await requestLessonExamAttempt({
+          lessonId: idNum,
+          lang: lang ?? "ar",
+        }).unwrap();
+        toast.success(
+          extractApiSuccessMessage(res, t?.examAttemptRequestSuccess ?? ""),
+        );
+      } else {
+        const res = await requestVideoExamAttempt({
+          videoId: examAttemptRequestTarget.videoId,
+          lang: lang ?? "ar",
+        }).unwrap();
+        toast.success(
+          extractApiSuccessMessage(res, t?.examAttemptRequestSuccess ?? ""),
+        );
+      }
+      markPending();
+    } catch (err) {
+      if (isExamAttemptRequestAlreadyPendingError(err)) {
+        markPending();
+        toast.info(
+          extractApiErrorMessage(err, t?.examAttemptRequestPendingAction ?? ""),
+        );
+        return;
+      }
+      toast.error(
+        extractApiErrorMessage(err, t?.examAttemptRequestError ?? ""),
+      );
+    }
+  };
+
   const handleOpenVideoExam = async (video: StudyLessonVideo) => {
     if (video.studentHasPassedVideoExam) {
       toast.success(t?.videoExamAlreadyPassed ?? "");
       return;
     }
 
-    if (!video.canAccessVideoExam) return;
+    const attemptsExhausted =
+      video.hasActiveVideoExam &&
+      !video.studentHasPassedVideoExam &&
+      video.canStartNewVideoExam === false;
+
+    if (attemptsExhausted) {
+      await showVideoExamAccessBlockedNotice(video, true);
+      return;
+    }
+
+    if (!video.canAccessVideoExam) {
+      await showVideoExamAccessBlockedNotice(video, false);
+      return;
+    }
 
     setExamContext({ kind: "video", videoId: video.id });
     setExamData(null);
@@ -623,6 +791,10 @@ const SingleLessonContent = () => {
       setExamData(exam);
     } catch (err) {
       resetExamState();
+      if (isExamAttemptsExhaustedError(err)) {
+        await showVideoExamAccessBlockedNotice(video, true, err);
+        return;
+      }
       toast.error(getApiErrorMessage(err, t?.videoExamLoadError ?? ""));
     }
   };
@@ -646,36 +818,6 @@ const SingleLessonContent = () => {
         t?.lessonExamUnderReviewToast ?? "",
       ),
     );
-  };
-
-  const contactUsHref = `/${lang ?? "ar"}/contact-us`;
-  const contactUsLabel = translate?.home?.navbar?.contactUs ?? "";
-
-  const showLessonExamAccessBlockedNotice = async (
-    attemptsExhausted: boolean,
-  ) => {
-    if (!lesson) return;
-
-    const message = await fetchExamBlockedBackendMessage(
-      () =>
-        fetchLessonExam({
-          lessonId: idNum,
-          lang: lang ?? "ar",
-        }).unwrap(),
-      {
-        cachedMessage: lesson.lessonExamBackendMessage,
-        fallbackMessage: t?.lessonExamLoadError ?? "",
-      },
-    );
-
-    setExamAccessBlockedDescription(
-      buildExamAccessBlockedDescription(
-        message,
-        attemptsExhausted ? t?.examAttemptsBlockedContactHint : undefined,
-      ),
-    );
-    setExamAccessBlockedShowContact(attemptsExhausted);
-    setExamAccessBlockedOpen(true);
   };
 
   const handleOpenLessonExam = async () => {
@@ -713,6 +855,10 @@ const SingleLessonContent = () => {
         );
         return;
       }
+      if (isExamAttemptsExhaustedError(err)) {
+        await showLessonExamAccessBlockedNotice(true);
+        return;
+      }
       toast.error(extractApiErrorMessage(err, t?.lessonExamLoadError ?? ""));
     }
   };
@@ -746,6 +892,29 @@ const SingleLessonContent = () => {
           refreshedVideo?.studentHasPassedVideoExam === true ||
           refreshedVideo?.isCompleted === true;
 
+        const attemptsExhausted =
+          !passed &&
+          (refreshedVideo?.canStartNewVideoExam === false ||
+            isExamAttemptsExhaustedMessage(apiResult.message));
+
+        if (attemptsExhausted) {
+          resetExamState();
+          setExamAccessBlockedDescription(
+            buildExamAccessBlockedDescription(
+              apiResult.message?.trim() ||
+                (t?.videoExamLoadError ?? ""),
+              t?.examAttemptsBlockedContactHint,
+            ),
+          );
+          setExamAttemptRequestTarget({
+            kind: "video",
+            videoId: examContext.videoId,
+          });
+          setExamAccessBlockedShowRequest(true);
+          setExamAccessBlockedOpen(true);
+          return;
+        }
+
         setExamResult({
           passed,
           score: apiResult.score,
@@ -774,6 +943,25 @@ const SingleLessonContent = () => {
         apiResult.passed ||
         refreshedLesson?.studentHasPassedLessonExam === true;
 
+      const attemptsExhausted =
+        !passed &&
+        (refreshedLesson?.canStartNewLessonExam === false ||
+          isExamAttemptsExhaustedMessage(apiResult.message));
+
+      if (attemptsExhausted) {
+        resetExamState();
+        setExamAccessBlockedDescription(
+          buildExamAccessBlockedDescription(
+            apiResult.message?.trim() || (t?.lessonExamLoadError ?? ""),
+            t?.examAttemptsBlockedContactHint,
+          ),
+        );
+        setExamAttemptRequestTarget({ kind: "lesson" });
+        setExamAccessBlockedShowRequest(true);
+        setExamAccessBlockedOpen(true);
+        return;
+      }
+
       setExamResult({
         passed,
         score: apiResult.score,
@@ -786,6 +974,21 @@ const SingleLessonContent = () => {
         await refreshSubjectLessons();
       }
     } catch (err) {
+      if (isExamAttemptsExhaustedError(err)) {
+        const videoId =
+          examContext.kind === "video" ? examContext.videoId : undefined;
+        resetExamState();
+        if (videoId != null) {
+          await showVideoExamAccessBlockedNotice(
+            { id: videoId } as StudyLessonVideo,
+            true,
+            err,
+          );
+        } else {
+          await showLessonExamAccessBlockedNotice(true);
+        }
+        return;
+      }
       toast.error(
         getApiErrorMessage(
           err,
@@ -822,6 +1025,22 @@ const SingleLessonContent = () => {
       if (isExamLoadUnderReviewError(err)) {
         void refetch();
         toast.info(t?.lessonExamUnderReviewToast ?? "");
+        return;
+      }
+      if (isExamAttemptsExhaustedError(err)) {
+        const videoId =
+          examContext.kind === "video" ? examContext.videoId : undefined;
+        resetExamState();
+        if (videoId != null) {
+          const video = lesson?.videos.find((item) => item.id === videoId);
+          await showVideoExamAccessBlockedNotice(
+            video ?? ({ id: videoId } as StudyLessonVideo),
+            true,
+            err,
+          );
+        } else {
+          await showLessonExamAccessBlockedNotice(true);
+        }
         return;
       }
       toast.error(
@@ -882,23 +1101,26 @@ const SingleLessonContent = () => {
     if (!video.hasActiveVideoExam) return null;
 
     const passed = video.studentHasPassedVideoExam;
-    const canOpenExam = video.canAccessVideoExam && !passed;
+    const attemptsExhausted =
+      !passed && video.canStartNewVideoExam === false;
+    const canOpenExam =
+      video.canAccessVideoExam && !passed && video.canStartNewVideoExam !== false;
+    const isClickable = canOpenExam || passed || attemptsExhausted;
 
     return (
       <button
         type="button"
-        disabled={!canOpenExam && !passed}
+        disabled={!isClickable}
         onClick={(event) => {
           if (options?.stopPropagation) event.stopPropagation();
           if (passed) {
             toast.success(t?.videoExamAlreadyPassed ?? "");
             return;
           }
-          if (!canOpenExam) return;
           void handleOpenVideoExam(video);
         }}
         className={cn(
-          getExamButtonClassName(canOpenExam, passed),
+          getExamButtonClassName(canOpenExam || attemptsExhausted, passed),
           options?.className,
         )}
       >
@@ -1541,25 +1763,36 @@ const SingleLessonContent = () => {
 
           <InfoModal
             open={examAccessBlockedOpen}
-            onOpenChange={setExamAccessBlockedOpen}
+            onOpenChange={(open) => {
+              setExamAccessBlockedOpen(open);
+              if (!open) {
+                setExamAttemptRequestTarget(null);
+                setExamAttemptRequestPending(false);
+              }
+            }}
             variant="info"
             title=""
             description={examAccessBlockedDescription}
             primaryLabel={
-              examAccessBlockedShowContact
-                ? contactUsLabel
+              examAccessBlockedShowRequest
+                ? examAttemptRequestPending
+                  ? (t?.examAttemptRequestPendingAction ?? "")
+                  : (t?.examAttemptRequestAction ?? "")
                 : (subjectT?.close ?? "")
             }
-            primaryHref={
-              examAccessBlockedShowContact ? contactUsHref : undefined
+            primaryLoading={requestingExamAttempt}
+            primaryDisabled={
+              examAccessBlockedShowRequest && examAttemptRequestPending
             }
             onPrimaryClick={
-              examAccessBlockedShowContact
-                ? undefined
+              examAccessBlockedShowRequest
+                ? examAttemptRequestPending
+                  ? undefined
+                  : handleRequestExamAttempt
                 : () => setExamAccessBlockedOpen(false)
             }
             secondaryLabel={
-              examAccessBlockedShowContact ? (subjectT?.close ?? "") : ""
+              examAccessBlockedShowRequest ? (subjectT?.close ?? "") : ""
             }
             dir={dir}
           />

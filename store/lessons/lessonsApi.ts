@@ -129,6 +129,7 @@ type VideoApiPayload = {
   has_active_video_exam?: boolean;
   student_has_passed_video_exam?: boolean;
   can_access_video_exam?: boolean;
+  can_start_new_video_exam?: boolean | number;
   [key: string]: unknown;
 };
 
@@ -440,6 +441,9 @@ function mapVideo(raw: VideoApiPayload): StudyLessonVideo | null {
     hasActiveVideoExam: raw.has_active_video_exam === true,
     studentHasPassedVideoExam: raw.student_has_passed_video_exam === true,
     canAccessVideoExam: raw.can_access_video_exam === true,
+    canStartNewVideoExam: readCanStartNewExamFlag(
+      raw.can_start_new_video_exam,
+    ),
     orderIndex: Number(raw.order_index) || 0,
   };
 }
@@ -1021,6 +1025,62 @@ export const lessonsApi = createApi({
         { type: "Lesson", id: String(arg.lessonId) },
       ],
     }),
+
+    /** POST `/lessons/{id}/exam/attempt-request`. */
+    requestLessonExamAttempt: builder.mutation<
+      { message?: string },
+      { lessonId: string | number; lang: string }
+    >({
+      query: ({ lessonId, lang }) => ({
+        url: `/${BASE_PATH}/${lessonId}/exam/attempt-request`,
+        method: "POST",
+        data: {},
+        withCsrf: true,
+        headers: {
+          "Accept-Language": resolveAcceptLanguage(lang),
+        },
+      }),
+      transformResponse: (response: unknown) => {
+        const r = response as {
+          message?: string;
+          data?: { message?: string };
+        };
+        return {
+          message:
+            (typeof r?.message === "string" && r.message.trim()) ||
+            (typeof r?.data?.message === "string" && r.data.message.trim()) ||
+            undefined,
+        };
+      },
+    }),
+
+    /** POST `/lesson-videos/{id}/exam/attempt-request`. */
+    requestVideoExamAttempt: builder.mutation<
+      { message?: string },
+      { videoId: string | number; lang: string }
+    >({
+      query: ({ videoId, lang }) => ({
+        url: `/${VIDEO_BASE_PATH}/${videoId}/exam/attempt-request`,
+        method: "POST",
+        data: {},
+        withCsrf: true,
+        headers: {
+          "Accept-Language": resolveAcceptLanguage(lang),
+        },
+      }),
+      transformResponse: (response: unknown) => {
+        const r = response as {
+          message?: string;
+          data?: { message?: string };
+        };
+        return {
+          message:
+            (typeof r?.message === "string" && r.message.trim()) ||
+            (typeof r?.data?.message === "string" && r.data.message.trim()) ||
+            undefined,
+        };
+      },
+    }),
   }),
 });
 
@@ -1039,4 +1099,6 @@ export const {
   useLazyGetLessonExamQuery,
   useSubmitVideoExamMutation,
   useSubmitLessonExamMutation,
+  useRequestLessonExamAttemptMutation,
+  useRequestVideoExamAttemptMutation,
 } = lessonsApi;

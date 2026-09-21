@@ -14,8 +14,17 @@ import {
 } from "@/lib/studentProgram/programErrors";
 import {
   buildExamAccessBlockedDescription,
+  extractApiSuccessMessage,
   fetchExamBlockedBackendMessage,
+  isExamAttemptsExhaustedError,
+  isExamAttemptsExhaustedMessage,
 } from "@/lib/studyLesson/examAccessNotice";
+import {
+  clearExamAttemptRequestPending,
+  isExamAttemptRequestAlreadyPendingError,
+  isExamAttemptRequestPending,
+  markExamAttemptRequestPending,
+} from "@/lib/studyLesson/examAttemptRequestPending";
 import {
   isExamLoadUnderReviewError,
   resolveSubjectFinalExamUiState,
@@ -25,6 +34,7 @@ import type { StudySubjectDetail } from "@/types/studySubjectDetail";
 import {
   useGetSubjectDetailQuery,
   useLazyGetSubjectExamQuery,
+  useRequestSubjectExamAttemptMutation,
   useSubmitSubjectExamMutation,
 } from "@/store/subjects/subjectsApi";
 import { studyTermsApi } from "@/store/studyTerms/studyTermsApi";
@@ -197,12 +207,12 @@ const SubjectContent = () => {
   const [examAccessBlockedOpen, setExamAccessBlockedOpen] = useState(false);
   const [examAccessBlockedDescription, setExamAccessBlockedDescription] =
     useState("");
-  const [examAccessBlockedShowContact, setExamAccessBlockedShowContact] =
+  const [examAccessBlockedShowRequest, setExamAccessBlockedShowRequest] =
+    useState(false);
+  const [examAttemptRequestPending, setExamAttemptRequestPending] =
     useState(false);
 
   const termHref = `/${lang ?? "ar"}/study-terms/${termId}`;
-  const contactUsHref = `/${lang ?? "ar"}/contact-us`;
-  const contactUsLabel = translate?.home?.navbar?.contactUs ?? "";
 
   const idNum = useMemo(
     () =>
@@ -244,6 +254,8 @@ const SubjectContent = () => {
     useLazyGetSubjectExamQuery();
   const [submitSubjectExam, { isLoading: submittingSubjectExam }] =
     useSubmitSubjectExamMutation();
+  const [requestSubjectExamAttempt, { isLoading: requestingExamAttempt }] =
+    useRequestSubjectExamAttemptMutation();
 
   const resetExamState = useCallback(() => {
     setExamOpen(false);
@@ -279,6 +291,13 @@ const SubjectContent = () => {
       setSubjectAccessDeniedOpen(true);
     }
   }, [showError, subjectAccessDenied]);
+
+  useEffect(() => {
+    if (!subject) return;
+    if (subject.canStartNewSubjectExam) {
+      clearExamAttemptRequestPending("subject", subject.id);
+    }
+  }, [subject]);
 
   const showSubjectExamStatusToast = () => {
     if (!subject || !subjectFinalExamUi?.showToastOnClick) return;
@@ -325,12 +344,49 @@ const SubjectContent = () => {
           lessonT?.examAttemptsBlockedContactHint,
         ),
       );
-      setExamAccessBlockedShowContact(true);
+      setExamAccessBlockedShowRequest(true);
+      setExamAttemptRequestPending(
+        isExamAttemptRequestPending("subject", idNum),
+      );
       setExamAccessBlockedOpen(true);
       return;
     }
 
     toast.info(message);
+  };
+
+  const handleRequestSubjectExamAttempt = async () => {
+    if (examAttemptRequestPending) return;
+
+    try {
+      const res = await requestSubjectExamAttempt({
+        subjectId: idNum,
+        lang: lang ?? "ar",
+      }).unwrap();
+      toast.success(
+        extractApiSuccessMessage(
+          res,
+          lessonT?.examAttemptRequestSuccess ?? "",
+        ),
+      );
+      markExamAttemptRequestPending("subject", idNum);
+      setExamAttemptRequestPending(true);
+    } catch (err) {
+      if (isExamAttemptRequestAlreadyPendingError(err)) {
+        markExamAttemptRequestPending("subject", idNum);
+        setExamAttemptRequestPending(true);
+        toast.info(
+          extractApiErrorMessage(
+            err,
+            lessonT?.examAttemptRequestPendingAction ?? "",
+          ),
+        );
+        return;
+      }
+      toast.error(
+        extractApiErrorMessage(err, lessonT?.examAttemptRequestError ?? ""),
+      );
+    }
   };
 
   const handleOpenSubjectExam = async () => {
@@ -366,6 +422,10 @@ const SubjectContent = () => {
         toast.info(
           extractApiErrorMessage(err, t?.subjectExamUnderReviewToast ?? ""),
         );
+        return;
+      }
+      if (isExamAttemptsExhaustedError(err)) {
+        await showSubjectExamAccessBlockedNotice(true);
         return;
       }
       const message = extractApiErrorMessage(err, t?.subjectExamLoadError ?? "");
@@ -415,6 +475,24 @@ const SubjectContent = () => {
         apiResult.passed ||
         refreshedSubject?.studentHasPassedSubjectExam === true;
 
+      const attemptsExhausted =
+        !passed &&
+        (refreshedSubject?.canStartNewSubjectExam === false ||
+          isExamAttemptsExhaustedMessage(apiResult.message));
+
+      if (attemptsExhausted) {
+        resetExamState();
+        setExamAccessBlockedDescription(
+          buildExamAccessBlockedDescription(
+            apiResult.message?.trim() || (t?.subjectExamLoadError ?? ""),
+            lessonT?.examAttemptsBlockedContactHint,
+          ),
+        );
+        setExamAccessBlockedShowRequest(true);
+        setExamAccessBlockedOpen(true);
+        return;
+      }
+
       setExamResult({
         passed,
         score: apiResult.score,
@@ -423,6 +501,11 @@ const SubjectContent = () => {
           : apiResult.message,
       });
     } catch (err) {
+      if (isExamAttemptsExhaustedError(err)) {
+        resetExamState();
+        await showSubjectExamAccessBlockedNotice(true);
+        return;
+      }
       toast.error(
         extractApiErrorMessage(err, t?.subjectExamSubmitError ?? ""),
       );
@@ -445,6 +528,11 @@ const SubjectContent = () => {
         toast.info(
           extractApiErrorMessage(err, t?.subjectExamUnderReviewToast ?? ""),
         );
+        return;
+      }
+      if (isExamAttemptsExhaustedError(err)) {
+        resetExamState();
+        await showSubjectExamAccessBlockedNotice(true);
         return;
       }
       const message = extractApiErrorMessage(err, t?.subjectExamLoadError ?? "");
@@ -863,23 +951,33 @@ const SubjectContent = () => {
 
         <InfoModal
           open={examAccessBlockedOpen}
-          onOpenChange={setExamAccessBlockedOpen}
+          onOpenChange={(open) => {
+            setExamAccessBlockedOpen(open);
+            if (!open) setExamAttemptRequestPending(false);
+          }}
           variant="info"
           title=""
           description={examAccessBlockedDescription}
           primaryLabel={
-            examAccessBlockedShowContact ? contactUsLabel : (t?.close ?? "")
+            examAccessBlockedShowRequest
+              ? examAttemptRequestPending
+                ? (lessonT?.examAttemptRequestPendingAction ?? "")
+                : (lessonT?.examAttemptRequestAction ?? "")
+              : (t?.close ?? "")
           }
-          primaryHref={
-            examAccessBlockedShowContact ? contactUsHref : undefined
+          primaryLoading={requestingExamAttempt}
+          primaryDisabled={
+            examAccessBlockedShowRequest && examAttemptRequestPending
           }
           onPrimaryClick={
-            examAccessBlockedShowContact
-              ? undefined
+            examAccessBlockedShowRequest
+              ? examAttemptRequestPending
+                ? undefined
+                : handleRequestSubjectExamAttempt
               : () => setExamAccessBlockedOpen(false)
           }
           secondaryLabel={
-            examAccessBlockedShowContact ? (t?.close ?? "") : ""
+            examAccessBlockedShowRequest ? (t?.close ?? "") : ""
           }
           dir={dir}
         />

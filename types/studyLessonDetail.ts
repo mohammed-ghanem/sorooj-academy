@@ -21,6 +21,8 @@ export type StudyLessonVideo = {
   hasActiveVideoExam: boolean;
   studentHasPassedVideoExam: boolean;
   canAccessVideoExam: boolean;
+  /** When false, the student has no remaining video-exam attempts. */
+  canStartNewVideoExam: boolean;
   orderIndex: number;
 };
 

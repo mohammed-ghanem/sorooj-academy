@@ -464,6 +464,32 @@ export const subjectsApi = createApi({
                 { type: "Subject", id: String(arg.subjectId) },
             ],
         }),
+
+        /** POST `/subjects/{id}/exam/attempt-request` — ask admin to reopen attempts. */
+        requestSubjectExamAttempt: builder.mutation<
+            { message?: string },
+            { subjectId: string | number; lang: string }
+        >({
+            query: ({ subjectId, lang }) => ({
+                url: `/${BASE_PATH}/${subjectId}/exam/attempt-request`,
+                method: "POST",
+                data: {},
+                withCsrf: true,
+                headers: {
+                    "Accept-Language": resolveAcceptLanguage(lang),
+                },
+            }),
+            transformResponse: (response: unknown) => {
+                const r = response as { message?: string; data?: { message?: string } };
+                return {
+                    message:
+                        (typeof r?.message === "string" && r.message.trim()) ||
+                        (typeof r?.data?.message === "string" &&
+                            r.data.message.trim()) ||
+                        undefined,
+                };
+            },
+        }),
     }),
 });
 
@@ -472,4 +498,5 @@ export const {
     useLazyGetSubjectDetailQuery,
     useLazyGetSubjectExamQuery,
     useSubmitSubjectExamMutation,
+    useRequestSubjectExamAttemptMutation,
 } = subjectsApi;
