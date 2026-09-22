@@ -10,6 +10,8 @@ import {
   unwrapCertificatePayload,
   type StudentCertificate,
 } from "@/lib/profile/certificates";
+import { mapScientificJourneyTerms } from "@/lib/profile/scientificJourney";
+import type { ScientificJourneyTerm } from "@/lib/profile/scientificJourney";
 import { persistAuthUserCookie } from "@/lib/auth/studentGate";
 
 export type Country = {
@@ -367,6 +369,25 @@ export const authApi = createApi({
       providesTags: ["Profile"],
     }),
 
+    // ---------------- SCIENTIFIC JOURNEY ----------------
+    getScientificJourney: builder.query<ScientificJourneyTerm[], string | void>({
+      query: (lang) => ({
+        url: "/auth/scientific-journey",
+        method: "GET",
+        auth: true,
+        headers: {
+          "Accept-Language":
+            (typeof lang === "string" && lang) || Cookies.get("lang") || "ar",
+        },
+      }),
+      transformResponse: (response: unknown, _meta, arg) => {
+        const lang =
+          (typeof arg === "string" && arg) || Cookies.get("lang") || "ar";
+        return mapScientificJourneyTerms(response, lang);
+      },
+      providesTags: ["Profile"],
+    }),
+
     // ---------------- SHOW CERTIFICATE ----------------
     getCertificate: builder.query<StudentCertificate | null, number>({
       query: (id) => ({
@@ -486,6 +507,7 @@ export const {
   useChangePasswordMutation,
   useGetProfileQuery,
   useLazyGetProfileQuery,
+  useGetScientificJourneyQuery,
   useGetCertificateQuery,
   useLazyGetCertificateQuery,
   useDownloadCertificateMutation,
