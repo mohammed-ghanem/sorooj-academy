@@ -107,6 +107,7 @@ const BookLibiraryCategories = () => {
                       alt=""
                       width={100}
                       height={100}
+                      className=""
                     />
                   </div>
 
@@ -129,10 +130,12 @@ const BookLibiraryCategories = () => {
                         alt=""
                         width={80}
                         height={80}
+                        className="opacity-50 group-hover:opacity-100 transition-opacity duration-300"
                       />
                     </div>
 
-                    <h2 className="text-base font-bold mt-2 text-[#1a1a1a] sm:text-lg">
+                    <h2 className="text-base font-bold mt-2 text-[#1a1a1a] sm:text-lg
+                     ">
                       {category.name}
                     </h2>
                   </div>

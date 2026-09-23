@@ -12,6 +12,7 @@ import {
   profileCountryId,
   unwrapProfileUser,
 } from "@/components/auth/profile/profileUser";
+import BirthDatePicker from "@/components/auth/signUp/BirthDatePicker";
 import {
   useGetCountriesQuery,
   useGetProfileQuery,
@@ -23,6 +24,13 @@ import TranslateHook from "@/translate/TranslateHook";
 import "react-phone-input-2/lib/style.css";
 import "./style.css";
 
+function normalizeBirthDate(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const isoDay = trimmed.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(isoDay) ? isoDay : "";
+}
+
 function UpdateProfile() {
   const lang = LangUseParams();
   const translate = TranslateHook();
@@ -31,6 +39,7 @@ function UpdateProfile() {
   const p = translate?.pages?.profile;
   const tSignUp = translate?.pages?.signUp;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isArabic = lang !== "en";
 
   const { data: profileData, refetch } = useGetProfileQuery(undefined, {
     refetchOnMountOrArgChange: true,
@@ -54,7 +63,7 @@ function UpdateProfile() {
     setName(asProfileText(user.name));
     setEmail(asProfileText(user.email));
     setMobile(asProfileText(user.mobile).replace(/^\+/, ""));
-    setBirthDate(asProfileText(user.date_of_birth));
+    setBirthDate(normalizeBirthDate(asProfileText(user.date_of_birth)));
     const g = asProfileText(user.gender);
     setGender(g === "female" ? "female" : g === "male" ? "male" : "");
     setCountryId(profileCountryId(user.country));
@@ -176,15 +185,22 @@ function UpdateProfile() {
         </div>
 
         <div>
-          <label htmlFor="birthDate" className="text-xs font-semibold descriptionColor">
-            {p?.dateOfBirth}
+          <label
+            htmlFor="birthDate"
+            className="text-xs font-semibold descriptionColor"
+          >
+            {p?.dateOfBirth ?? tSignUp?.birthDate}
           </label>
-          <input
-            id="birthDate"
-            type="date"
+          <BirthDatePicker
             value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            className={fieldClass}
+            onChange={setBirthDate}
+            isArabic={isArabic}
+            placeholder={
+              tSignUp?.datePlaceholder ?? tSignUp?.birthDate ?? ""
+            }
+            cancelLabel={tSignUp?.dateCancel ?? "Cancel"}
+            okLabel={tSignUp?.dateOk ?? "OK"}
+            className="mt-1"
           />
         </div>
 

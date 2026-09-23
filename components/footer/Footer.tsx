@@ -27,7 +27,7 @@ const Footer = () => {
     { label: "حذف حسابك", href: `/${lang}/delete-account` },
   ];
   return (
-    <footer className="relative mt-10 text-white pt-10 md:pt-20 lg:pt-26 footer-bg">
+    <footer className="relative mt-10 text-white pt-22 lg:pt-26 footer-bg">
       <div className="relative z-10 max-w-6xl mx-auto w-[95%] md:w-[80%] text-center px-4">
         <div className="hidden md:block">
           <Image

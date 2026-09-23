@@ -19,7 +19,6 @@ const PROTECTED_SEGMENTS = new Set([
   "profile",
   "update-profile",
   "change-password",
-  "delete-account",
 ]);
 
 function isLocale(value: string): value is Locale {
