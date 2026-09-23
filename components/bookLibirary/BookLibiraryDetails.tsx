@@ -9,6 +9,7 @@ import LangUseParams from "@/translate/LangUseParams";
 import TranslateHook from "@/translate/TranslateHook";
 import { Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import pdfIcon from "@/public/assets/images/pdf.svg";
 
 const DefaultBookCover = "/assets/images/card.jpg";
 
@@ -28,8 +29,7 @@ const BookLibiraryDetails = ({
   const dir = locale === "ar" ? "rtl" : "ltr";
   const booksHref = `/${lang}/book-library/${categoryId}`;
 
-  const idNum =
-    bookId && !Number.isNaN(Number(bookId)) ? Number(bookId) : NaN;
+  const idNum = bookId && !Number.isNaN(Number(bookId)) ? Number(bookId) : NaN;
   const skip = Number.isNaN(idNum);
 
   const {
@@ -46,11 +46,7 @@ const BookLibiraryDetails = ({
   );
 
   const showSkeleton =
-    !translate ||
-    skip ||
-    isUninitialized ||
-    isLoading ||
-    (isFetching && !book);
+    !translate || skip || isUninitialized || isLoading || (isFetching && !book);
 
   const hero = (
     <SmallHeroSection
@@ -156,9 +152,9 @@ const BookLibiraryDetails = ({
                   </p>
                 ) : null}
 
-                <h3 className="mt-8 mb-4 text-base font-semibold mainColor">
+                {/* <h3 className="mt-8 mb-4 text-base font-semibold mainColor">
                   {bl?.chaptersTitle}
-                </h3>
+                </h3> */}
 
                 <ul className="divide-y divide-gray-100">
                   {book.attachments.map((attachment) => (
@@ -172,14 +168,14 @@ const BookLibiraryDetails = ({
                           transition-colors hover:bg-gray-50/80"
                         aria-label={`${bl?.downloadChapter}: ${attachment.name}`}
                       >
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-xs descriptionColor">
-                            {attachment.fileName}
+                        <div className="min-w-0 flex items-center gap-2">
+                          <span>
+                            <Image src={pdfIcon} alt="PDF" width={20} height={20} />
                           </span>
                           <span className="mt-0.5 block text-sm font-semibold mainColor">
                             {attachment.name}
                           </span>
-                        </span>
+                        </div>
                         <span
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full
                             border border-gray-200 text-[#9F854E]"
