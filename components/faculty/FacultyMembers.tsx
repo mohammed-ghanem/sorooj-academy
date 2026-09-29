@@ -26,7 +26,12 @@ const FacultyMembers = () => {
 
   const locale = lang === "en" ? "en" : "ar";
 
-  const { data: doctors = [], isLoading, isError, refetch } = useGetDoctorsQuery(
+  const {
+    data: doctors = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useGetDoctorsQuery(
     { lang: lang ?? "ar" },
     { refetchOnMountOrArgChange: true },
   );
@@ -64,7 +69,10 @@ const FacultyMembers = () => {
             role="alert"
           >
             <p className="mb-4 font-semibold">
-              {f?.error ?? (locale === "ar" ? "تعذر تحميل البيانات." : "Could not load faculty.")}
+              {f?.error ??
+                (locale === "ar"
+                  ? "تعذر تحميل البيانات."
+                  : "Could not load faculty.")}
             </p>
             <button
               type="button"
@@ -125,7 +133,7 @@ const FacultyMembers = () => {
                   <div className="absolute top-0 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
                     <div
                       className="relative size-26 overflow-hidden rounded-full border-[3px] border-[#d1c1a7]
-                     bg-white shadow-md md:size-29.5 md:border-4"
+                     bg-white shadow-md md:size-29.5 md:border-4 mb-3"
                     >
                       <Image
                         src={m.imageSrc}
@@ -136,8 +144,10 @@ const FacultyMembers = () => {
                       />
                     </div>
                     <p
-                      className="absolute right-0 -bottom-4 left-0 rounded-full border border-solid border-[#ffffff]
-                     bg-[#faf7f3b3] px-2 py-2 text-xs font-medium text-[#707070] [box-shadow:1px_1px_10px_#cbcbcb] shadow-md md:text-sm"
+                      className="absolute -bottom-4 left-1/2 w-50 -translate-x-1/2 rounded-full border 
+                      border-solid border-[#ffffff]
+                     bg-[#faf7f3b3] px-2 py-2 text-center text-xs font-medium text-[#707070] 
+                     [box-shadow:1px_1px_10px_#cbcbcb] shadow-md md:text-sm"
                     >
                       {m.department}
                     </p>
@@ -147,7 +157,8 @@ const FacultyMembers = () => {
                     <h3 className="text-lg font-semibold leading-snug text-black md:text-xl">
                       {m.name}
                     </h3>
-                    <p className="max-w-65 text-sm leading-relaxed text-[#707070] md:max-w-none md:text-[15px]">
+                    <p className="max-w-65 text-sm leading-relaxed text-[#707070] md:max-w-none
+                     md:text-[15px] font-semibold">
                       {m.title}
                     </p>
                   </div>
@@ -167,59 +178,92 @@ const FacultyMembers = () => {
         <DialogContent
           showCloseButton={false}
           dir={locale === "ar" ? "rtl" : "ltr"}
-          className="max-h-[min(85vh,calc(100%-2rem))] max-w-[calc(100%-2rem)] gap-5 overflow-y-auto rounded-3xl
-           border border-[#E8E0D4]/60 bg-[#ffffff] p-6 shadow-lg sm:max-w-xl sm:p-8 "
+          className="flex max-h-[min(88vh,calc(100%-2rem))] w-full max-w-[calc(100%-2rem)] flex-col gap-0
+           overflow-hidden rounded-3xl border border-[#E8E0D4]/60 bg-white p-0 shadow-xl sm:max-w-3xl"
         >
           {selected && (
             <>
-              <DialogTitle className="text-center text-lg font-semibold mainColor sm:text-xl">
-                {f?.bioModalTitle}
-              </DialogTitle>
+              <div className="relative shrink-0 bg-[linear-gradient(180deg,#faf7f2_0%,#f3ede3_100%)] px-6 pt-6 pb-6 sm:px-10 sm:pt-8">
+                <DialogTitle className="mb-5 text-center text-sm font-semibold scoundColor sm:text-base">
+                  {f?.bioModalTitle}
+                </DialogTitle>
 
-              <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-                <div
-                  className="relative size-22 shrink-0 overflow-hidden rounded-full border-[3px] 
-                border-[#d1c1a7] bg-white shadow-sm sm:size-25"
-                >
-                  <Image
-                    src={selected.imageSrc}
-                    alt={selected.name}
-                    fill
-                    className="object-cover"
-                    sizes="100px"
-                  />
+                <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:gap-6 sm:text-start">
+                  <div
+                    className="relative size-24 shrink-0 overflow-hidden rounded-full border-[3px]
+                    border-[#d1c1a7] bg-white shadow-md sm:size-28"
+                  >
+                    <Image
+                      src={selected.imageSrc}
+                      alt={selected.name}
+                      fill
+                      className="object-cover"
+                      sizes="112px"
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xl font-bold leading-snug text-black sm:text-2xl">
+                      {selected.name}
+                    </p>
+                    {selected.title ? (
+                      <p className="mt-1.5 text-sm leading-relaxed text-[#707070] sm:text-[15px]">
+                        {selected.title}
+                      </p>
+                    ) : null}
+                    {selected.department ? (
+                      <span
+                        className="mt-3 inline-block rounded-full border border-white bg-white/80 px-3 py-1.5
+                        text-xs font-medium text-[#707070] shadow-[1px_1px_10px_#e0d6c6] sm:text-sm"
+                      >
+                        {selected.department}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1 text-center md:text-start">
-                  <p className="text-lg font-bold leading-snug text-black sm:text-xl">
-                    {selected.name}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-[#707070] sm:text-[15px] ">
-                    {selected.title}
-                  </p>
-                </div>
-                <span
-                  className="shrink-0 rounded-full border border-solid border-[#ffffff] bg-[#faf7f3b3] px-3 
-                  py-1.5 text-xs font-medium text-[#707070] [box-shadow:1px_1px_10px_#cbcbcb] shadow-sm sm:text-sm"
-                >
-                  {selected.department}
-                </span>
               </div>
 
-              <DialogDescription
-                className="text-center md:text-start text-base leading-relaxed font-normal text-black
-               sm:text-[15px]"
-              >
-                {selected.description || "—"}
+              <DialogDescription asChild>
+                <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 text-start text-[15px] leading-8 text-[#3f3f3f] sm:px-10 sm:py-8">
+                  {(() => {
+                    const points = (selected.description ?? "")
+                      .split(/\s*•\s*|\n+/)
+                      .map((line) => line.trim())
+                      .filter(Boolean);
+
+                    if (points.length === 0) return <p>—</p>;
+                    if (points.length === 1) return <p>{points[0]}</p>;
+
+                    return (
+                      <>
+                        <p className="mb-4">{points[0]}</p>
+                        <ul className="space-y-2.5">
+                          {points.slice(1).map((point, index) => (
+                            <li key={index} className="flex gap-3">
+                              <span
+                                className="mt-3 size-1.5 shrink-0 rounded-full bg-[#9F854E]"
+                                aria-hidden
+                              />
+                              <span>{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    );
+                  })()}
+                </div>
               </DialogDescription>
             </>
           )}
 
           <DialogClose asChild>
             <button
-              className="absolute top-4 right-4 rtl:right-auto rtl:left-4 p-0.5
-                hover:bg-gray-200 transition border rounded-full"
+              type="button"
+              aria-label={locale === "ar" ? "إغلاق" : "Close"}
+              className="absolute top-4 right-4 z-10 flex size-8 items-center justify-center rounded-full border border-[#e8e0d4]
+                bg-white/90 text-[#707070] transition hover:bg-white rtl:right-auto rtl:left-4"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           </DialogClose>
         </DialogContent>
