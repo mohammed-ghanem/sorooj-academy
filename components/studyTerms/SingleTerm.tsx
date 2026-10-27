@@ -30,6 +30,15 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import card from "@/public/assets/images/card.jpg";
 
+/** Max characters shown for a subject title on the term cards. */
+const SUBJECT_TITLE_MAX_LENGTH = 36;
+
+function truncateWithEllipsis(text: string, maxLength: number): string {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength).trimEnd()} ...`;
+}
+
 function getSubjectActionLabel(
   progressPercent: number,
   labels: {
@@ -271,7 +280,7 @@ const SingleTerm = () => {
                 {t?.emptySubjects}
               </p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 {subjects.map((subject) => {
                   const progressPercent = subject.lessonsProgress.percentage;
                   const isStarting = startingSubjectId === subject.id;
@@ -303,8 +312,14 @@ const SingleTerm = () => {
 
                       <div className="mx-4">
                         <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-md font-semibold mainColor">
-                            {subject.title}
+                          <h2
+                            className="text-md font-semibold mainColor"
+                            title={subject.title}
+                          >
+                            {truncateWithEllipsis(
+                              subject.title,
+                              SUBJECT_TITLE_MAX_LENGTH,
+                            )}
                           </h2>
                         </div>
 

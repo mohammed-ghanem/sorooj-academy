@@ -1212,9 +1212,14 @@ const SingleLessonContent = () => {
 
       <div>
         {activeLessonTab === "description" ? (
-          <p className="py-4 px-4 bg-white rounded-lg">
-            {lessonDescription || t?.noDescription}
-          </p>
+          lessonDescription ? (
+            <div
+              className="rounded-lg bg-white px-4 py-4 text-sm leading-relaxed descriptionColor md:text-base [&_a]:text-[#9F854E] [&_a]:underline [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-semibold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:font-semibold [&_li]:mb-1 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:ps-6 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:ps-6"
+              dangerouslySetInnerHTML={{ __html: lessonDescription }}
+            />
+          ) : (
+            <p className="rounded-lg bg-white px-4 py-4">{t?.noDescription}</p>
+          )
         ) : attachments.length === 0 ? (
           <p className="py-4 px-4 bg-white rounded-lg text-sm text-gray-600">
             {t?.noFiles}
