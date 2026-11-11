@@ -24,7 +24,7 @@ const AboutSection = () => {
         width={aboutImage.width}
         height={aboutImage.height}
         sizes="(max-width: 768px) 100vw, 1000px"
-        className="relative z-0 mx-auto max-h-107.5 w-auto object-cover"/>
+        className="relative z-0 mx-auto max-h-107.5  object-cover w-full"/>
         </div>
      </div>
     </section>
