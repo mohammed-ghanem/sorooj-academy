@@ -361,14 +361,14 @@ export default function ExamModal({
                 <Button
                   type="button"
                   variant="outline"
-                  className="order-4 border-gray-300 bg-white lg:order-none"
+                  className="order-4 border-gray-300 bg-white lg:order-0"
                   onClick={handleClose}
                 >
                   {labels.cancel}
                 </Button>
                 <Button
                   type="button"
-                  className="order-3 bkMainColor text-white hover:opacity-90 lg:order-none"
+                  className="order-3 bkMainColor text-white hover:opacity-90 lg:order-0"
                   disabled={!allAnswered}
                   onClick={() => setPhase("confirm")}
                 >
@@ -436,7 +436,7 @@ function ExamQuestionPanel({
             placeholder={labels.articlePlaceholder}
             dir={rtl ? "rtl" : "ltr"}
             className={cn(
-              "min-h-[160px] resize-y border-[#ece7db] bg-white text-base leading-relaxed focus-visible:ring-[#9F854E]",
+              "min-h-40 resize-y border-[#ece7db] bg-white text-base leading-relaxed focus-visible:ring-[#9F854E]",
               rtl ? "text-right" : "text-left",
             )}
           />
