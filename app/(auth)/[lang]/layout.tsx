@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Providers } from "@/providers/Providers";
-import HtmlLang from "@/components/i18n/HtmlLang";
+import HtmlLang from "@/i18n/HtmlLang";
 
 export default async function AuthLayout({
   children,

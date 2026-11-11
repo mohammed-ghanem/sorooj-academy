@@ -289,8 +289,9 @@
       "code": "Verification Code",
       "placeholder": "Enter verification code consisting of 4 digits",
       "processing": "Processing Verification",
-      "verify": " verify",
-      "resendCode": " Resend Verification Code"
+      "verify": "Verify",
+      "resendCode": "Resend verification code",
+      "spamHint": "If you did not receive the code, please check your spam or junk folder."
     },
     "resetPassword": {
       "title": "Reset Your",

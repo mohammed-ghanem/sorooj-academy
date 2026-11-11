@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { Providers } from "../../providers/Providers";
 import Header from "@/components/header/Header";
 import Footer from "@/components/footer/Footer";
-import HtmlLang from "@/components/i18n/HtmlLang";
+import HtmlLang from "@/i18n/HtmlLang";
 import {
   SITE_DESCRIPTION,
   SITE_DESCRIPTION_EN,

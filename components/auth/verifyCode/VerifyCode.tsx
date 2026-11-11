@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 
-const RESEND_COOLDOWN_SEC = 60;
+const RESEND_COOLDOWN_SEC = 60; 
 
 const VerifyCode = () => {
   const lang = LangUseParams();
@@ -45,7 +45,29 @@ const VerifyCode = () => {
     return () => clearInterval(t);
   }, [secondsLeft]);
 
+  const fillOtpFromText = (raw: string, startIndex = 0) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 4 - startIndex);
+    if (!digits) return;
+
+    setOtp((prev) => {
+      const next = [...prev];
+      for (let i = 0; i < digits.length; i += 1) {
+        next[startIndex + i] = digits[i];
+      }
+      return next;
+    });
+
+    const nextIndex = Math.min(startIndex + digits.length, 3);
+    setActiveIndex(nextIndex);
+    inputsRef.current[nextIndex]?.focus();
+  };
+
   const handleChange = (value: string, index: number) => {
+    if (value.length > 1) {
+      fillOtpFromText(value, index);
+      return;
+    }
+
     if (!/^\d?$/.test(value)) return;
 
     const newOtp = [...otp];
@@ -56,6 +78,14 @@ const VerifyCode = () => {
       setActiveIndex(index + 1);
       inputsRef.current[index + 1]?.focus();
     }
+  };
+
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
+    e.preventDefault();
+    fillOtpFromText(e.clipboardData.getData("text"), index);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
@@ -206,8 +236,10 @@ const VerifyCode = () => {
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleChange(e.target.value, index)}
+                  onPaste={(e) => handlePaste(e, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   onFocus={() => setActiveIndex(index)}
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
                   className={`w-14 h-14 text-center text-medium font-semibold rounded-md 
                   border outline-none transition
                     ${
@@ -220,6 +252,10 @@ const VerifyCode = () => {
               ))}
             </div>
 
+            <p className="mt-3 text-center text-xs font-medium text-red-600">
+              {v?.spamHint}
+            </p>
+
             {/* button */}
             <button
               type="button"
@@ -231,21 +267,29 @@ const VerifyCode = () => {
             </button>
 
             {/* resend */}
-            <p className="text-center text-sm mt-3">
-              {v?.resendText}{" "}
+            <div className="mt-4 flex justify-center">
               <button
                 type="button"
                 onClick={handleResend}
                 disabled={!canResend}
-                className="mainColor font-semibold border-b border-regal-blue disabled:cursor-not-allowed disabled:opacity-50 disabled:border-transparent"
+                className={`inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition ${
+                  canResend
+                    ? "cursor-pointer border-[#9F854E] text-[#9F854E] hover:bg-[#9F854E]/10"
+                    : "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400"
+                }`}
               >
-                {isResending
-                  ? v?.processing
-                  : secondsLeft > 0
-                    ? `(${secondsLeft}s)`
-                    : v?.resendCode}
+                {isResending ? (
+                  v?.processing
+                ) : (
+                  <>
+                    <span>{v?.resendCode}</span>
+                    {secondsLeft > 0 ? (
+                      <span className="tabular-nums">({secondsLeft}s)</span>
+                    ) : null}
+                  </>
+                )}
               </button>
-            </p>
+            </div>
           </div>
         </div>
       </HeroAuth>

@@ -321,46 +321,10 @@ export default function ExamModal({
               />
             ) : null}
 
-            <div className="flex flex-col gap-3 border-t border-[#efe7d8] bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <div className="flex flex-col gap-3 border-t border-[#efe7d8] bg-white px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
               <Button
                 type="button"
-                variant="outline"
-                className="order-2 border-gray-300 bg-white sm:order-1"
-                disabled={activeIndex === 0}
-                onClick={() =>
-                  setActiveIndex((index) => Math.max(index - 1, 0))
-                }
-              >
-                {rtl ? (
-                  <ChevronRight className="h-4 w-4" aria-hidden />
-                ) : (
-                  <ChevronLeft className="h-4 w-4" aria-hidden />
-                )}
-                <span className="ms-1">{labels.previous}</span>
-              </Button>
-
-              <div className="order-1 flex flex-col gap-2 sm:order-2 sm:flex-row">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-gray-300 bg-white"
-                  onClick={handleClose}
-                >
-                  {labels.cancel}
-                </Button>
-                <Button
-                  type="button"
-                  className="bkMainColor text-white hover:opacity-90"
-                  disabled={!allAnswered}
-                  onClick={() => setPhase("confirm")}
-                >
-                  {labels.finish}
-                </Button>
-              </div>
-
-              <Button
-                type="button"
-                className="order-3 scoundBgColor text-white hover:opacity-90"
+                className="order-1 scoundBgColor text-white hover:opacity-90 lg:order-3"
                 disabled={activeIndex >= totalQuestions - 1}
                 onClick={() =>
                   setActiveIndex((index) =>
@@ -375,6 +339,42 @@ export default function ExamModal({
                   <ChevronRight className="h-4 w-4" aria-hidden />
                 )}
               </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="order-2 border-gray-300 bg-white lg:order-1"
+                disabled={activeIndex === 0}
+                onClick={() =>
+                  setActiveIndex((index) => Math.max(index - 1, 0))
+                }
+              >
+                {rtl ? (
+                  <ChevronRight className="h-4 w-4" aria-hidden />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" aria-hidden />
+                )}
+                <span className="ms-1">{labels.previous}</span>
+              </Button>
+
+              <div className="contents lg:order-2 lg:flex lg:flex-row lg:gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="order-4 border-gray-300 bg-white lg:order-none"
+                  onClick={handleClose}
+                >
+                  {labels.cancel}
+                </Button>
+                <Button
+                  type="button"
+                  className="order-3 bkMainColor text-white hover:opacity-90 lg:order-none"
+                  disabled={!allAnswered}
+                  onClick={() => setPhase("confirm")}
+                >
+                  {labels.finish}
+                </Button>
+              </div>
             </div>
           </>
         )}
