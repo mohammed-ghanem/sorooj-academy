@@ -308,6 +308,14 @@ const SingleLessonContent = () => {
     ? (pathsT?.backToSubjects ?? t?.back)
     : t?.back;
 
+  const handleTitleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push(subjectContentHref);
+  };
+
   const idNum = useMemo(
     () =>
       lessonId && !Number.isNaN(Number(lessonId)) ? Number(lessonId) : NaN,
@@ -1376,12 +1384,19 @@ const SingleLessonContent = () => {
           {/* Subject title + instructor */}
           <div className="bg-white container w-[90%] mx-auto py-10">
             <div className="flex items-center gap-2">
-              <Image
-                src="/assets/images/arrowLeft.svg"
-                alt=""
-                width={20}
-                height={20}
-              />
+              <button
+                type="button"
+                onClick={handleTitleBack}
+                className="inline-flex shrink-0 cursor-pointer rounded-md p-1 hover:bg-[#f6f1e8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9F854E]/40"
+                aria-label={backLabel}
+              >
+                <Image
+                  src="/assets/images/arrowLeft.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                />
+              </button>
               <h1 className="text-xl font-semibold mainColor">
                 {lesson.subjectName ?? lesson.title}
               </h1>
