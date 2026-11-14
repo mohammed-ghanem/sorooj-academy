@@ -329,22 +329,24 @@ const SingleTerm = () => {
                           </p>
                         ) : null}
 
-                        <div className="flex flex-wrap justify-center sm:justify-start gap-1 mb-1">
-                          <div className="flex items-center">
-                            <Image
-                              src={lessons.src}
-                              width={20}
-                              height={20}
-                              alt=""
-                            />
-                            <p className="me-2 ms-2 descriptionColor">
-                              <span className="me-0.5">
-                                {subject.lessonsCount}
-                              </span>
-                              <span>{t?.lessonUnit}</span>
-                            </p>
+                        {subject.lessonsCount > 0 ? (
+                          <div className="flex flex-wrap justify-center sm:justify-start gap-1 mb-1">
+                            <div className="flex items-center">
+                              <Image
+                                src={lessons.src}
+                                width={20}
+                                height={20}
+                                alt=""
+                              />
+                              <p className="me-2 ms-2 descriptionColor">
+                                <span className="me-0.5">
+                                  {subject.lessonsCount}
+                                </span>
+                                <span>{t?.lessonUnit}</span>
+                              </p>
+                            </div>
                           </div>
-                        </div>
+                        ) : null}
 
                         <div className="mt-auto pt-4">
                           <div className="flex items-center justify-between">
