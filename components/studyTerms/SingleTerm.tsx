@@ -296,11 +296,11 @@ const SingleTerm = () => {
                         handleSubjectCardKeyDown(event, subject)
                       }
                       className={cn(
-                        "bg-white rounded-xl sm:rounded-2xl shadow-r-sm text-center sm:text-right overflow-hidden pb-4 cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9F854E]/40",
+                        "flex h-full flex-col bg-white rounded-xl sm:rounded-2xl shadow-r-sm text-center sm:text-right overflow-hidden pb-4 cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9F854E]/40",
                         isStarting && "opacity-80",
                       )}
                     >
-                      <div className="mb-4 w-full h-40 relative">
+                      <div className="mb-4 w-full h-40 relative shrink-0">
                         <Image
                           src={subject.cover || card.src}
                           fill
@@ -310,7 +310,7 @@ const SingleTerm = () => {
                         />
                       </div>
 
-                      <div className="mx-4">
+                      <div className="mx-4 flex flex-1 flex-col">
                         <div className="flex items-center justify-between mb-4">
                           <h2
                             className="text-md font-semibold mainColor"
@@ -346,37 +346,39 @@ const SingleTerm = () => {
                           </div>
                         </div>
 
-                        <div className="m2-4 flex items-center justify-between">
-                          <p className="text-sm mainColor font-semibold">
-                            {t?.progress}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {progressPercent}%
-                          </p>
-                        </div>
+                        <div className="mt-auto pt-4">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm mainColor font-semibold">
+                              {t?.progress}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {progressPercent}%
+                            </p>
+                          </div>
 
-                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mt-2">
-                          <div
-                            className="h-full scoundBgColor transition-all duration-500"
-                            style={{ width: `${progressPercent}%` }}
-                          />
-                        </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mt-2">
+                            <div
+                              className="h-full scoundBgColor transition-all duration-500"
+                              style={{ width: `${progressPercent}%` }}
+                            />
+                          </div>
 
-                        <hr className="my-2" />
+                          <hr className="my-2" />
 
-                        <div className="text-end mt-4">
-                          <span
-                            className={cn(
-                              "inline-flex items-center justify-center gap-2 text-sm text-white bkMainColor px-4 py-2 rounded-md font-medium",
-                              isStarting && "opacity-90",
-                            )}
-                          >
-                            {getSubjectActionLabel(progressPercent, {
-                              startStudy: t?.startStudy,
-                              continueStudy: t?.continueStudy,
-                              reviewStudy: t?.reviewStudy,
-                            })}
-                          </span>
+                          <div className="mt-4 flex justify-end">
+                            <span
+                              className={cn(
+                                "inline-flex items-center justify-center gap-2 text-sm text-white bkMainColor px-4 py-2 rounded-md font-medium",
+                                isStarting && "opacity-90",
+                              )}
+                            >
+                              {getSubjectActionLabel(progressPercent, {
+                                startStudy: t?.startStudy,
+                                continueStudy: t?.continueStudy,
+                                reviewStudy: t?.reviewStudy,
+                              })}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
