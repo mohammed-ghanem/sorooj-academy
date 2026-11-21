@@ -256,6 +256,7 @@ function UpdateProfile() {
               country="kw"
               value={mobile}
               onChange={(value) => setMobile(value)}
+              excludeCountries={["il"]}
               inputClass="!w-full !h-10"
               containerClass="!w-full"
             />

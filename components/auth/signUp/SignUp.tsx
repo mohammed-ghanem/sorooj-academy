@@ -409,7 +409,8 @@ const SignUp = () => {
                       country={"kw"}
                       value={phone}
                       onChange={(phone) => setPhone(phone)}
-                      inputClass="mt-1 block w-full pl-[52px] pr-[0] py-[20px] border 
+                      excludeCountries={["il"]}
+                      inputClass="mt-1 block w-full pl-[52px] pr-[0] py-[20px] border
                        border-gray-300 rounded-md shadow-sm bg-[#faf9f6]!"
                       containerClass="mt-1"
                       buttonClass="!border-gray-300"
