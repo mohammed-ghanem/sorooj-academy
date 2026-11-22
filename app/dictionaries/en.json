@@ -258,7 +258,10 @@
       "videoFallback": "Video",
       "videoNumber": "Video {{n}}",
       "nextLessonLockedTitle": "Next lesson unavailable",
-      "nextLessonLockedMessage": "You must pass the current lesson's final exam before moving to the next lesson"
+      "nextLessonLockedMessage": "You must pass the current lesson's final exam before moving to the next lesson",
+      "subjectFinalExamCardTitle": "Subject final exam",
+      "subjectFinalExamCardHint": "You finished the subject lessons — you can now take the final exam",
+      "startSubjectExam": "Start exam"
     },
     "selectAuth": {
       "title": "Login",

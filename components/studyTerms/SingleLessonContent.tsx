@@ -8,7 +8,10 @@ import ExamModal from "@/components/modals/ExamModal";
 import type { ExamModalLabels, ExamModalResult } from "@/components/modals/ExamModal";
 import InfoModal from "@/components/modals/InfoModal";
 import { useStudentApiReady } from "@/hooks/useStudentApiReady";
-import { extractApiErrorMessage } from "@/lib/studentProgram/programErrors";
+import {
+  extractApiErrorMessage,
+  readRtkQueryHttpStatus,
+} from "@/lib/studentProgram/programErrors";
 import {
   buildExamAccessBlockedDescription,
   extractApiSuccessMessage,
@@ -25,10 +28,14 @@ import {
 import {
   isExamLoadUnderReviewError,
   resolveLessonFinalExamUiState,
+  resolveSubjectFinalExamUiState,
   type LessonFinalExamPhase,
 } from "@/lib/studyLesson/lessonExamState";
 import type { StudyLessonDetail } from "@/types/studyLessonDetail";
-import type { StudyLesson } from "@/types/studySubjectDetail";
+import type {
+  StudyLesson,
+  StudySubjectDetail,
+} from "@/types/studySubjectDetail";
 import {
   useCompleteVideoWatchMutation,
   useGetLessonDetailQuery,
@@ -39,15 +46,25 @@ import {
   useSubmitLessonExamMutation,
   useSubmitVideoExamMutation,
 } from "@/store/lessons/lessonsApi";
-import { useGetSubjectDetailQuery } from "@/store/subjects/subjectsApi";
+import {
+  useGetSubjectDetailQuery,
+  useLazyGetSubjectExamQuery,
+  useRequestSubjectExamAttemptMutation,
+  useSubmitSubjectExamMutation,
+} from "@/store/subjects/subjectsApi";
 import {
   scientificTracksApi,
   useGetScientificSubjectDetailQuery,
+  useLazyGetScientificSubjectExamQuery,
+  useSubmitScientificSubjectExamMutation,
 } from "@/store/scientificTracks/scientificTracksApi";
 import { studyTermsApi } from "@/store/studyTerms/studyTermsApi";
 import { store } from "@/store/store";
 import type { StudyLessonVideo } from "@/types/studyLessonDetail";
-import type { ScientificTrackLesson } from "@/types/scientificTrack";
+import type {
+  ScientificTrackLesson,
+  ScientificTrackSubjectDetail,
+} from "@/types/scientificTrack";
 import type { VideoExam, VideoExamAnswerPayload } from "@/types/studyVideoExam";
 import TranslateHook from "@/translate/TranslateHook";
 import LangUseParams from "@/translate/LangUseParams";
@@ -64,6 +81,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import subjectExamIcon from "@/public/assets/images/subjectExam.svg";
 const DefaultDoctorAvatar = "/assets/images/doctor.svg";
 
 /** Max characters shown for lesson title/summary on next-lesson card. */
@@ -260,11 +278,41 @@ function getLessonFinalExamButtonLabel(
   }
 }
 
+function getSubjectExamActionLabel(
+  phase: LessonFinalExamPhase,
+  labels: {
+    startSubjectExam?: string;
+    subjectExam?: string;
+    subjectExamPassed?: string;
+    examRetake?: string;
+    subjectExamUnderReview?: string;
+  },
+): string {
+  switch (phase) {
+    case "passed":
+      return labels.subjectExamPassed ?? labels.subjectExam ?? "";
+    case "retake":
+      return labels.examRetake ?? labels.subjectExam ?? "";
+    case "under_review":
+      return labels.subjectExamUnderReview ?? "";
+    case "not_started":
+    default:
+      return labels.startSubjectExam ?? labels.subjectExam ?? "";
+  }
+}
+
 function lessonExamStatusToastMessage(
   lesson: StudyLessonDetail,
   fallback: string,
 ): string {
   return lesson.lessonExamBackendMessage?.trim() || fallback;
+}
+
+function subjectExamStatusToastMessage(
+  subject: StudySubjectDetail | ScientificTrackSubjectDetail,
+  fallback: string,
+): string {
+  return subject.subjectExamBackendMessage?.trim() || fallback;
 }
 
 /** Extra Tailwind classes for the final lesson exam button only — edit here. */
@@ -273,6 +321,7 @@ const LESSON_FINAL_EXAM_BUTTON_CLASS = "font-semibold text-[15px]";
 type ExamContext =
   | { kind: "video"; videoId: number }
   | { kind: "lesson" }
+  | { kind: "subject" }
   | null;
 
 const SingleLessonContent = () => {
@@ -386,6 +435,20 @@ const SingleLessonContent = () => {
     });
   }, [lesson]);
 
+  const currentSubject = isScientificTrack ? scientificSubject : studySubject;
+
+  const subjectFinalExamUi = useMemo(() => {
+    if (!currentSubject) return null;
+    return resolveSubjectFinalExamUiState({
+      hasActiveLessonExam: currentSubject.hasActiveSubjectExam,
+      lessonExamAttemptStatus: currentSubject.subjectExamAttemptStatus,
+      studentHasPassedLessonExam: currentSubject.studentHasPassedSubjectExam,
+      canAccessLessonExam: currentSubject.canAccessSubjectExam,
+      canStartNewLessonExam: currentSubject.canStartNewSubjectExam,
+      canRetakeLessonExam: currentSubject.canRetakeSubjectExam,
+    });
+  }, [currentSubject]);
+
   const lessonAccessDenied = useMemo(() => {
     if (!lessonError || typeof lessonError !== "object") return false;
     return (lessonError as { status?: number }).status === 403;
@@ -431,7 +494,10 @@ const SingleLessonContent = () => {
   const [examAttemptRequestPending, setExamAttemptRequestPending] =
     useState(false);
   const [examAttemptRequestTarget, setExamAttemptRequestTarget] = useState<
-    null | { kind: "lesson" } | { kind: "video"; videoId: number }
+    | null
+    | { kind: "lesson" }
+    | { kind: "video"; videoId: number }
+    | { kind: "subject" }
   >(null);
 
   const [completeVideoWatch, { isLoading: completingWatch }] =
@@ -440,19 +506,43 @@ const SingleLessonContent = () => {
     useLazyGetVideoExamQuery();
   const [fetchLessonExam, { isFetching: loadingLessonExam }] =
     useLazyGetLessonExamQuery();
+  const [fetchStudySubjectExam, { isFetching: loadingStudySubjectExam }] =
+    useLazyGetSubjectExamQuery();
+  const [
+    fetchScientificSubjectExam,
+    { isFetching: loadingScientificSubjectExam },
+  ] = useLazyGetScientificSubjectExamQuery();
   const [submitVideoExam, { isLoading: submittingVideoExam }] =
     useSubmitVideoExamMutation();
   const [submitLessonExam, { isLoading: submittingLessonExam }] =
     useSubmitLessonExamMutation();
+  const [submitStudySubjectExam, { isLoading: submittingStudySubjectExam }] =
+    useSubmitSubjectExamMutation();
+  const [
+    submitScientificSubjectExam,
+    { isLoading: submittingScientificSubjectExam },
+  ] = useSubmitScientificSubjectExamMutation();
   const [requestLessonExamAttempt, { isLoading: requestingLessonAttempt }] =
     useRequestLessonExamAttemptMutation();
   const [requestVideoExamAttempt, { isLoading: requestingVideoAttempt }] =
     useRequestVideoExamAttemptMutation();
+  const [requestSubjectExamAttempt, { isLoading: requestingSubjectAttempt }] =
+    useRequestSubjectExamAttemptMutation();
 
-  const loadingExam = loadingVideoExam || loadingLessonExam;
-  const submittingExam = submittingVideoExam || submittingLessonExam;
+  const loadingExam =
+    loadingVideoExam ||
+    loadingLessonExam ||
+    loadingStudySubjectExam ||
+    loadingScientificSubjectExam;
+  const submittingExam =
+    submittingVideoExam ||
+    submittingLessonExam ||
+    submittingStudySubjectExam ||
+    submittingScientificSubjectExam;
   const requestingExamAttempt =
-    requestingLessonAttempt || requestingVideoAttempt;
+    requestingLessonAttempt ||
+    requestingVideoAttempt ||
+    requestingSubjectAttempt;
 
   const dir = lang === "en" ? "ltr" : "rtl";
 
@@ -476,6 +566,13 @@ const SingleLessonContent = () => {
       }
     }
   }, [lesson]);
+
+  useEffect(() => {
+    if (!currentSubject) return;
+    if (currentSubject.canStartNewSubjectExam) {
+      clearExamAttemptRequestPending("subject", currentSubject.id);
+    }
+  }, [currentSubject]);
 
   // Resume on the current unlocked step (not always the first video).
   useEffect(() => {
@@ -531,6 +628,16 @@ const SingleLessonContent = () => {
       : null;
   const nextLessonIndex =
     currentLessonIndex >= 0 ? currentLessonIndex + 1 : -1;
+  const isLastLesson =
+    currentLessonIndex >= 0 &&
+    currentLessonIndex === subjectLessons.length - 1;
+  const showSubjectFinalExamCard = Boolean(
+    isLastLesson &&
+      currentSubject?.hasActiveSubjectExam &&
+      subjectFinalExamUi &&
+      subjectFinalExamUi.phase !== "hidden",
+  );
+  const subjectExamEntityId = isScientificTrack ? subjectIdNum : contentIdNum;
   const canOpenNextLesson = Boolean(lesson?.studentHasPassedLessonExam);
 
   const refreshSubjectLessons = useCallback(async () => {
@@ -600,6 +707,50 @@ const SingleLessonContent = () => {
     router,
     subjectId,
     termId,
+  ]);
+
+  const loadSubjectExam = useCallback(async () => {
+    if (Number.isNaN(subjectExamEntityId)) {
+      throw new Error("Invalid subject id");
+    }
+
+    if (isScientificTrack) {
+      return fetchScientificSubjectExam({
+        subjectId: subjectExamEntityId,
+        lang: lang ?? "ar",
+      }).unwrap();
+    }
+
+    return fetchStudySubjectExam({
+      subjectId: subjectExamEntityId,
+      lang: lang ?? "ar",
+    }).unwrap();
+  }, [
+    fetchScientificSubjectExam,
+    fetchStudySubjectExam,
+    isScientificTrack,
+    lang,
+    subjectExamEntityId,
+  ]);
+
+  const refreshCurrentSubject = useCallback(async () => {
+    if (isScientificTrack) {
+      if (!skipScientificSubjectQuery) {
+        return refetchScientificSubject();
+      }
+      return { data: undefined };
+    }
+
+    if (!skipStudySubjectQuery) {
+      return refetchStudySubject();
+    }
+    return { data: undefined };
+  }, [
+    isScientificTrack,
+    refetchScientificSubject,
+    refetchStudySubject,
+    skipScientificSubjectQuery,
+    skipStudySubjectQuery,
   ]);
 
   const selectNextUnlockedVideo = useCallback(
@@ -723,6 +874,8 @@ const SingleLessonContent = () => {
     const markPending = () => {
       if (examAttemptRequestTarget.kind === "lesson") {
         markExamAttemptRequestPending("lesson", idNum);
+      } else if (examAttemptRequestTarget.kind === "subject") {
+        markExamAttemptRequestPending("subject", subjectExamEntityId);
       } else {
         markExamAttemptRequestPending(
           "video",
@@ -736,6 +889,14 @@ const SingleLessonContent = () => {
       if (examAttemptRequestTarget.kind === "lesson") {
         const res = await requestLessonExamAttempt({
           lessonId: idNum,
+          lang: lang ?? "ar",
+        }).unwrap();
+        toast.success(
+          extractApiSuccessMessage(res, t?.examAttemptRequestSuccess ?? ""),
+        );
+      } else if (examAttemptRequestTarget.kind === "subject") {
+        const res = await requestSubjectExamAttempt({
+          subjectId: subjectExamEntityId,
           lang: lang ?? "ar",
         }).unwrap();
         toast.success(
@@ -828,6 +989,111 @@ const SingleLessonContent = () => {
     );
   };
 
+  const showSubjectExamStatusToast = () => {
+    if (!currentSubject || !subjectFinalExamUi?.showToastOnClick) return;
+
+    if (subjectFinalExamUi.toastVariant === "success") {
+      toast.success(
+        subjectExamStatusToastMessage(
+          currentSubject,
+          subjectT?.subjectExamAlreadyPassed ?? "",
+        ),
+      );
+      return;
+    }
+
+    toast.info(
+      subjectExamStatusToastMessage(
+        currentSubject,
+        subjectT?.subjectExamUnderReviewToast ?? "",
+      ),
+    );
+  };
+
+  const showSubjectExamAccessBlockedNotice = async (
+    attemptsExhausted: boolean,
+  ) => {
+    if (!currentSubject || Number.isNaN(subjectExamEntityId)) return;
+
+    const message = await fetchExamBlockedBackendMessage(
+      () => loadSubjectExam(),
+      {
+        cachedMessage: currentSubject.subjectExamBackendMessage,
+        fallbackMessage: subjectT?.subjectExamLoadError ?? "",
+      },
+    );
+
+    if (attemptsExhausted) {
+      setExamAccessBlockedDescription(
+        buildExamAccessBlockedDescription(
+          message,
+          t?.examAttemptsBlockedContactHint,
+        ),
+      );
+      setExamAttemptRequestTarget({ kind: "subject" });
+      setExamAccessBlockedShowRequest(true);
+      setExamAttemptRequestPending(
+        isExamAttemptRequestPending("subject", subjectExamEntityId),
+      );
+      setExamAccessBlockedOpen(true);
+      return;
+    }
+
+    toast.info(message);
+  };
+
+  const handleOpenSubjectExam = async () => {
+    if (!currentSubject || !subjectFinalExamUi) return;
+
+    if (subjectFinalExamUi.showToastOnClick) {
+      showSubjectExamStatusToast();
+      return;
+    }
+
+    setExamData(null);
+    setExamResult(null);
+
+    if (!subjectFinalExamUi.canOpenExam) {
+      await showSubjectExamAccessBlockedNotice(
+        subjectFinalExamUi.attemptsExhausted,
+      );
+      return;
+    }
+
+    setExamContext({ kind: "subject" });
+    setExamOpen(true);
+
+    try {
+      const exam = await loadSubjectExam();
+      setExamData(exam);
+    } catch (err) {
+      resetExamState();
+      if (isExamLoadUnderReviewError(err)) {
+        void refreshCurrentSubject();
+        toast.info(
+          extractApiErrorMessage(
+            err,
+            subjectT?.subjectExamUnderReviewToast ?? "",
+          ),
+        );
+        return;
+      }
+      if (isExamAttemptsExhaustedError(err)) {
+        await showSubjectExamAccessBlockedNotice(true);
+        return;
+      }
+      const message = extractApiErrorMessage(
+        err,
+        subjectT?.subjectExamLoadError ?? "",
+      );
+      if (readRtkQueryHttpStatus(err) === 403) {
+        toast.info(message);
+        return;
+      }
+      toast.error(message);
+    }
+  };
+
   const handleOpenLessonExam = async () => {
     if (!lesson || !lessonFinalExamUi) return;
 
@@ -875,6 +1141,70 @@ const SingleLessonContent = () => {
     if (!examContext) return;
 
     try {
+      if (examContext.kind === "subject") {
+        const apiResult = isScientificTrack
+          ? await submitScientificSubjectExam({
+              subjectId: subjectExamEntityId,
+              lang: lang ?? "ar",
+              answers,
+            }).unwrap()
+          : await submitStudySubjectExam({
+              subjectId: subjectExamEntityId,
+              lang: lang ?? "ar",
+              answers,
+            }).unwrap();
+
+        const { data: refreshedSubject } = await refreshCurrentSubject();
+        await refreshSubjectLessons();
+
+        if (
+          apiResult.pendingReview ||
+          refreshedSubject?.isSubjectExamUnderReview
+        ) {
+          setExamResult({
+            passed: false,
+            pendingReview: true,
+            message:
+              apiResult.message ||
+              (t?.lessonExamUnderReviewDescription ?? ""),
+          });
+          return;
+        }
+
+        const passed =
+          apiResult.passed ||
+          refreshedSubject?.studentHasPassedSubjectExam === true;
+
+        const attemptsExhausted =
+          !passed &&
+          (refreshedSubject?.canStartNewSubjectExam === false ||
+            isExamAttemptsExhaustedMessage(apiResult.message));
+
+        if (attemptsExhausted) {
+          resetExamState();
+          setExamAccessBlockedDescription(
+            buildExamAccessBlockedDescription(
+              apiResult.message?.trim() ||
+                (subjectT?.subjectExamLoadError ?? ""),
+              t?.examAttemptsBlockedContactHint,
+            ),
+          );
+          setExamAttemptRequestTarget({ kind: "subject" });
+          setExamAccessBlockedShowRequest(true);
+          setExamAccessBlockedOpen(true);
+          return;
+        }
+
+        setExamResult({
+          passed,
+          score: apiResult.score,
+          message: passed
+            ? apiResult.message || (subjectT?.subjectExamPassed ?? "")
+            : apiResult.message,
+        });
+        return;
+      }
+
       const apiResult =
         examContext.kind === "video"
           ? await submitVideoExam({
@@ -983,15 +1313,15 @@ const SingleLessonContent = () => {
       }
     } catch (err) {
       if (isExamAttemptsExhaustedError(err)) {
-        const videoId =
-          examContext.kind === "video" ? examContext.videoId : undefined;
         resetExamState();
-        if (videoId != null) {
+        if (examContext.kind === "video") {
           await showVideoExamAccessBlockedNotice(
-            { id: videoId } as StudyLessonVideo,
+            { id: examContext.videoId } as StudyLessonVideo,
             true,
             err,
           );
+        } else if (examContext.kind === "subject") {
+          await showSubjectExamAccessBlockedNotice(true);
         } else {
           await showLessonExamAccessBlockedNotice(true);
         }
@@ -1002,7 +1332,9 @@ const SingleLessonContent = () => {
           err,
           examContext.kind === "video"
             ? (t?.videoExamSubmitError ?? "")
-            : (t?.lessonExamSubmitError ?? ""),
+            : examContext.kind === "subject"
+              ? (subjectT?.subjectExamSubmitError ?? "")
+              : (t?.lessonExamSubmitError ?? ""),
         ),
       );
     }
@@ -1024,6 +1356,12 @@ const SingleLessonContent = () => {
         return;
       }
 
+      if (examContext.kind === "subject") {
+        const exam = await loadSubjectExam();
+        setExamData(exam);
+        return;
+      }
+
       const exam = await fetchLessonExam({
         lessonId: idNum,
         lang: lang ?? "ar",
@@ -1031,34 +1369,49 @@ const SingleLessonContent = () => {
       setExamData(exam);
     } catch (err) {
       if (isExamLoadUnderReviewError(err)) {
-        void refetch();
-        toast.info(t?.lessonExamUnderReviewToast ?? "");
+        if (examContext.kind === "subject") {
+          void refreshCurrentSubject();
+          toast.info(subjectT?.subjectExamUnderReviewToast ?? "");
+        } else {
+          void refetch();
+          toast.info(t?.lessonExamUnderReviewToast ?? "");
+        }
         return;
       }
       if (isExamAttemptsExhaustedError(err)) {
-        const videoId =
-          examContext.kind === "video" ? examContext.videoId : undefined;
         resetExamState();
-        if (videoId != null) {
-          const video = lesson?.videos.find((item) => item.id === videoId);
+        if (examContext.kind === "video") {
+          const video = lesson?.videos.find(
+            (item) => item.id === examContext.videoId,
+          );
           await showVideoExamAccessBlockedNotice(
-            video ?? ({ id: videoId } as StudyLessonVideo),
+            video ?? ({ id: examContext.videoId } as StudyLessonVideo),
             true,
             err,
           );
+        } else if (examContext.kind === "subject") {
+          await showSubjectExamAccessBlockedNotice(true);
         } else {
           await showLessonExamAccessBlockedNotice(true);
         }
         return;
       }
-      toast.error(
-        getApiErrorMessage(
-          err,
-          examContext.kind === "video"
-            ? (t?.videoExamLoadError ?? "")
+      const message = getApiErrorMessage(
+        err,
+        examContext.kind === "video"
+          ? (t?.videoExamLoadError ?? "")
+          : examContext.kind === "subject"
+            ? (subjectT?.subjectExamLoadError ?? "")
             : (t?.lessonExamLoadError ?? ""),
-        ),
       );
+      if (
+        examContext.kind === "subject" &&
+        readRtkQueryHttpStatus(err) === 403
+      ) {
+        toast.info(message);
+        return;
+      }
+      toast.error(message);
     }
   };
 
@@ -1084,22 +1437,29 @@ const SingleLessonContent = () => {
       confirmSubmit: t?.examConfirmSubmit ?? "",
       backToReview: t?.examBackToReview ?? "",
       passedTitle:
-        examContext?.kind === "lesson"
-          ? (t?.lessonFinalExamPassed ?? "")
-          : (t?.videoExamPassed ?? ""),
+        examContext?.kind === "subject"
+          ? (subjectT?.subjectExamPassed ?? "")
+          : examContext?.kind === "lesson"
+            ? (t?.lessonFinalExamPassed ?? "")
+            : (t?.videoExamPassed ?? ""),
       failedTitle:
-        examContext?.kind === "lesson"
-          ? (t?.lessonExamFailed ?? "")
-          : (t?.videoExamFailed ?? ""),
+        examContext?.kind === "subject"
+          ? (subjectT?.subjectExamFailed ?? "")
+          : examContext?.kind === "lesson"
+            ? (t?.lessonExamFailed ?? "")
+            : (t?.videoExamFailed ?? ""),
       failedDescription: t?.examFailDescription ?? "",
       pendingReviewTitle: t?.lessonExamUnderReviewTitle ?? "",
       pendingReviewDescription: t?.lessonExamUnderReviewDescription ?? "",
       retake: t?.examRetake ?? "",
-      backToLesson: t?.examBackToLesson ?? "",
+      backToLesson:
+        examContext?.kind === "subject"
+          ? (subjectT?.subjectExamBack ?? t?.examBackToLesson ?? "")
+          : (t?.examBackToLesson ?? ""),
       close: t?.videoExamClose ?? "",
       cancel: t?.videoExamCancel ?? "",
     }),
-    [examContext?.kind, t],
+    [examContext?.kind, subjectT, t],
   );
 
   const renderVideoExamButton = (
@@ -1613,7 +1973,161 @@ const SingleLessonContent = () => {
                 </div>
                 ) : null}
 
-                {nextLesson && nextLessonIndex >= 0 ? (
+                {showSubjectFinalExamCard && subjectFinalExamUi ? (
+                  <div className="border-t border-[#efe7d8] mt-8 bg-white px-4 py-4">
+                    {(() => {
+                      const phase = subjectFinalExamUi.phase;
+                      const passed = phase === "passed";
+                      const underReview = phase === "under_review";
+                      const subjectTitle =
+                        currentSubject?.title || subjectT?.untitled || "";
+                      const subjectTitleDisplay = truncateWithEllipsis(
+                        subjectTitle,
+                        LESSON_CARD_SUMMARY_MAX_LENGTH,
+                      );
+                      const statusLabel = passed
+                        ? (subjectT?.completed ?? t?.completed)
+                        : underReview
+                          ? (subjectT?.subjectExamUnderReview ??
+                            t?.lessonExamUnderReview)
+                          : (subjectT?.notCompleted ?? t?.notCompleted);
+                      const actionLabel = getSubjectExamActionLabel(phase, {
+                        startSubjectExam: t?.startSubjectExam,
+                        subjectExam: subjectT?.subjectExam,
+                        subjectExamPassed: subjectT?.subjectExamPassed,
+                        examRetake: t?.examRetake,
+                        subjectExamUnderReview:
+                          subjectT?.subjectExamUnderReview,
+                      });
+                      const cardHint = subjectFinalExamUi.canOpenExam
+                        ? (t?.subjectFinalExamCardHint ?? subjectTitleDisplay)
+                        : subjectTitleDisplay;
+
+                      return (
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${t?.subjectFinalExamCardTitle ?? subjectT?.subjectExam ?? ""} — ${actionLabel}`}
+                          onClick={() => void handleOpenSubjectExam()}
+                          onKeyDown={(event) =>
+                            handleLessonCardKeyDown(event, () => {
+                              void handleOpenSubjectExam();
+                            })
+                          }
+                          className={cn(
+                            "rounded-xl border p-4 shadow-sm transition-shadow cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9f854e]/40",
+                            passed
+                              ? "border-emerald-100 bg-emerald-50/80"
+                              : underReview
+                                ? "border-gray-200 bg-gray-50"
+                                : "border-[#efe7d8] bg-[linear-gradient(180deg,#fffdf9_0%,#faf7f1_100%)]",
+                            !subjectFinalExamUi.canOpenExam &&
+                              !subjectFinalExamUi.showToastOnClick &&
+                              "opacity-80",
+                          )}
+                        >
+                          <div className="mb-2 flex items-center justify-between">
+                            <div className="relative">
+                              <span
+                                className={cn(
+                                  "inline-flex items-center justify-center rounded-md px-3 py-2",
+                                  passed
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : underReview
+                                      ? "bg-gray-200 text-gray-600"
+                                      : "scoundColor bg-[#efece7]",
+                                )}
+                              >
+                                <Image
+                                  src={subjectExamIcon.src}
+                                  alt=""
+                                  width={22}
+                                  height={22}
+                                  className={cn(
+                                    "shrink-0",
+                                    (passed || underReview) &&
+                                      "brightness-0 opacity-70",
+                                  )}
+                                />
+                              </span>
+                              <div className="pointer-events-none absolute right-0 bottom-0">
+                                <Image
+                                  src="/assets/images/lineCard.svg"
+                                  alt=""
+                                  width={100}
+                                  height={100}
+                                  className="h-full w-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-5">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <h4 className="text-sm font-semibold text-gray-500">
+                                {t?.subjectFinalExamCardTitle ??
+                                  subjectT?.subjectExam}
+                              </h4>
+                              <span
+                                className={cn(
+                                  "rounded-3xl px-3 py-1.5 text-[10px]",
+                                  passed
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : underReview
+                                      ? "bg-gray-200 text-gray-600"
+                                      : "scoundColor bg-[#efece7]",
+                                )}
+                              >
+                                {statusLabel}
+                              </span>
+                            </div>
+                            <h5
+                              className="mb-3 text-xs text-gray-500"
+                              title={
+                                !subjectFinalExamUi.canOpenExam &&
+                                subjectTitle.length >
+                                  LESSON_CARD_SUMMARY_MAX_LENGTH
+                                  ? subjectTitle
+                                  : undefined
+                              }
+                            >
+                              {cardHint}
+                            </h5>
+                          </div>
+                          <hr className="my-3" />
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center border-b border-[#9f854e] pb-2">
+                              <span className="rounded-md text-xs font-semibold scoundColor">
+                                {actionLabel}
+                              </span>
+                              <span>
+                                <Image
+                                  src="/assets/images/arrow-left.svg"
+                                  width={20}
+                                  height={20}
+                                  alt=""
+                                />
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <Image
+                                src="/assets/images/exam.svg"
+                                width={16}
+                                height={16}
+                                alt=""
+                              />
+                              <p className="mx-1 descriptionColor">
+                                <span className="me-0.5">
+                                  {currentSubject?.lessonExamsCount ?? 1}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : nextLesson && nextLessonIndex >= 0 ? (
                   <div className="border-t border-[#efe7d8] mt-8 bg-white px-4 py-4">
                     {(() => {
                       const completed = isLessonFullyCompleted(nextLesson);
@@ -1655,11 +2169,11 @@ const SingleLessonContent = () => {
                             !canOpenNextLesson && "opacity-80",
                           )}
                         >
-                          <div className="flex items-center justify-between mb-2 ">
+                          <div className="mb-2 flex items-center justify-between">
                             <div className="relative">
                               <span
                                 className={cn(
-                                  "text-xl py-2 px-3 font-semibold rounded-md",
+                                  "rounded-md px-3 py-2 text-xl font-semibold",
                                   completed
                                     ? "bg-emerald-100 text-emerald-700"
                                     : "scoundColor bg-[#efece7]",
@@ -1676,11 +2190,11 @@ const SingleLessonContent = () => {
                                   className="h-full w-full"
                                 />
                               </div>
-                  </div>
-                </div>
+                            </div>
+                          </div>
 
                           <div className="mt-5">
-                            <div className="flex justify-between items-center mb-2">
+                            <div className="mb-2 flex items-center justify-between">
                               <h4 className="text-sm font-semibold text-gray-500">
                                 {nextLesson.lessonNumber ||
                                   formatLessonLabel(
@@ -1690,7 +2204,7 @@ const SingleLessonContent = () => {
                               </h4>
                               <span
                                 className={cn(
-                                  "text-[10px] px-3 py-1.5 rounded-3xl",
+                                  "rounded-3xl px-3 py-1.5 text-[10px]",
                                   completed
                                     ? "bg-emerald-100 text-emerald-700"
                                     : "scoundColor bg-[#efece7]",
@@ -1700,7 +2214,7 @@ const SingleLessonContent = () => {
                               </span>
                             </div>
                             <h5
-                              className="text-xs text-gray-500 mb-3"
+                              className="mb-3 text-xs text-gray-500"
                               title={
                                 lessonSummary.length >
                                 LESSON_CARD_SUMMARY_MAX_LENGTH
@@ -1712,27 +2226,27 @@ const SingleLessonContent = () => {
                             </h5>
                           </div>
                           <hr className="my-3" />
-                          <div className="flex justify-between items-center">
+                          <div className="flex items-center justify-between">
                             <div className="flex items-center border-b border-[#9f854e] pb-2">
-                              <span className="text-xs font-semibold scoundColor rounded-md">
+                              <span className="rounded-md text-xs font-semibold scoundColor">
                                 {actionLabel}
                               </span>
                               <span>
-                            <Image
+                                <Image
                                   src="/assets/images/arrow-left.svg"
                                   width={20}
                                   height={20}
-                              alt=""
-                            />
+                                  alt=""
+                                />
                               </span>
-                          </div>
-                            <div className="flex flex-wrap justify-center sm:justify-start gap-1">
+                            </div>
+                            <div className="flex flex-wrap justify-center gap-1 sm:justify-start">
                               <div className="flex items-center">
-                              <Image
+                                <Image
                                   src="/assets/images/video-circle.svg"
                                   width={16}
                                   height={16}
-                                alt=""
+                                  alt=""
                                 />
                                 <p className="mx-1 descriptionColor">
                                   <span className="me-0.5">
@@ -1741,24 +2255,24 @@ const SingleLessonContent = () => {
                                 </p>
                               </div>
                               <div className="flex items-center">
-                              <Image
+                                <Image
                                   src="/assets/images/doc.svg"
                                   width={16}
                                   height={16}
-                                alt=""
-                              />
+                                  alt=""
+                                />
                                 <p className="mx-1 descriptionColor">
                                   <span className="me-0.5">
                                     {nextLesson.attachmentsCount}
-                            </span>
+                                  </span>
                                 </p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                    </div>
-                </div>
-              </div>
                       );
                     })()}
-            </div>
+                  </div>
                 ) : null}
           </div>
 

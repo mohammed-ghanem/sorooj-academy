@@ -254,7 +254,10 @@
       "videoFallback": "فيديو",
       "videoNumber": "فيديو {{n}}",
       "nextLessonLockedTitle": "الدرس التالي غير متاح",
-      "nextLessonLockedMessage": "يجب اجتياز الاختبار النهائي للدرس الحالي للانتقال إلى الدرس التالي"
+      "nextLessonLockedMessage": "يجب اجتياز الاختبار النهائي للدرس الحالي للانتقال إلى الدرس التالي",
+      "subjectFinalExamCardTitle": "الاختبار النهائي للمادة",
+      "subjectFinalExamCardHint": "أكملت دروس المادة — يمكنك الآن أداء الاختبار النهائي",
+      "startSubjectExam": "ابدأ الاختبار"
     },
     "selectAuth": {
       "title": "تسجيل ",
