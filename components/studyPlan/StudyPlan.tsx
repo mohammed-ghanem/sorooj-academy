@@ -81,7 +81,7 @@ const StudyPlan = () => {
     <div dir={dir}>
       <StudyPlanDate studyPlan={studyPlan} locale={locale} labels={labels} />
       <StudyPlanMap />
-      <StudyCertificate />
+      {/* <StudyCertificate /> */}
     </div>
   );
 };
